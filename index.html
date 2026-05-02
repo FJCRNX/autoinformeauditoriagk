@@ -235,6 +235,18 @@ textarea{resize:vertical;min-height:68px;}
         </div>
         <div class="brow">
           <button class="btn bp" onclick="usarDemoData()">🧪 Usar datos de ejemplo (ABR 2026)</button>
+          <button class="btn bgo" onclick="descargarPlantilla()">📥 Descargar Plantilla Excel</button>
+        </div>
+        <!-- PLANTILLA INFO -->
+        <div style="margin-top:14px;background:#0B1629;border-radius:8px;padding:16px 18px;display:flex;align-items:flex-start;gap:14px;">
+          <div style="font-size:28px;flex-shrink:0;">📋</div>
+          <div>
+            <div style="color:#C9960C;font-weight:700;font-size:12px;margin-bottom:5px;">PLANTILLA OFICIAL — KURODA AUDITORÍA</div>
+            <div style="color:#aaa;font-size:11px;line-height:1.7;">
+              El botón <strong style="color:#fff;">"Descargar Plantilla Excel"</strong> genera un archivo <strong style="color:#fff;">.xlsx</strong> listo para usar con las <strong style="color:#fff;">10 hojas</strong> requeridas, cada una con sus encabezados exactos, filas de ejemplo comentadas y la hoja <strong style="color:#fff;">Ejecutivo</strong> con los ítems de evaluación precargados.<br>
+              Solo agrega tus datos en cada hoja y carga el archivo aquí.
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -326,6 +338,7 @@ textarea{resize:vertical;min-height:68px;}
       <button class="btn bpu" onclick="exportEvalHTML()">📊 Informe de Evaluación</button>
       <div style="margin-left:auto;display:flex;gap:8px;">
         <button class="btn bgo" onclick="guardarInforme()">💾 Guardar Informe</button>
+        <button class="btn" style="background:#2E7D32;color:#fff;" onclick="descargarPlantilla()">📥 Plantilla Excel</button>
         <button class="btn bgr" onclick="resetAll()">🔄 Nuevo</button>
       </div>
     </div>
@@ -1388,6 +1401,199 @@ function usarDemoData(){
   goStep(2);
 }
 
+// ===================== DESCARGA DE PLANTILLA =====================
+function descargarPlantilla(){
+  const wb = XLSX.utils.book_new();
+
+  // ── HOJA 1: Ejecutivo ──────────────────────────────────────────
+  const ejecutivoData = [
+    ['ÁREA / SECCIÓN','ÍTEM AUDITADO','DESCRIPCIÓN / OBSERVACIONES','% PESO','VALOR (1=Cumple / 0=No cumple)'],
+    // EFECTIVO
+    ['EFECTIVO','Arqueo punto de venta.','Verificar que el arqueo cuadre con el sistema.',0.090909,1],
+    ['EFECTIVO','Utilizan el formato de retiros.','Revisar que se use el formato oficial de retiros.',0.090909,1],
+    ['EFECTIVO','Realizan retiros de efectivo frecuentes.','Confirmar que los retiros se realizan durante el día.',0.090909,1],
+    ['EFECTIVO','Retiros firmados por Cajera y verificados por Administrativo o Gerencia.','Verificar firmas en los formatos.',0.090909,1],
+    ['EFECTIVO','Toman dinero de la venta o fondo de monedas para gastos.','0 = No se toman; 1 = Se respeta el proceso.',0.090909,1],
+    ['EFECTIVO','Resguarda el fondo para feria en caja de seguridad.','Verificar ubicación del fondo.',0.090909,1],
+    ['EFECTIVO','Se entrega y recolecta el fondo para cambio a la Cajera por Gerente.','Confirmar proceso diario.',0.090909,1],
+    ['EFECTIVO','Bolso de mano fuera del área de Cajas.','Verificar que no haya bolsos en el área de caja.',0.090909,1],
+    ['EFECTIVO','Puerta cerrada y con seguro.','Confirmar que el área de caja esté asegurada.',0.090909,1],
+    ['EFECTIVO','Todas las facturas se encuentran compensadas.','Verificar en FBL5N que no haya facturas pendientes.',0.090909,1],
+    ['EFECTIVO','Facturas de contados con material entregado pendientes de pago.','Revisar documentos pendientes de compensar.',0.090909,1],
+    // FONDOS
+    ['FONDO(S) REVOLVENTE Y CAJA CHICA','Fondo revolvente (Pesos y/o dólares).','Verificar existencia y monto del fondo.',0.142857,1],
+    ['FONDO(S) REVOLVENTE Y CAJA CHICA','Fondo revolvente para cajero automático.','Verificar fondo para ATM si aplica.',0.142857,1],
+    ['FONDO(S) REVOLVENTE Y CAJA CHICA','Fondo de caja chica.','Verificar monto y documentación.',0.142857,1],
+    ['FONDO(S) REVOLVENTE Y CAJA CHICA','Comprobantes autorizados por Gerencia.','Revisar firmas de autorización.',0.142857,1],
+    ['FONDO(S) REVOLVENTE Y CAJA CHICA','Comprobantes describen quien y para qué es el gasto.','Verificar descripción en comprobantes.',0.142857,1],
+    ['FONDO(S) REVOLVENTE Y CAJA CHICA','Formato de reembolso autorizado por Gerencia.','Confirmar que el formato esté firmado.',0.142857,1],
+    ['FONDO(S) REVOLVENTE Y CAJA CHICA','Vales para gastos pendientes comprobar (Mayores a 3 días).','Revisar vales abiertos.',0.142857,1],
+    // ENTRADAS Y SALIDAS
+    ['ENTRADAS Y SALIDAS','Tienen mercancía en resguardo mayor a 30 días.','0 = Sin vencidos (OK); 1 = Hay vencidos (falla)',0,0],
+    ['ENTRADAS Y SALIDAS','Cliente firma de conformidad el formato.','Verificar firmas en formatos de resguardo.',0.0625,1],
+    ['ENTRADAS Y SALIDAS','Salidas pendientes de contabilizar del Centro de Resguardo.','Revisar en MB52.',0.0625,1],
+    ['ENTRADAS Y SALIDAS','Con salida en tienda suministradora pendientes de entradas.','Verificar traspasos pendientes de entrada.',0.0625,1],
+    ['ENTRADAS Y SALIDAS','Solicitudes coinciden con pendientes en picking.','0 = No coinciden (falla); 1 = Coinciden (OK)',0,0],
+    ['ENTRADAS Y SALIDAS','Solicitudes en backorder (sin salida).','Verificar solicitudes sin surtir en CEDIS.',0.0625,1],
+    ['ENTRADAS Y SALIDAS','Salida firmada de recibido.','Verificar firmas en traspasos suministrados.',0.0625,1],
+    ['ENTRADAS Y SALIDAS','Material pendiente de salida.','Revisar material que aún no ha salido del almacén.',0.0625,1],
+    ['ENTRADAS Y SALIDAS','Material con salida apartado e identificado.','Verificar identificación de material apartado.',0.0625,1],
+    ['ENTRADAS Y SALIDAS','Entradas pendientes de realizar.','Revisar entradas faltantes en el sistema.',0.0625,1],
+    ['ENTRADAS Y SALIDAS','Órdenes de compra con antigüedad mayor a un mes.','Verificar en ZREPORDCOMP.',0,1],
+    ['ENTRADAS Y SALIDAS','Picking JUSTIFICADOS (ZVA05VTAS).','0 = No justificados; 1 = Justificados.',0,0],
+    ['ENTRADAS Y SALIDAS','Picking pendientes de contabilizar (VL06P).','Verificar entregas pendientes en VL06P.',0.0625,1],
+    ['ENTRADAS Y SALIDAS','Picking pendientes de contabilizar (VL06G).','Verificar salidas pendientes en VL06G.',0,0],
+    ['ENTRADAS Y SALIDAS','Cliente firma el Picking o Tablet de recibido.','Confirmar firma del cliente en entrega.',0.0625,1],
+    ['ENTRADAS Y SALIDAS','Solicitud de pedido pendiente de realizar en sistema.','Revisar pedidos no ingresados al sistema.',0.0625,1],
+    ['ENTRADAS Y SALIDAS','Solicitud de pedido pendiente de devolución a proveedor.','Verificar devoluciones sin MIRO en ZREPCOMPRAS.',0.0625,1],
+    // VEHÍCULOS
+    ['VEHÍCULOS','Licencia, póliza de seguro y tarjeta de circulación (Vigentes).','Verificar vigencia de documentos del vehículo.',1,1],
+  ];
+  const wsEjecutivo = XLSX.utils.aoa_to_sheet(ejecutivoData);
+  wsEjecutivo['!cols'] = [{wch:30},{wch:55},{wch:50},{wch:12},{wch:28}];
+  // Header row style note via comment on A1
+  XLSX.utils.book_append_sheet(wb, wsEjecutivo, 'Ejecutivo');
+
+  // ── HOJA 2: RESGUARDOS ─────────────────────────────────────────
+  const resguardosData = [
+    ['FECHA_ENTRADA','DIAS_ANTIGUEDAD','REFERENCIA','FOLIO_RESGUARDO','CANTIDAD'],
+    // Ejemplo (borrar antes de usar):
+    ['01/04/2026','15','500997005 10','4901274894','6'],
+    ['15/03/2026','32','500979399 40','4901310055','3.5'],
+  ];
+  const wsResguardos = XLSX.utils.aoa_to_sheet(resguardosData);
+  wsResguardos['!cols'] = [{wch:16},{wch:18},{wch:22},{wch:18},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, wsResguardos, 'RESGUARDOS');
+
+  // ── HOJA 3: TRASPASOS_SOL ──────────────────────────────────────
+  const trSolData = [
+    ['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR','CANT_PEND_ENTRAR','COSTO_PEND_ENTRAR'],
+    ['13/04/2026','KC00','8000081004','16','284','10385.93','1','371.54'],
+    ['14/04/2026','KC17','8000081224','1','0','0','5','1197.38'],
+  ];
+  const wsTrSol = XLSX.utils.aoa_to_sheet(trSolData);
+  wsTrSol['!cols'] = [{wch:14},{wch:13},{wch:16},{wch:15},{wch:18},{wch:20},{wch:18},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, wsTrSol, 'TRASPASOS_SOL');
+
+  // ── HOJA 4: TRASPASOS_DET ─────────────────────────────────────
+  const trDetData = [
+    ['DESCRIPCION','CANT_SIN_SURTIR','COSTO_SIN_SURTIR','EXISTENCIA_CEDIS','INDICADOR'],
+    ['ADHESIVO C-PEGA BLANCO 20K NIASA','10','831.90','0','A'],
+    ['PANEL LED RED 12W SOBREPONER LUZ DE DIA','60','3192.00','3','A'],
+    ['COLADERA ALUMINIO REJ CUADR 8"','2','221.28','2','B'],
+  ];
+  const wsTrDet = XLSX.utils.aoa_to_sheet(trDetData);
+  wsTrDet['!cols'] = [{wch:45},{wch:18},{wch:18},{wch:18},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, wsTrDet, 'TRASPASOS_DET');
+
+  // ── HOJA 5: TRASPASOS_SUM ─────────────────────────────────────
+  const trSumData = [
+    ['FECHA','TRASPASO','SOLICITANTE','CODIGO','DESCRIPCION','CANTIDAD','COSTO'],
+    ['17/03/2026','8000076638','KC00','ITS130','INT TERMOMAGNETICO 1X30 SIEMENS','2','215.82'],
+  ];
+  const wsTrSum = XLSX.utils.aoa_to_sheet(trSumData);
+  wsTrSum['!cols'] = [{wch:14},{wch:16},{wch:14},{wch:14},{wch:45},{wch:12},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, wsTrSum, 'TRASPASOS_SUM');
+
+  // ── HOJA 6: PEDIDOS ────────────────────────────────────────────
+  const pedidosData = [
+    ['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND'],
+    ['DEBLOC DE SINALOA','07/04/2026','4000026526','4','10','10143.74'],
+    ['URREA HERRAMIENTAS PROFESIONALES','06/04/2026','4000026385','84','868','35796.46'],
+  ];
+  const wsPedidos = XLSX.utils.aoa_to_sheet(pedidosData);
+  wsPedidos['!cols'] = [{wch:38},{wch:14},{wch:16},{wch:14},{wch:16},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, wsPedidos, 'PEDIDOS');
+
+  // ── HOJA 7: PICKINGS ───────────────────────────────────────────
+  const pickingsData = [
+    ['FECHA','NUMERO_PEDIDO','COD_MATERIAL','CANTIDAD','COSTO_PEND'],
+    ['15/04/2026','501166644','CCQOD2','1','47'],
+    ['15/04/2026','501167994','TE180','1','525'],
+    ['11/04/2026','501158205','711-473C','1','101'],
+  ];
+  const wsPickings = XLSX.utils.aoa_to_sheet(pickingsData);
+  wsPickings['!cols'] = [{wch:14},{wch:16},{wch:16},{wch:12},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, wsPickings, 'PICKINGS');
+
+  // ── HOJA 8: VL06P ─────────────────────────────────────────────
+  const vl06pData = [
+    ['NOMBRE_CLIENTE','FECHA_ENTREGA','ENTREGA','CREADO_POR'],
+    ['MARIA GUADALUPE MERCADO','07/04/2026','801250068','CRMOST1'],
+    ['HECTOR LUKE','15/04/2026','801274744','CRALMACEN'],
+    ['CESAR ALFONSO RODRIGUEZ FAVELA','15/04/2026','801274888','CRCAJA'],
+  ];
+  const wsVL06P = XLSX.utils.aoa_to_sheet(vl06pData);
+  wsVL06P['!cols'] = [{wch:38},{wch:16},{wch:14},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, wsVL06P, 'VL06P');
+
+  // ── HOJA 9: VL06G ─────────────────────────────────────────────
+  const vl06gData = [
+    ['NOMBRE_CLIENTE','FECHA_ENTREGA','ENTREGA','CREADO_POR'],
+    ['JOVANNI','15/04/2026','900047452','CRGERENTE'],
+    ['SILVIA ESTRADA','15/04/2026','900047550','CRGERENTE'],
+    ['ALEJANDRA CARDENAS','15/04/2026','900047581','CRGERENTE'],
+  ];
+  const wsVL06G = XLSX.utils.aoa_to_sheet(vl06gData);
+  wsVL06G['!cols'] = [{wch:38},{wch:16},{wch:14},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, wsVL06G, 'VL06G');
+
+  // ── HOJA 10: DEVOLUCIONES ─────────────────────────────────────
+  const devolucionesData = [
+    ['PROVEEDOR','ORDEN_COMPRA','FECHA_OC','SALIDA','FECHA_SALIDA','DIAS_ANTIGUEDAD','IMPORTE'],
+    ['FLUIDMASTER SALES MEXICO','4000026690','09/04/2026','5000131544','13/04/2026','3','-33.47'],
+  ];
+  const wsDevs = XLSX.utils.aoa_to_sheet(devolucionesData);
+  wsDevs['!cols'] = [{wch:35},{wch:16},{wch:14},{wch:16},{wch:14},{wch:18},{wch:14}];
+  XLSX.utils.book_append_sheet(wb, wsDevs, 'DEVOLUCIONES');
+
+  // ── HOJA 11: INSTRUCCIONES ────────────────────────────────────
+  const instrData = [
+    ['KURODA S.A. DE C.V. — PLANTILLA DE AUDITORÍA INTERNA','','','',''],
+    ['','','','',''],
+    ['INSTRUCCIONES DE USO','','','',''],
+    ['','','','',''],
+    ['1.','Esta plantilla contiene 10 hojas de datos + 1 hoja de evaluación (Ejecutivo).','','',''],
+    ['2.','NO cambies los nombres de las hojas ni los encabezados de columna.','','',''],
+    ['3.','Borra las filas de ejemplo antes de cargar tus datos reales.','','',''],
+    ['4.','Las fechas deben tener formato: DD/MM/YYYY (ej: 16/04/2026).','','',''],
+    ['5.','Los costos e importes deben ser valores numéricos sin símbolo de moneda.','','',''],
+    ['6.','En la hoja Ejecutivo: columna E = 1 si el ítem CUMPLE, 0 si NO CUMPLE.','','',''],
+    ['7.','Los pesos (columna D en Ejecutivo) ya están precargados; no los modifiques.','','',''],
+    ['','','','',''],
+    ['HOJAS INCLUIDAS','DESCRIPCIÓN','BLOQUE EN INFORME','',''],
+    ['Ejecutivo','Evaluación de cumplimiento por área auditada','Sección de Evaluación al final del informe','',''],
+    ['RESGUARDOS','Mercancía entregada a clientes pendiente de recibo oficial','Mercancía en Resguardo','',''],
+    ['TRASPASOS_SOL','Solicitudes de traspaso enviadas a CEDIS u otras sucursales','Traspasos Solicitados','',''],
+    ['TRASPASOS_DET','Detalle de artículos sin surtir en traspasos solicitados','Detalle de Traspasos','',''],
+    ['TRASPASOS_SUM','Traspasos recibidos de otras sucursales pendientes de cancelar','Traspasos Suministrados','',''],
+    ['PEDIDOS','Órdenes de compra abiertas con proveedores (backorder)','Pedidos a Proveedor','',''],
+    ['PICKINGS','Pedidos de venta pendientes de contabilizar en ZVA05VTAS','Pickings','',''],
+    ['VL06P','Entregas pendientes en el monitor de entregas (VL06P)','Monitor de Entregas VL06P','',''],
+    ['VL06G','Salidas (devoluciones) pendientes de contabilizar (VL06G)','Salidas Pendientes VL06G','',''],
+    ['DEVOLUCIONES','Devoluciones a proveedor sin nota de crédito (MIRO) aplicada','Devoluciones a Proveedor','',''],
+    ['','','','',''],
+    ['NOTAS IMPORTANTES','','','',''],
+    ['•','Los días de antigüedad en RESGUARDOS deben ser valores numéricos enteros.','','',''],
+    ['•','Los registros con DIAS_ANTIGUEDAD > 30 se resaltarán automáticamente en rojo.','','',''],
+    ['•','La columna COSTO_PEND en PICKINGS debe ser un número (sin $, sin comas).','','',''],
+    ['•','Versión del sistema: v3.0 | KURODA S.A. DE C.V. | Auditoría Interna','','',''],
+  ];
+  const wsInstr = XLSX.utils.aoa_to_sheet(instrData);
+  wsInstr['!cols'] = [{wch:6},{wch:70},{wch:40},{wch:10},{wch:10}];
+  // Merge cells for title
+  wsInstr['!merges'] = [
+    {s:{r:0,c:0},e:{r:0,c:4}},
+    {s:{r:2,c:0},e:{r:2,c:4}},
+    {s:{r:12,c:2},e:{r:12,c:4}},
+  ];
+  XLSX.utils.book_append_sheet(wb, wsInstr, 'INSTRUCCIONES');
+
+  // ── GENERAR Y DESCARGAR ────────────────────────────────────────
+  const fileName = `Plantilla_Auditoria_KURODA_${new Date().getFullYear()}.xlsx`;
+  XLSX.writeFile(wb, fileName);
+}
+
 function resetAll(){
   data={};evalData=[];htmlReporte=null;htmlEval=null;
   $('fileIn').value='';
@@ -1400,3 +1606,4 @@ updateCounters();
 </script>
 </body>
 </html>
+
