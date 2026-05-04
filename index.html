@@ -213,16 +213,16 @@ textarea{resize:vertical;min-height:68px;}
           <input type="file" id="fileIn" accept=".xlsx,.xls">
           <div class="drop-icon">📊</div>
           <div class="drop-lbl">Arrastra tu archivo Excel aquí</div>
-          <div class="drop-hint">Formatos: .xlsx / .xls — El archivo debe contener las hojas de datos + hoja "Ejecutivo"</div>
+          <div class="drop-hint">Formatos: .xlsx / .xls — Descarga la plantilla oficial para conocer las hojas requeridas.</div>
         </div>
         <div class="guide" style="margin-top:18px;">
           <h4>📋 HOJAS REQUERIDAS EN EL EXCEL</h4>
           <table class="gt">
             <thead><tr><th>Hoja</th><th>Columnas principales</th><th>Bloque del informe</th></tr></thead>
             <tbody>
-              <tr><td>Ejecutivo</td><td>Área, % cumplimiento, valor (0=falla, 1=OK)</td><td>Evaluación / Informe Ejecutivo</td></tr>
+              <tr><td style="color:#C9960C;font-weight:700;">ARQUEO_PV</td><td>DIFERENCIA_SOBRANTE, CAJERA_INCAPACITADA (S/N), FACTURAS_PENDIENTES (S/N), FONDO_CAMBIO_MONTO, FONDO_CAMBIO_RESULTADO, FONDO_CAJA_CHICA_MONTO, FONDO_CAJA_CHICA_RESULTADO, NOTAS_ADICIONALES</td><td>💵 Efectivo / Arqueos</td></tr>
               <tr><td>RESGUARDOS</td><td>FECHA_ENTRADA, DIAS_ANTIGUEDAD, REFERENCIA, FOLIO_RESGUARDO, CANTIDAD</td><td>Mercancía en Resguardo</td></tr>
-              <tr><td>TRASPASOS_SOL</td><td>FECHA, CENTRO_SUM, SOLICITUD, CANT_CODIGOS, CANT_PEND_SURTIR, COSTO_PEND_SURTIR...</td><td>Traspasos Solicitados</td></tr>
+              <tr><td>TRASPASOS_SOL</td><td>FECHA, CENTRO_SUM, SOLICITUD, CANT_CODIGOS, CANT_PEND_SURTIR, COSTO_PEND_SURTIR, CANT_PEND_ENTRAR, COSTO_PEND_ENTRAR</td><td>Traspasos Solicitados</td></tr>
               <tr><td>TRASPASOS_DET</td><td>DESCRIPCION, CANT_SIN_SURTIR, COSTO_SIN_SURTIR, EXISTENCIA_CEDIS, INDICADOR</td><td>Detalle Traspasos</td></tr>
               <tr><td>TRASPASOS_SUM</td><td>FECHA, TRASPASO, SOLICITANTE, CODIGO, DESCRIPCION, CANTIDAD, COSTO</td><td>Traspasos Suministrados</td></tr>
               <tr><td>PEDIDOS</td><td>PROVEEDOR, FECHA, ORDEN_COMPRA, CANT_CODIGOS, CANTIDAD_PEND, COSTO_PEND</td><td>Pedidos a Proveedor</td></tr>
@@ -232,20 +232,20 @@ textarea{resize:vertical;min-height:68px;}
               <tr><td>DEVOLUCIONES</td><td>PROVEEDOR, ORDEN_COMPRA, FECHA_OC, SALIDA, FECHA_SALIDA, DIAS_ANTIGUEDAD, IMPORTE</td><td>Devoluciones</td></tr>
             </tbody>
           </table>
+          <div style="margin-top:10px;padding:10px 12px;background:rgba(201,150,12,.12);border-radius:6px;font-size:10px;color:#C9960C;">
+            ⚠️ La hoja <strong>Ejecutivo</strong> ya NO se carga desde Excel. La <strong>Evaluación de Cumplimiento</strong> se configura directamente en esta página (Paso 3), partiendo desde cero en cada auditoría.
+          </div>
         </div>
         <div class="brow">
           <button class="btn bp" onclick="usarDemoData()">🧪 Usar datos de ejemplo (ABR 2026)</button>
           <button class="btn bgo" onclick="descargarPlantilla()">📥 Descargar Plantilla Excel</button>
         </div>
         <!-- PLANTILLA INFO -->
-        <div style="margin-top:14px;background:#0B1629;border-radius:8px;padding:16px 18px;display:flex;align-items:flex-start;gap:14px;">
-          <div style="font-size:28px;flex-shrink:0;">📋</div>
+        <div style="margin-top:14px;background:#0B1629;border-radius:8px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px;">
+          <div style="font-size:26px;flex-shrink:0;">📋</div>
           <div>
-            <div style="color:#C9960C;font-weight:700;font-size:12px;margin-bottom:5px;">PLANTILLA OFICIAL — KURODA AUDITORÍA</div>
-            <div style="color:#aaa;font-size:11px;line-height:1.7;">
-              El botón <strong style="color:#fff;">"Descargar Plantilla Excel"</strong> genera un archivo <strong style="color:#fff;">.xlsx</strong> listo para usar con las <strong style="color:#fff;">10 hojas</strong> requeridas, cada una con sus encabezados exactos, filas de ejemplo comentadas y la hoja <strong style="color:#fff;">Ejecutivo</strong> con los ítems de evaluación precargados.<br>
-              Solo agrega tus datos en cada hoja y carga el archivo aquí.
-            </div>
+            <div style="color:#C9960C;font-weight:700;font-size:12px;margin-bottom:4px;">PLANTILLA OFICIAL — KURODA AUDITORÍA</div>
+            <div style="color:#aaa;font-size:11px;line-height:1.6;">El botón <strong style="color:#fff;">"Descargar Plantilla Excel"</strong> genera un archivo <strong style="color:#fff;">.xlsx</strong> listo para usar con las <strong style="color:#fff;">10 hojas</strong> requeridas (incluyendo <strong style="color:#fff;">ARQUEO_PV</strong> para caja y arqueos), cada una con encabezados exactos y filas de ejemplo. La hoja <strong style="color:#fff;">Ejecutivo</strong> ya no se incluye — la evaluación se hace desde esta pantalla.</div>
           </div>
         </div>
       </div>
@@ -292,9 +292,9 @@ textarea{resize:vertical;min-height:68px;}
       </div>
     </div>
     <div class="card">
-      <div class="ch">🏅 Evaluación de Cumplimiento — Informe Ejecutivo <div class="ch-tag">DESDE EXCEL</div></div>
+      <div class="ch">🏅 Evaluación de Cumplimiento — Informe Ejecutivo <div class="ch-tag">DESDE CERO</div></div>
       <div class="cb">
-        <p style="color:var(--muted);font-size:12px;margin-bottom:16px;">Revisa y ajusta los resultados de evaluación cargados del Excel. Activa/desactiva cada ítem según el hallazgo real.</p>
+        <p style="color:var(--muted);font-size:12px;margin-bottom:16px;">Activa o desactiva cada ítem según el hallazgo observado durante la auditoría. Todos los ítems inician en <strong>apagado (No cumple)</strong> — el cumplimiento total se calcula automáticamente.</p>
         <div id="evalContent"></div>
         <div class="gauge-wrap">
           <div class="gauge-circle" id="gaugeCircle">
@@ -462,75 +462,104 @@ function handleFile(file){
 
 function parseWorkbook(wb){
   data={};
-  const sheets=['RESGUARDOS','TRASPASOS_SOL','TRASPASOS_DET','TRASPASOS_SUM','PEDIDOS','PICKINGS','VL06P','VL06G','DEVOLUCIONES','ARQUEO_PV'];
+  const sheets=['ARQUEO_PV','RESGUARDOS','TRASPASOS_SOL','TRASPASOS_DET','TRASPASOS_SUM','PEDIDOS','PICKINGS','VL06P','VL06G','DEVOLUCIONES'];
   for(const name of sheets){
     if(wb.SheetNames.includes(name)){
       const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{raw:false,defval:''});
       data[name]=rows.map(row=>{const out={...row};for(const col of DATE_COLUMNS){if(out[col])out[col]=formatDateToDMY(out[col]);}return out;});
     }
   }
-  // Parse Ejecutivo sheet
-  evalData=[];
-  const exSheets=wb.SheetNames.filter(s=>s.toLowerCase().includes('ejecutivo'));
-  if(exSheets.length){
-    const raw=XLSX.utils.sheet_to_json(wb.Sheets[exSheets[0]],{header:1,defval:null});
-    let currentSection='';
-    for(let i=1;i<raw.length;i++){
-      const row=raw[i];
-      const label=row[0]?String(row[0]).trim().replace(/^\t/,''):'';
-      const pct=parseFloat(row[3]);
-      const val=parseFloat(row[4]);
-      if(!label)continue;
-      // Detect section headers (no col 4 value, has col 3 value)
-      if(isNaN(val)&&!isNaN(pct)&&pct>0){currentSection=label;continue;}
-      // Section total lines (label is uppercase area name, no val)
-      if(isNaN(val)&&label===label.toUpperCase()&&label.length>4){currentSection=label;continue;}
-      // Items
-      if(label&&!isNaN(pct)&&pct>0){
-        evalData.push({section:currentSection,label,pct:Math.round(pct*1000)/1000,value:isNaN(val)?0:val,original:isNaN(val)?0:val});
-      }
-    }
-  }
+  // La evaluación siempre parte desde cero en la página — no se lee del Excel
+  initEvalData();
 }
 
 // ===================== CONFIG =====================
 function buildConfig(){
-  const sheets=['RESGUARDOS','TRASPASOS_SOL','TRASPASOS_DET','TRASPASOS_SUM','PEDIDOS','PICKINGS','VL06P','VL06G','DEVOLUCIONES'];
+  const sheets=['ARQUEO_PV','RESGUARDOS','TRASPASOS_SOL','TRASPASOS_DET','TRASPASOS_SUM','PEDIDOS','PICKINGS','VL06P','VL06G','DEVOLUCIONES'];
   const c=$('sheetsFound');c.innerHTML='';
   for(const s of sheets){
-    const found=!!data[s];
+    const found=!!data[s]&&data[s].length>0;
     const chip=document.createElement('div');
     chip.className=`chip ${found?'found':'miss'}`;
     chip.innerHTML=`<div class="chip-label">${found?'✅':'⚠️'} Hoja</div><div class="chip-val">${s}</div>`;
     c.appendChild(chip);
   }
   const evalChip=document.createElement('div');
-  evalChip.className=`chip ${evalData.length?'found':'miss'}`;
-  evalChip.innerHTML=`<div class="chip-label">${evalData.length?'✅':'⚠️'} Evaluación</div><div class="chip-val">${evalData.length?evalData.length+' ítems':'No detectada'}</div>`;
+  evalChip.className='chip found';
+  evalChip.innerHTML=`<div class="chip-label">✅ Evaluación</div><div class="chip-val">${evalData.length} ítems (en página)</div>`;
   c.appendChild(evalChip);
 
   const resg=data['RESGUARDOS']||[];
   const picks=data['PICKINGS']||[];
   const ped=data['PEDIDOS']||[];
+  const arqueo=data['ARQUEO_PV']&&data['ARQUEO_PV'].length?data['ARQUEO_PV'][0]:{};
   const totResg=resg.reduce((s,r)=>s+(parseFloat(r.CANTIDAD)||0),0);
   const venc=resg.filter(r=>parseInt(r.DIAS_ANTIGUEDAD)>30).length;
   const costPick=picks.reduce((s,r)=>s+(parseFloat(String(r.COSTO_PEND).replace(/[^0-9.-]/g,''))||0),0);
   const costPed=ped.reduce((s,r)=>s+(parseFloat(String(r.COSTO_PEND).replace(/[^0-9.-]/g,''))||0),0);
+  const difArqueo=arqueo.DIFERENCIA_SOBRANTE||null;
+  const difNum=difArqueo?parseFloat(String(difArqueo).replace(/[^0-9.-]/g,'')):0;
 
   $('kpiRow').innerHTML=`
+    <div class="kpi ${difNum>0?'amber':'green'}"><div class="kpi-label">Diferencia Arqueo PV</div><div class="kpi-val">${difNum>0?'$'+difNum.toFixed(2):'Sin dif.'}</div><div class="kpi-sub">${difNum>0?'Sobrante no identif.':'Arqueo cuadrado'}</div></div>
     <div class="kpi"><div class="kpi-label">Resguardos Activos</div><div class="kpi-val">${resg.length}</div><div class="kpi-sub">${totResg} piezas</div></div>
     <div class="kpi ${venc>0?'red':'green'}"><div class="kpi-label">Resguardos +30 días</div><div class="kpi-val">${venc}</div><div class="kpi-sub">${venc>0?'Requieren acción':'Bajo control'}</div></div>
     <div class="kpi amber"><div class="kpi-label">Pickings Pendientes</div><div class="kpi-val">${picks.length}</div><div class="kpi-sub">${money(costPick)}</div></div>
     <div class="kpi"><div class="kpi-label">Pedidos Proveedor</div><div class="kpi-val">${ped.length}</div><div class="kpi-sub">${money(costPed)}</div></div>
-    <div class="kpi gold"><div class="kpi-label">Ítems Evaluación</div><div class="kpi-val">${evalData.length}</div><div class="kpi-sub">Desde hoja Ejecutivo</div></div>
   `;
   $('cFAud').value=todayISO();$('cFCon').value=todayISO();
+}
+
+// ===================== EVAL DATA (SIEMPRE DESDE CERO) =====================
+function initEvalData(){
+  evalData=[
+    // EFECTIVO
+    {section:'EFECTIVO',label:'Arqueo punto de venta.',pct:0.090909,value:0,original:0},
+    {section:'EFECTIVO',label:'Utilizan el formato de retiros.',pct:0.090909,value:0,original:0},
+    {section:'EFECTIVO',label:'Realizan retiros de efectivo frecuentes.',pct:0.090909,value:0,original:0},
+    {section:'EFECTIVO',label:'Retiros firmados por Cajera y verificados por Administrativo o Gerencia.',pct:0.090909,value:0,original:0},
+    {section:'EFECTIVO',label:'Toman dinero de la venta o fondo de monedas para gastos.',pct:0.090909,value:0,original:0},
+    {section:'EFECTIVO',label:'Resguarda el fondo para feria en caja de seguridad.',pct:0.090909,value:0,original:0},
+    {section:'EFECTIVO',label:'Se entrega y recolecta el fondo para cambio a la Cajera por Gerente.',pct:0.090909,value:0,original:0},
+    {section:'EFECTIVO',label:'Bolso de mano fuera del área de Cajas.',pct:0.090909,value:0,original:0},
+    {section:'EFECTIVO',label:'Puerta cerrada y con seguro.',pct:0.090909,value:0,original:0},
+    {section:'EFECTIVO',label:'Todas las facturas se encuentran compensadas.',pct:0.090909,value:0,original:0},
+    {section:'EFECTIVO',label:'Facturas de contados con material entregado pendientes de pago.',pct:0.090909,value:0,original:0},
+    // FONDOS
+    {section:'FONDO(S) REVOLVENTE Y CAJA CHICA',label:'Fondo revolvente (Pesos y/o dólares).',pct:0.142857,value:0,original:0},
+    {section:'FONDO(S) REVOLVENTE Y CAJA CHICA',label:'Fondo revolvente para cajero automático.',pct:0.142857,value:0,original:0},
+    {section:'FONDO(S) REVOLVENTE Y CAJA CHICA',label:'Fondo de caja chica.',pct:0.142857,value:0,original:0},
+    {section:'FONDO(S) REVOLVENTE Y CAJA CHICA',label:'Comprobantes autorizados por Gerencia.',pct:0.142857,value:0,original:0},
+    {section:'FONDO(S) REVOLVENTE Y CAJA CHICA',label:'Comprobantes describen quien y para qué es el gasto.',pct:0.142857,value:0,original:0},
+    {section:'FONDO(S) REVOLVENTE Y CAJA CHICA',label:'Formato de reembolso autorizado por Gerencia.',pct:0.142857,value:0,original:0},
+    {section:'FONDO(S) REVOLVENTE Y CAJA CHICA',label:'Vales para gastos pendientes comprobar (Mayores a 3 días).',pct:0.142857,value:0,original:0},
+    // ENTRADAS Y SALIDAS
+    {section:'ENTRADAS Y SALIDAS',label:'Tienen mercancía en resguardo mayor a 30 días.',pct:0.0625,value:0,original:0},
+    {section:'ENTRADAS Y SALIDAS',label:'Cliente firma de conformidad el formato.',pct:0.0625,value:0,original:0},
+    {section:'ENTRADAS Y SALIDAS',label:'Salidas pendientes de contabilizar del Centro de Resguardo.',pct:0.0625,value:0,original:0},
+    {section:'ENTRADAS Y SALIDAS',label:'Con salida en tienda suministradora pendientes de entradas.',pct:0.0625,value:0,original:0},
+    {section:'ENTRADAS Y SALIDAS',label:'Solicitudes coinciden con pendientes en picking.',pct:0.0625,value:0,original:0},
+    {section:'ENTRADAS Y SALIDAS',label:'Solicitudes en backorder (sin salida).',pct:0.0625,value:0,original:0},
+    {section:'ENTRADAS Y SALIDAS',label:'Salida firmada de recibido.',pct:0.0625,value:0,original:0},
+    {section:'ENTRADAS Y SALIDAS',label:'Material pendiente de salida.',pct:0.0625,value:0,original:0},
+    {section:'ENTRADAS Y SALIDAS',label:'Material con salida apartado e identificado.',pct:0.0625,value:0,original:0},
+    {section:'ENTRADAS Y SALIDAS',label:'Entradas pendientes de realizar.',pct:0.0625,value:0,original:0},
+    {section:'ENTRADAS Y SALIDAS',label:'Órdenes de compra con antigüedad mayor a un mes.',pct:0.0625,value:0,original:0},
+    {section:'ENTRADAS Y SALIDAS',label:'Picking JUSTIFICADOS (ZVA05VTAS).',pct:0.0625,value:0,original:0},
+    {section:'ENTRADAS Y SALIDAS',label:'Picking pendientes de contabilizar (VL06P).',pct:0.0625,value:0,original:0},
+    {section:'ENTRADAS Y SALIDAS',label:'Picking pendientes de contabilizar (VL06G).',pct:0.0625,value:0,original:0},
+    {section:'ENTRADAS Y SALIDAS',label:'Cliente firma el Picking o Tablet de recibido.',pct:0.0625,value:0,original:0},
+    {section:'ENTRADAS Y SALIDAS',label:'Solicitud de pedido pendiente de realizar en sistema.',pct:0.0625,value:0,original:0},
+    {section:'ENTRADAS Y SALIDAS',label:'Solicitud de pedido pendiente de devolución a proveedor.',pct:0.0625,value:0,original:0},
+    // VEHÍCULOS
+    {section:'VEHÍCULOS',label:'Licencia, póliza de seguro y tarjeta de circulación (Vigentes).',pct:1,value:0,original:0},
+  ];
 }
 
 // ===================== EVAL RENDER =====================
 function renderEval(){
   const container=$('evalContent');
-  if(!evalData.length){container.innerHTML='<div class="alert alert-warn">⚠️ No se encontró hoja "Ejecutivo" en el Excel. La evaluación se omitirá del informe.</div>';updateGauge();return;}
+  // evalData siempre inicializado desde initEvalData — sin dependencia de Excel
   const sections=[...new Set(evalData.map(e=>e.section))];
   let html='';
   for(const sec of sections){
@@ -909,6 +938,44 @@ async function generarInforme(){
 
   prog(80,'Ensambando documento...');await sleep(80);
 
+  // ── ARQUEO_PV — leer datos de la hoja ─────────────────────────
+  const arqueoRows=data['ARQUEO_PV']||[];
+  const aq=arqueoRows.length?arqueoRows[0]:{};
+  const aqDifRaw=aq.DIFERENCIA_SOBRANTE!==undefined&&aq.DIFERENCIA_SOBRANTE!==''?parseFloat(String(aq.DIFERENCIA_SOBRANTE).replace(/[^0-9.-]/g,'')):null;
+  const aqCajIncap=String(aq.CAJERA_INCAPACITADA||'').trim().toUpperCase();
+  const aqFactPend=String(aq.FACTURAS_PENDIENTES||'').trim().toUpperCase();
+  const aqFCMonto=aq.FONDO_CAMBIO_MONTO||'5,000';
+  const aqFCResult=String(aq.FONDO_CAMBIO_RESULTADO||'satisfactorios').toLowerCase();
+  const aqCCMonto=aq.FONDO_CAJA_CHICA_MONTO||'1,500';
+  const aqCCResult=String(aq.FONDO_CAJA_CHICA_RESULTADO||'satisfactorios').toLowerCase();
+  const aqNotas=aq.NOTAS_ADICIONALES?String(aq.NOTAS_ADICIONALES).trim():'';
+
+  const arqueoHasDif=aqDifRaw!==null&&!isNaN(aqDifRaw)&&aqDifRaw!==0;
+  const arqueoNarrativa=arqueoHasDif
+    ?`Se realizó un arqueo al punto de venta el cual dio una diferencia <strong>sobrante (no identificada)</strong> por <strong style="color:#C0392B;">${money(aqDifRaw)}</strong>. Se solicitó fuera registrado en el corte de venta del día en curso (<strong>${cfg.fAud}</strong>).`
+    :`Se realizó un arqueo al punto de venta, encontrando resultados satisfactorios al día <strong>${cfg.fAud}</strong>.`;
+
+  const arqueoItems=[];
+  if(['S','SI','SÍ','1','YES'].includes(aqCajIncap)){
+    arqueoItems.push(`La Cajera titular se encontraba incapacitada. El arqueo fue realizado a la <strong>Gerente, ${cfg.gerente}</strong>, quien cubría el área de Caja.`);
+  }
+  arqueoItems.push(['S','SI','SÍ','1','YES'].includes(aqFactPend)
+    ?'Se encontraron facturas de contados pendientes de compensar.'
+    :'No se cuenta con facturas de contados pendientes de compensar.');
+  arqueoItems.push('El fondo es entregado y recolectado por Gerente de manera diaria conforme a la política.');
+  arqueoItems.push('El fondo para cambio es ingresado en Kumo Caja por la Cajera.');
+  if(aqNotas)arqueoItems.push(aqNotas);
+
+  const efectivoSection=`
+<div class="sec-header">💵 EFECTIVO</div>
+<div class="sub-header">Arqueo Punto de Venta</div>
+<p>${arqueoNarrativa}</p>
+<ul style="margin-top:10px;">${arqueoItems.map(i=>`<li>${i}</li>`).join('')}</ul>
+<div class="sub-header">Arqueo Fondo para Cambio</div>
+<p>Se realizó un arqueo al fondo para cambio de <strong>$${aqFCMonto} pesos</strong>, encontrando resultados <strong style="color:${aqFCResult.includes('satisf')?'#1A7A3C':'#C0392B'};">${aqFCResult}</strong>.</p>
+<div class="sub-header">Arqueo Fondo de Caja Chica</div>
+<p>Se realizó un arqueo al fondo de caja chica de <strong>$${aqCCMonto} pesos</strong>, encontrando resultados <strong style="color:${aqCCResult.includes('satisf')?'#1A7A3C':'#C0392B'};">${aqCCResult}</strong>.</p>`;
+
   const evalSection=buildEvalHTMLSection();
   htmlEval=buildEvalReport(cfg);
 
@@ -972,14 +1039,7 @@ ${cfg.obs?`<p style="font-style:italic;color:#555;margin-bottom:16px;">📋 ${cf
   <div class="kpi"><div class="kpi-label">Pedidos Proveedor</div><div class="kpi-val">${ped.length}</div><div class="kpi-sub">${money(costPed)}</div></div>
 </div>
 
-<div class="sec-header">💵 EFECTIVO</div>
-<div class="sub-header">Arqueo Punto de Venta</div>
-<p>Se realizó un arqueo al punto de venta encontrando una diferencia sobrante (no identificada) de <strong>$16.70</strong>. Se solicitó fuera registrado en el corte de venta del día en curso (<strong>${cfg.fAud}</strong>).</p>
-<ul style="margin-top:10px;"><li>La Cajera titular se encontraba incapacitada. El arqueo fue realizado a la <strong>Gerente, ${cfg.gerente}</strong>, quien cubría el área de Caja.</li><li>No se cuenta con facturas de contados pendientes de compensar.</li><li>El fondo es entregado y recolectado por Gerente de manera diaria conforme a la política.</li><li>El fondo para cambio es ingresado en Kumo Caja por la Cajera.</li></ul>
-<div class="sub-header">Arqueo Fondo para Cambio</div>
-<p>Se realizó un arqueo al fondo para cambio de <strong>$5,000 pesos</strong>, encontrando resultados <strong style="color:#1A7A3C;">satisfactorios</strong>.</p>
-<div class="sub-header">Arqueo Fondo de Caja Chica</div>
-<p>Se realizó un arqueo al fondo de caja chica de <strong>$1,500 pesos</strong>, encontrando resultados <strong style="color:#1A7A3C;">satisfactorios</strong>.</p>
+${efectivoSection}
 
 <div class="sec-header">📦 MERCANCÍA EN RESGUARDO</div>
 ${insightHTML(ins.resguardos)}
@@ -1308,6 +1368,16 @@ function cerrarEditor(){$('editorModal').style.display='none';editingId=null;}
 // ===================== DEMO DATA =====================
 function usarDemoData(){
   data={
+    ARQUEO_PV:[{
+      DIFERENCIA_SOBRANTE:'16.70',
+      CAJERA_INCAPACITADA:'S',
+      FACTURAS_PENDIENTES:'N',
+      FONDO_CAMBIO_MONTO:'5,000',
+      FONDO_CAMBIO_RESULTADO:'satisfactorios',
+      FONDO_CAJA_CHICA_MONTO:'1,500',
+      FONDO_CAJA_CHICA_RESULTADO:'satisfactorios',
+      NOTAS_ADICIONALES:'El fondo para cambio es ingresado en Kumo Caja por la Cajera.'
+    }],
     RESGUARDOS:[
       {FECHA_ENTRADA:'09/02/2026',DIAS_ANTIGUEDAD:'66',REFERENCIA:'500997005 10',FOLIO_RESGUARDO:'4901274894',CANTIDAD:'6',_status:'A'},
       {FECHA_ENTRADA:'19/02/2026',DIAS_ANTIGUEDAD:'56',REFERENCIA:'500979399 40',FOLIO_RESGUARDO:'4901310055',CANTIDAD:'3.5',_status:'A'},
@@ -1356,47 +1426,9 @@ function usarDemoData(){
       {NOMBRE_CLIENTE:'ALEJANDRA CARDENAS',FECHA_ENTREGA:'15/04/2026',ENTREGA:'900047581',CREADO_POR:'CRGERENTE',_status:'Pendiente'},
     ],
     DEVOLUCIONES:[{PROVEEDOR:'FLUIDMASTER SALES MEXICO',ORDEN_COMPRA:'4000026690',FECHA_OC:'09/04/2026',SALIDA:'5000131544',FECHA_SALIDA:'13/04/2026',DIAS_ANTIGUEDAD:'3',IMPORTE:'-33.47',_status:'En trámite'}],
-    ARQUEO_PV:[]
   };
-  // Demo eval from the uploaded Excel (ABR 2026)
-  evalData=[
-    {section:'EFECTIVO',label:'Arqueo punto de venta.',pct:0.090909,value:1,original:1},
-    {section:'EFECTIVO',label:'Utilizan el formato de retiros.',pct:0.090909,value:1,original:1},
-    {section:'EFECTIVO',label:'Realizan retiros de efectivo frecuentes.',pct:0.090909,value:1,original:1},
-    {section:'EFECTIVO',label:'Retiros firmados por Cajera y verificados por Administrativo o Gerencia.',pct:0.090909,value:1,original:1},
-    {section:'EFECTIVO',label:'Toman dinero de la venta o fondo de monedas para gastos.',pct:0.090909,value:1,original:1},
-    {section:'EFECTIVO',label:'Resguarda el fondo para feria en caja de seguridad.',pct:0.090909,value:1,original:1},
-    {section:'EFECTIVO',label:'Se entrega y recolecta el fondo para cambio a la Cajera por Gerente',pct:0.090909,value:1,original:1},
-    {section:'EFECTIVO',label:'Bolso de mano fuera del área de Cajas.',pct:0.090909,value:1,original:1},
-    {section:'EFECTIVO',label:'Puerta cerrada y con seguro.',pct:0.090909,value:1,original:1},
-    {section:'EFECTIVO',label:'Todas las facturas se encuentran compensadas.',pct:0.090909,value:1,original:1},
-    {section:'EFECTIVO',label:'Facturas de contados con material entregado pendientes de pago.',pct:0.090909,value:1,original:1},
-    {section:'FONDO(S) REVOLVENTE Y CAJA CHICA',label:'Fondo revolvente (Pesos y/o dólares).',pct:0.1428,value:1,original:1},
-    {section:'FONDO(S) REVOLVENTE Y CAJA CHICA',label:'Fondo revolvente para cajero automático.',pct:0.1428,value:1,original:1},
-    {section:'FONDO(S) REVOLVENTE Y CAJA CHICA',label:'Fondo de caja chica.',pct:0.1428,value:1,original:1},
-    {section:'FONDO(S) REVOLVENTE Y CAJA CHICA',label:'Comprobantes autorizados por Gerencia.',pct:0.1428,value:1,original:1},
-    {section:'FONDO(S) REVOLVENTE Y CAJA CHICA',label:'Comprobantes describen quien y para qué es el gasto.',pct:0.1428,value:1,original:1},
-    {section:'FONDO(S) REVOLVENTE Y CAJA CHICA',label:'Formato de reembolso autorizado por Gerencia.',pct:0.1428,value:1,original:1},
-    {section:'FONDO(S) REVOLVENTE Y CAJA CHICA',label:'Vales para gastos pendientes comprobar (Mayores a 3 días)',pct:0.1428,value:1,original:1},
-    {section:'ENTRADAS Y SALIDAS',label:'Tienen mercancía en resguardo mayor a 30 días.',pct:0,value:0,original:0},
-    {section:'ENTRADAS Y SALIDAS',label:'Cliente firma de conformidad el formato.',pct:0.0625,value:1,original:1},
-    {section:'ENTRADAS Y SALIDAS',label:'Salidas pendientes de contabilizar del Centro de Resguardo.',pct:0.0625,value:1,original:1},
-    {section:'ENTRADAS Y SALIDAS',label:'Con salida en tienda suministradora pendientes de entradas.',pct:0.0625,value:1,original:1},
-    {section:'ENTRADAS Y SALIDAS',label:'Solicitudes coinciden con pendientes en picking.',pct:0,value:0,original:0},
-    {section:'ENTRADAS Y SALIDAS',label:'Solicitudes en backorder (sin salida).',pct:0.0625,value:1,original:1},
-    {section:'ENTRADAS Y SALIDAS',label:'Salida firmada de recibido.',pct:0.0625,value:1,original:1},
-    {section:'ENTRADAS Y SALIDAS',label:'Material pendiente de salida.',pct:0.0625,value:1,original:1},
-    {section:'ENTRADAS Y SALIDAS',label:'Material con salida apartado e identificado.',pct:0.0625,value:1,original:1},
-    {section:'ENTRADAS Y SALIDAS',label:'Entradas pendientes de realizar.',pct:0.0625,value:1,original:1},
-    {section:'ENTRADAS Y SALIDAS',label:'Órdenes de compra con antigüedad mayor a un mes.',pct:0,value:1,original:1},
-    {section:'ENTRADAS Y SALIDAS',label:'Picking JUSTIFICADOS (ZVA05VTAS).',pct:0,value:0,original:0},
-    {section:'ENTRADAS Y SALIDAS',label:'Picking pendientes de contabilizar (VL06P)',pct:0.0625,value:1,original:1},
-    {section:'ENTRADAS Y SALIDAS',label:'Picking pendientes de contabilizar (VL06G)',pct:0,value:0,original:0},
-    {section:'ENTRADAS Y SALIDAS',label:'Cliente firma el Picking o Tablet de recibido',pct:0.0625,value:1,original:1},
-    {section:'ENTRADAS Y SALIDAS',label:'Solicitud de pedido pendiente de realizar en sistema.',pct:0.0625,value:1,original:1},
-    {section:'ENTRADAS Y SALIDAS',label:'Solicitud de pedido pendiente de devolución a proveedor.',pct:0.0625,value:1,original:1},
-    {section:'VEHICULOS',label:'Licencia, póliza de seguro y tarjeta de circulación (Vigentes)',pct:1,value:1,original:1},
-  ];
+  // La evaluación siempre parte desde cero
+  initEvalData();
   buildConfig();
   goStep(2);
 }
@@ -1405,54 +1437,14 @@ function usarDemoData(){
 function descargarPlantilla(){
   const wb = XLSX.utils.book_new();
 
-  // ── HOJA 1: Ejecutivo ──────────────────────────────────────────
-  const ejecutivoData = [
-    ['ÁREA / SECCIÓN','ÍTEM AUDITADO','DESCRIPCIÓN / OBSERVACIONES','% PESO','VALOR (1=Cumple / 0=No cumple)'],
-    // EFECTIVO
-    ['EFECTIVO','Arqueo punto de venta.','Verificar que el arqueo cuadre con el sistema.',0.090909,1],
-    ['EFECTIVO','Utilizan el formato de retiros.','Revisar que se use el formato oficial de retiros.',0.090909,1],
-    ['EFECTIVO','Realizan retiros de efectivo frecuentes.','Confirmar que los retiros se realizan durante el día.',0.090909,1],
-    ['EFECTIVO','Retiros firmados por Cajera y verificados por Administrativo o Gerencia.','Verificar firmas en los formatos.',0.090909,1],
-    ['EFECTIVO','Toman dinero de la venta o fondo de monedas para gastos.','0 = No se toman; 1 = Se respeta el proceso.',0.090909,1],
-    ['EFECTIVO','Resguarda el fondo para feria en caja de seguridad.','Verificar ubicación del fondo.',0.090909,1],
-    ['EFECTIVO','Se entrega y recolecta el fondo para cambio a la Cajera por Gerente.','Confirmar proceso diario.',0.090909,1],
-    ['EFECTIVO','Bolso de mano fuera del área de Cajas.','Verificar que no haya bolsos en el área de caja.',0.090909,1],
-    ['EFECTIVO','Puerta cerrada y con seguro.','Confirmar que el área de caja esté asegurada.',0.090909,1],
-    ['EFECTIVO','Todas las facturas se encuentran compensadas.','Verificar en FBL5N que no haya facturas pendientes.',0.090909,1],
-    ['EFECTIVO','Facturas de contados con material entregado pendientes de pago.','Revisar documentos pendientes de compensar.',0.090909,1],
-    // FONDOS
-    ['FONDO(S) REVOLVENTE Y CAJA CHICA','Fondo revolvente (Pesos y/o dólares).','Verificar existencia y monto del fondo.',0.142857,1],
-    ['FONDO(S) REVOLVENTE Y CAJA CHICA','Fondo revolvente para cajero automático.','Verificar fondo para ATM si aplica.',0.142857,1],
-    ['FONDO(S) REVOLVENTE Y CAJA CHICA','Fondo de caja chica.','Verificar monto y documentación.',0.142857,1],
-    ['FONDO(S) REVOLVENTE Y CAJA CHICA','Comprobantes autorizados por Gerencia.','Revisar firmas de autorización.',0.142857,1],
-    ['FONDO(S) REVOLVENTE Y CAJA CHICA','Comprobantes describen quien y para qué es el gasto.','Verificar descripción en comprobantes.',0.142857,1],
-    ['FONDO(S) REVOLVENTE Y CAJA CHICA','Formato de reembolso autorizado por Gerencia.','Confirmar que el formato esté firmado.',0.142857,1],
-    ['FONDO(S) REVOLVENTE Y CAJA CHICA','Vales para gastos pendientes comprobar (Mayores a 3 días).','Revisar vales abiertos.',0.142857,1],
-    // ENTRADAS Y SALIDAS
-    ['ENTRADAS Y SALIDAS','Tienen mercancía en resguardo mayor a 30 días.','0 = Sin vencidos (OK); 1 = Hay vencidos (falla)',0,0],
-    ['ENTRADAS Y SALIDAS','Cliente firma de conformidad el formato.','Verificar firmas en formatos de resguardo.',0.0625,1],
-    ['ENTRADAS Y SALIDAS','Salidas pendientes de contabilizar del Centro de Resguardo.','Revisar en MB52.',0.0625,1],
-    ['ENTRADAS Y SALIDAS','Con salida en tienda suministradora pendientes de entradas.','Verificar traspasos pendientes de entrada.',0.0625,1],
-    ['ENTRADAS Y SALIDAS','Solicitudes coinciden con pendientes en picking.','0 = No coinciden (falla); 1 = Coinciden (OK)',0,0],
-    ['ENTRADAS Y SALIDAS','Solicitudes en backorder (sin salida).','Verificar solicitudes sin surtir en CEDIS.',0.0625,1],
-    ['ENTRADAS Y SALIDAS','Salida firmada de recibido.','Verificar firmas en traspasos suministrados.',0.0625,1],
-    ['ENTRADAS Y SALIDAS','Material pendiente de salida.','Revisar material que aún no ha salido del almacén.',0.0625,1],
-    ['ENTRADAS Y SALIDAS','Material con salida apartado e identificado.','Verificar identificación de material apartado.',0.0625,1],
-    ['ENTRADAS Y SALIDAS','Entradas pendientes de realizar.','Revisar entradas faltantes en el sistema.',0.0625,1],
-    ['ENTRADAS Y SALIDAS','Órdenes de compra con antigüedad mayor a un mes.','Verificar en ZREPORDCOMP.',0,1],
-    ['ENTRADAS Y SALIDAS','Picking JUSTIFICADOS (ZVA05VTAS).','0 = No justificados; 1 = Justificados.',0,0],
-    ['ENTRADAS Y SALIDAS','Picking pendientes de contabilizar (VL06P).','Verificar entregas pendientes en VL06P.',0.0625,1],
-    ['ENTRADAS Y SALIDAS','Picking pendientes de contabilizar (VL06G).','Verificar salidas pendientes en VL06G.',0,0],
-    ['ENTRADAS Y SALIDAS','Cliente firma el Picking o Tablet de recibido.','Confirmar firma del cliente en entrega.',0.0625,1],
-    ['ENTRADAS Y SALIDAS','Solicitud de pedido pendiente de realizar en sistema.','Revisar pedidos no ingresados al sistema.',0.0625,1],
-    ['ENTRADAS Y SALIDAS','Solicitud de pedido pendiente de devolución a proveedor.','Verificar devoluciones sin MIRO en ZREPCOMPRAS.',0.0625,1],
-    // VEHÍCULOS
-    ['VEHÍCULOS','Licencia, póliza de seguro y tarjeta de circulación (Vigentes).','Verificar vigencia de documentos del vehículo.',1,1],
+  // ── HOJA 1: ARQUEO_PV ─────────────────────────────────────────
+  const arqueoPVData = [
+    ['DIFERENCIA_SOBRANTE','CAJERA_INCAPACITADA','FACTURAS_PENDIENTES','FONDO_CAMBIO_MONTO','FONDO_CAMBIO_RESULTADO','FONDO_CAJA_CHICA_MONTO','FONDO_CAJA_CHICA_RESULTADO','NOTAS_ADICIONALES'],
+    ['16.70','S','N','5,000','satisfactorios','1,500','satisfactorios','El fondo para cambio es ingresado en Kumo Caja por la Cajera.'],
   ];
-  const wsEjecutivo = XLSX.utils.aoa_to_sheet(ejecutivoData);
-  wsEjecutivo['!cols'] = [{wch:30},{wch:55},{wch:50},{wch:12},{wch:28}];
-  // Header row style note via comment on A1
-  XLSX.utils.book_append_sheet(wb, wsEjecutivo, 'Ejecutivo');
+  const wsArqueo = XLSX.utils.aoa_to_sheet(arqueoPVData);
+  wsArqueo['!cols'] = [{wch:22},{wch:22},{wch:22},{wch:20},{wch:28},{wch:24},{wch:30},{wch:55}];
+  XLSX.utils.book_append_sheet(wb, wsArqueo, 'ARQUEO_PV');
 
   // ── HOJA 2: RESGUARDOS ─────────────────────────────────────────
   const resguardosData = [
@@ -1549,20 +1541,20 @@ function descargarPlantilla(){
 
   // ── HOJA 11: INSTRUCCIONES ────────────────────────────────────
   const instrData = [
-    ['KURODA S.A. DE C.V. — PLANTILLA DE AUDITORÍA INTERNA','','','',''],
+    ['KURODA S.A. DE C.V. — PLANTILLA DE AUDITORÍA INTERNA v5','','','',''],
     ['','','','',''],
     ['INSTRUCCIONES DE USO','','','',''],
     ['','','','',''],
-    ['1.','Esta plantilla contiene 10 hojas de datos + 1 hoja de evaluación (Ejecutivo).','','',''],
+    ['1.','Esta plantilla contiene 10 hojas de datos para el informe.','','',''],
     ['2.','NO cambies los nombres de las hojas ni los encabezados de columna.','','',''],
     ['3.','Borra las filas de ejemplo antes de cargar tus datos reales.','','',''],
     ['4.','Las fechas deben tener formato: DD/MM/YYYY (ej: 16/04/2026).','','',''],
     ['5.','Los costos e importes deben ser valores numéricos sin símbolo de moneda.','','',''],
-    ['6.','En la hoja Ejecutivo: columna E = 1 si el ítem CUMPLE, 0 si NO CUMPLE.','','',''],
-    ['7.','Los pesos (columna D en Ejecutivo) ya están precargados; no los modifiques.','','',''],
+    ['6.','La Evaluación de Cumplimiento se configura directamente en la aplicación, NO desde Excel.','','',''],
+    ['7.','En ARQUEO_PV: CAJERA_INCAPACITADA y FACTURAS_PENDIENTES = S (sí) o N (no).','','',''],
     ['','','','',''],
     ['HOJAS INCLUIDAS','DESCRIPCIÓN','BLOQUE EN INFORME','',''],
-    ['Ejecutivo','Evaluación de cumplimiento por área auditada','Sección de Evaluación al final del informe','',''],
+    ['ARQUEO_PV','Datos del arqueo de caja: diferencia, fondos, cajera, notas','💵 Efectivo / Arqueos','',''],
     ['RESGUARDOS','Mercancía entregada a clientes pendiente de recibo oficial','Mercancía en Resguardo','',''],
     ['TRASPASOS_SOL','Solicitudes de traspaso enviadas a CEDIS u otras sucursales','Traspasos Solicitados','',''],
     ['TRASPASOS_DET','Detalle de artículos sin surtir en traspasos solicitados','Detalle de Traspasos','',''],
@@ -1573,19 +1565,29 @@ function descargarPlantilla(){
     ['VL06G','Salidas (devoluciones) pendientes de contabilizar (VL06G)','Salidas Pendientes VL06G','',''],
     ['DEVOLUCIONES','Devoluciones a proveedor sin nota de crédito (MIRO) aplicada','Devoluciones a Proveedor','',''],
     ['','','','',''],
+    ['DETALLE COLUMNAS — ARQUEO_PV','','','',''],
+    ['DIFERENCIA_SOBRANTE','Importe numérico de la diferencia (ej: 16.70). Dejar en blanco si no hay diferencia.','','',''],
+    ['CAJERA_INCAPACITADA','S = Sí estuvo incapacitada | N = No estuvo incapacitada','','',''],
+    ['FACTURAS_PENDIENTES','S = Hay facturas pendientes de compensar | N = No hay','','',''],
+    ['FONDO_CAMBIO_MONTO','Monto del fondo para cambio (ej: 5,000)','','',''],
+    ['FONDO_CAMBIO_RESULTADO','Resultado del arqueo: satisfactorios / diferencia sobrante / diferencia faltante','','',''],
+    ['FONDO_CAJA_CHICA_MONTO','Monto del fondo de caja chica (ej: 1,500)','','',''],
+    ['FONDO_CAJA_CHICA_RESULTADO','Resultado del arqueo: satisfactorios / diferencia sobrante / diferencia faltante','','',''],
+    ['NOTAS_ADICIONALES','Observaciones adicionales que se agregarán como bullet al bloque Efectivo','','',''],
+    ['','','','',''],
     ['NOTAS IMPORTANTES','','','',''],
     ['•','Los días de antigüedad en RESGUARDOS deben ser valores numéricos enteros.','','',''],
     ['•','Los registros con DIAS_ANTIGUEDAD > 30 se resaltarán automáticamente en rojo.','','',''],
     ['•','La columna COSTO_PEND en PICKINGS debe ser un número (sin $, sin comas).','','',''],
-    ['•','Versión del sistema: v3.0 | KURODA S.A. DE C.V. | Auditoría Interna','','',''],
+    ['•','Versión del sistema: v5.0 | KURODA S.A. DE C.V. | Auditoría Interna','','',''],
   ];
   const wsInstr = XLSX.utils.aoa_to_sheet(instrData);
-  wsInstr['!cols'] = [{wch:6},{wch:70},{wch:40},{wch:10},{wch:10}];
-  // Merge cells for title
+  wsInstr['!cols'] = [{wch:30},{wch:70},{wch:40},{wch:10},{wch:10}];
   wsInstr['!merges'] = [
     {s:{r:0,c:0},e:{r:0,c:4}},
     {s:{r:2,c:0},e:{r:2,c:4}},
     {s:{r:12,c:2},e:{r:12,c:4}},
+    {s:{r:24,c:0},e:{r:24,c:4}},
   ];
   XLSX.utils.book_append_sheet(wb, wsInstr, 'INSTRUCCIONES');
 
@@ -1595,7 +1597,8 @@ function descargarPlantilla(){
 }
 
 function resetAll(){
-  data={};evalData=[];htmlReporte=null;htmlEval=null;
+  data={};htmlReporte=null;htmlEval=null;
+  initEvalData();
   $('fileIn').value='';
   hi('p2');hi('p3');hi('p4');hi('p5');
   sh('p1');setStep(1);
