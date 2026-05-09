@@ -173,6 +173,7 @@ textarea{resize:vertical;min-height:68px;}
 .alert-risk{background:#FEF0F0;border:1.5px solid var(--red);color:#7A1010;}
 
 @media(max-width:700px){.fg,.fg3{grid-template-columns:1fr;}.steps{flex-wrap:wrap;}.kpi-row{grid-template-columns:1fr 1fr;}.nav-tabs{gap:0;}}
+#tipoCard_operativo:hover,#tipoCard_ejecutivo:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1);}
 </style>
 </head>
 <body>
@@ -307,7 +308,60 @@ textarea{resize:vertical;min-height:68px;}
         </div>
         <div class="brow">
           <button class="btn bo" onclick="goStep(2)">← Atrás</button>
-          <button class="btn bp" onclick="generarInforme()">✅ Generar Informe Completo</button>
+          <button class="btn bp" onclick="abrirSelectorInforme()">✅ Configurar y Generar Informe →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SELECTOR DE TIPO DE INFORME Y SECCIONES -->
+  <div id="modalSelector" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:600;overflow-y:auto;padding:24px 16px;">
+    <div style="background:#fff;max-width:820px;margin:0 auto;border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+      <div class="ch" style="padding:16px 24px;">
+        <span style="font-size:18px;">📋</span>
+        <span style="margin-left:6px;">Configurar Generación del Informe</span>
+        <button class="btn bd" style="margin-left:auto;padding:6px 14px;" onclick="cerrarSelectorInforme()">✕ Cerrar</button>
+      </div>
+      <div style="padding:24px;">
+
+        <!-- TIPO DE INFORME -->
+        <div style="margin-bottom:24px;">
+          <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--border);">
+            📄 Tipo de Informe a Generar
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div id="tipoCard_operativo" onclick="selTipo('operativo')" style="border:2px solid var(--navy);background:#EEF4FF;border-radius:10px;padding:16px;cursor:pointer;transition:.15s;">
+              <div style="font-size:22px;margin-bottom:6px;">🔧</div>
+              <div style="font-weight:700;font-size:13px;color:var(--navy);">Informe Operativo</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;">Formato técnico con tablas detalladas, estatus por renglón e insights automáticos. Dirigido a equipo de auditoría interna y operaciones.</div>
+              <div style="margin-top:10px;font-size:10px;font-weight:700;padding:4px 10px;border-radius:12px;display:inline-block;background:var(--navy);color:#fff;" id="tipoLbl_operativo">SELECCIONADO ✓</div>
+            </div>
+            <div id="tipoCard_ejecutivo" onclick="selTipo('ejecutivo')" style="border:2px solid var(--border);background:#FAFBFD;border-radius:10px;padding:16px;cursor:pointer;transition:.15s;">
+              <div style="font-size:22px;margin-bottom:6px;">🏛️</div>
+              <div style="font-weight:700;font-size:13px;color:var(--navy);">Informe Ejecutivo</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;">Documento formal para Dirección y Gerencia. Narrativa profesional, hallazgos en lenguaje de negocio, riesgos categorizados e impacto cuantificado.</div>
+              <div style="margin-top:10px;font-size:10px;font-weight:700;padding:4px 10px;border-radius:12px;display:inline-block;background:var(--border);color:var(--muted);" id="tipoLbl_ejecutivo">SELECCIONAR</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SELECTOR DE SECCIONES -->
+        <div style="margin-bottom:24px;">
+          <div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            📑 Secciones a Incluir
+            <button class="btn" style="background:#EEF1F7;color:var(--navy);padding:4px 12px;font-size:10px;font-weight:700;" onclick="toggleAllSections(true)">✅ Todas</button>
+            <button class="btn" style="background:#EEF1F7;color:var(--navy);padding:4px 12px;font-size:10px;font-weight:700;" onclick="toggleAllSections(false)">⬜ Ninguna</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="seccionesGrid"></div>
+        </div>
+
+        <div style="background:#EEF4FF;border-radius:8px;padding:12px 16px;font-size:11px;color:var(--blue);margin-bottom:20px;line-height:1.6;">
+          ℹ️ <strong>Informe Operativo:</strong> datos técnicos con tablas y estatus del Excel. &nbsp;|&nbsp; <strong>Informe Ejecutivo:</strong> análisis formal en lenguaje directivo, hallazgos consolidados, nivel de riesgo, impacto financiero estimado y recomendaciones estratégicas.
+        </div>
+
+        <div style="display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap;">
+          <button class="btn bo" onclick="cerrarSelectorInforme()">Cancelar</button>
+          <button class="btn bp" onclick="confirmarGeneracion()">✅ Generar Informe</button>
         </div>
       </div>
     </div>
@@ -336,6 +390,7 @@ textarea{resize:vertical;min-height:68px;}
       <button class="btn bd" onclick="exportPDF()">🖨️ Imprimir / PDF</button>
       <div class="export-divider"></div>
       <button class="btn bpu" onclick="exportEvalHTML()">📊 Informe de Evaluación</button>
+      <button class="btn" style="background:#1A5276;color:#fff;" onclick="exportPlanAccionWord()">📋 Plan de Acción (Word)</button>
       <div style="margin-left:auto;display:flex;gap:8px;">
         <button class="btn bgo" onclick="guardarInforme()">💾 Guardar Informe</button>
         <button class="btn" style="background:#2E7D32;color:#fff;" onclick="descargarPlantilla()">📥 Plantilla Excel</button>
@@ -1039,8 +1094,9 @@ ${cfg.obs?`<p style="font-style:italic;color:#555;margin-bottom:16px;">📋 ${cf
   <div class="kpi"><div class="kpi-label">Pedidos Proveedor</div><div class="kpi-val">${ped.length}</div><div class="kpi-sub">${money(costPed)}</div></div>
 </div>
 
-${efectivoSection}
+${seccionesSeleccionadas['efectivo']!==false?efectivoSection:''}
 
+${seccionesSeleccionadas['resguardos']!==false?`
 <div class="sec-header">📦 MERCANCÍA EN RESGUARDO</div>
 ${insightHTML(ins.resguardos)}
 <p>Se generó reporte de existencia del centro de resguardo (CR24) en la transacción <strong>MB52</strong> al día <strong>${cfg.fAud}</strong>, encontrando <strong>${resg.length} resguardos</strong> con una existencia total de <strong>${totResg} piezas</strong>. Se identificaron <strong ${venc>0?'style="color:#C0392B"':''}>${venc} resguardo(s) con más de 30 días de antigüedad</strong>.</p>
@@ -1050,29 +1106,33 @@ ${tableResguardos()}
 <div class="rec"><strong>✅ Recomendaciones</strong><ul>
   <li>Dar seguimiento con los Clientes para las entregas de resguardos con más de 30 días. Si no se logra contacto, solicitar el ajuste de entrada según política.</li>
   <li>Gestionar respaldo digital de la documentación dañada por el incidente de inundación.</li>
-</ul></div>
+</ul></div>`:''}
 
+${seccionesSeleccionadas['trSol']!==false?`
 <div class="sec-header">🔄 TRASPASOS SOLICITADOS</div>
 ${insightHTML(ins.traspasos)}
 <p>Se generó reporte de traspasos solicitados desde la transacción <strong>ZREPSOLTRAS</strong> al <strong>${cfg.fAud}</strong>, encontrando <strong>${trSol.length} traspaso(s)</strong> con un costo pendiente de <strong>${money(costTrSol)}</strong>.</p>
 ${buildTable(['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR','CANT_PEND_ENTRAR','COSTO_PEND_ENTRAR'],trSol,true,'TRASPASOS_SOL')}
 <ul><li>Los traspasos solicitados a <strong>CEDIS – KC00</strong> corresponden a semanas, sin suficiente existencia para suministrarlos, afectando ventas y entrega de material de alta rotación.</li><li>Se realizan solicitudes de traspaso de material con entregas previas — riesgo de duplicidad y contraviene lineamientos establecidos.</li></ul>
-${trDet.length?`<p><strong>Detalle de artículos no suministrados:</strong></p>${buildTable(['DESCRIPCION','CANT_SIN_SURTIR','COSTO_SIN_SURTIR','EXISTENCIA_CEDIS','INDICADOR'],trDet)}`:''}
+${seccionesSeleccionadas['trDet']!==false&&trDet.length?`<p><strong>Detalle de artículos no suministrados:</strong></p>${buildTable(['DESCRIPCION','CANT_SIN_SURTIR','COSTO_SIN_SURTIR','EXISTENCIA_CEDIS','INDICADOR'],trDet)}`:''}
 <div class="rec"><strong>✅ Recomendaciones</strong><ul>
   <li>Informar al área de Compras los artículos no suministrados antes de cancelar solicitudes.</li>
   <li>Apegarse al proceso <strong>PRO-CED-011 Traspasos solicitados entre Sucursales o a CEDIS</strong>.</li>
-</ul></div>
+</ul></div>`:''}
 
+${seccionesSeleccionadas['trSum']!==false?`
 <div class="sec-header">📨 TRASPASOS SUMINISTRADOS</div>
 <p>Se generó reporte de traspasos suministrados al <strong>${cfg.fAud}</strong>, encontrando <strong>${trSum.length} traspaso(s)</strong> con un costo de <strong>${money(costTrSum)}</strong>.</p>
 ${buildTable(['FECHA','TRASPASO','SOLICITANTE','CODIGO','DESCRIPCION','CANTIDAD','COSTO'],trSum)}
-<ul><li>Pendiente cancelar por el centro solicitante; la cancelación fue realizada durante el proceso de auditoría.</li><li>Las salidas son firmadas de recibido.</li></ul>
+<ul><li>Pendiente cancelar por el centro solicitante; la cancelación fue realizada durante el proceso de auditoría.</li><li>Las salidas son firmadas de recibido.</li></ul>`:''}
 
+${seccionesSeleccionadas['pedidos']!==false?`
 <div class="sec-header">📋 PEDIDOS A PROVEEDOR</div>
 <p>Se generó reporte de órdenes de compra en Backorder en la transacción <strong>ZREPORDCOMP</strong> al <strong>${cfg.fAud}</strong>, identificando <strong>${ped.length} orden(es)</strong> con un costo pendiente de <strong>${money(costPed)}</strong>.</p>
 ${buildTable(['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND'],ped)}
-<ul><li>Material en curso. Las órdenes de compra cuentan con antigüedad menor a 30 días.</li><li>No se cuenta con entradas pendientes de realizar.</li></ul>
+<ul><li>Material en curso. Las órdenes de compra cuentan con antigüedad menor a 30 días.</li><li>No se cuenta con entradas pendientes de realizar.</li></ul>`:''}
 
+${seccionesSeleccionadas['pickings']!==false?`
 <div class="sec-header">🛒 PICKINGS</div>
 ${insightHTML(ins.pickings)}
 <p>Se generó reporte de pedidos de venta pendientes de contabilizar al <strong>${cfg.fAud}</strong> desde la transacción <strong>ZVA05VTAS</strong>, encontrando <strong>${picks.length} documentos</strong> con un costo total de <strong>${money(costPick)}</strong>.</p>
@@ -1088,13 +1148,15 @@ ${pE.length?`<li><strong>E (Justificado):</strong> ${pE.length} picking(s) con t
 <div class="rec"><strong>✅ Recomendaciones</strong><ul>
   <li>Monitorear diariamente la transacción <strong>ZVA05VTAS</strong> para identificar y contabilizar los Pickings entregados y solicitar ajustes del material sin existencias.</li>
   <li>Asegurarse de contabilizar las entradas de las devoluciones en el momento para ingresar el material al inventario.</li>
-</ul></div>
+</ul></div>`:''}
 
+${seccionesSeleccionadas['vl06p']!==false?`
 <div class="sec-header">🚚 VL06P — MONITOR DE ENTREGAS</div>
 <p>Se generó reporte de monitor de entregas en la transacción <strong>VL06P</strong> al <strong>${cfg.fAud}</strong>, encontrando <strong>${vl6p.length} entrega(s) pendiente(s)</strong>.</p>
 ${buildTable(['NOMBRE_CLIENTE','FECHA_ENTREGA','ENTREGA','CREADO_POR'],vl6p,true,'VL06P')}
-<ul><li>Material pendiente de entrega.</li><li>Los Pickings son firmados de recibido en la Tablet: material en punto de venta validado por Cajera; material en almacén contabilizado por personal del área.</li></ul>
+<ul><li>Material pendiente de entrega.</li><li>Los Pickings son firmados de recibido en la Tablet: material en punto de venta validado por Cajera; material en almacén contabilizado por personal del área.</li></ul>`:''}
 
+${seccionesSeleccionadas['vl06g']!==false?`
 <div class="sec-header">↩️ VL06G — SALIDAS PENDIENTES DE CONTABILIZAR</div>
 ${insightHTML(ins.vl06g)}
 <p>Se generó reporte de salidas pendientes de contabilizar en la transacción <strong>VL06G</strong> al <strong>${cfg.fAud}</strong>, encontrando <strong>${vl6g.length} entrega(s) pendiente(s)</strong>.</p>
@@ -1102,17 +1164,19 @@ ${buildTable(['NOMBRE_CLIENTE','FECHA_ENTREGA','ENTREGA','CREADO_POR'],vl6g,true
 <ul><li>Corresponden a devoluciones no contabilizadas de un día anterior. Afectan la confiabilidad del inventario.</li></ul>
 <div class="rec"><strong>✅ Recomendaciones</strong><ul>
   <li>Contabilizar las entradas de las devoluciones en el momento para ingresar el material al inventario de forma inmediata.</li>
-</ul></div>
+</ul></div>`:''}
 
+${seccionesSeleccionadas['devoluciones']!==false?`
 <div class="sec-header">📤 DEVOLUCIONES A PROVEEDOR</div>
 <p>Se generó reporte de devoluciones a proveedor sin MIRO en la transacción <strong>ZREPCOMPRAS</strong> al <strong>${cfg.fAud}</strong>, encontrando <strong>${devs.length} devolución(es)</strong> con un importe de <strong>${money(costDevs)}</strong>.</p>
 ${buildTable(['PROVEEDOR','ORDEN_COMPRA','FECHA_OC','SALIDA','FECHA_SALIDA','DIAS_ANTIGUEDAD','IMPORTE'],devs,true,'DEVOLUCIONES')}
-<ul><li>La nota de crédito se encuentra en trámite.</li></ul>
+<ul><li>La nota de crédito se encuentra en trámite.</li></ul>`:''}
 
+${seccionesSeleccionadas['vehiculos']!==false?`
 <div class="sec-header">🚗 VEHÍCULOS</div>
-<p>No se cuenta con unidades vehiculares propias. Los envíos son realizados por medio de <strong>CEDIS</strong>.</p>
+<p>No se cuenta con unidades vehiculares propias. Los envíos son realizados por medio de <strong>CEDIS</strong>.</p>`:''}
 
-${evalSection}
+${seccionesSeleccionadas['evaluacion']!==false?evalSection:''}
 
 <div class="sec-header">📋 CONCLUSIÓN</div>
 <p>Se concluye el presente informe correspondiente a <strong>Kuroda, S.A. de C.V.</strong>, de la sucursal <strong>${cfg.suc}</strong>, el día <strong>${cfg.fCon}</strong>.</p>
@@ -1162,6 +1226,240 @@ function exportEvalHTML(){
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([htmlEval],{type:'text/html;charset=utf-8'}));
   a.download=`Evaluacion_${cfg.num}.html`;a.click();
+}
+
+// ===================== PLAN DE ACCIÓN (WORD) =====================
+function exportPlanAccionWord(){
+  if(!evalData||!evalData.length){
+    alert('No hay datos de evaluación. Genere primero un informe completo con la sección de Evaluación de Cumplimiento.');
+    return;
+  }
+  const cfg=getCfg();
+  const totalScore=Math.round(calcTotalScore()*100);
+  const cumplidos=evalData.filter(i=>i.value===1).length;
+  const noCumplidos=evalData.filter(i=>i.value===0).length;
+  const totalItems=evalData.length;
+  const pctCumplido=Math.round((cumplidos/totalItems)*100);
+  const pctNoCumplido=100-pctCumplido;
+
+  const sections=[...new Set(evalData.map(e=>e.section))];
+  const nivelGlobal = totalScore>=80?'SATISFACTORIO':totalScore>=60?'REQUIERE ATENCIÓN':'DEFICIENTE — ACCIÓN INMEDIATA';
+  const colorGlobal = totalScore>=80?'#1A7A3C':totalScore>=60?'#C97A0A':'#C0392B';
+
+  // Mapa de recomendaciones por ítem (basadas en label)
+  function getRecomendacion(item){
+    const lbl=item.label.toLowerCase();
+    if(lbl.includes('arqueo')) return 'Implementar arqueo doble al inicio y cierre de turno con firma del Gerente y Cajera. Documentar diferencias mayores a $10.00 dentro de 24 horas.';
+    if(lbl.includes('retiro')) return 'Establecer formato oficial de retiros con firma de Cajera y verificación obligatoria por Administrativo o Gerente.';
+    if(lbl.includes('fondo')&&lbl.includes('cambio')) return 'Resguardar el fondo en caja de seguridad bajo llave, con responsable designado y bitácora de entrega/recepción.';
+    if(lbl.includes('caja chica')) return 'Mantener inventario físico del fondo de caja chica conforme al monto autorizado. Reembolsos solo con comprobantes autorizados por Gerencia.';
+    if(lbl.includes('comprobante')) return 'Verificar que cada comprobante esté autorizado por Gerencia y describa claramente el concepto del gasto y el responsable.';
+    if(lbl.includes('vale')) return 'Establecer plazo máximo de 3 días hábiles para comprobación de vales. Aplicar descuento de nómina en caso de incumplimiento.';
+    if(lbl.includes('factura')&&lbl.includes('compensa')) return 'Realizar compensación diaria de facturas pendientes en transacción FBL5N. Reportar a Crédito y Cobranza casos mayores a 5 días.';
+    if(lbl.includes('resguardo')&&lbl.includes('30 días')) return 'Contactar al cliente en plazo máximo de 5 días hábiles. En caso de no respuesta, proceder al ajuste de entrada conforme a política.';
+    if(lbl.includes('cliente firma')) return 'Asegurar firma del cliente en formato de resguardo o tablet de recibido. Sin firma, no liberar mercancía.';
+    if(lbl.includes('salida')&&lbl.includes('contabiliz')) return 'Contabilizar salidas al cierre del mismo día de la operación. Establecer alerta operativa para evitar cierre con pendientes.';
+    if(lbl.includes('backorder')||lbl.includes('sin salida')) return 'Notificar a Compras los artículos no suministrados antes de cancelar solicitudes. Incluir en plan de compras.';
+    if(lbl.includes('material pendiente')||lbl.includes('apartado')) return 'Mantener material apartado e identificado físicamente con etiqueta de cliente y número de pedido visible.';
+    if(lbl.includes('orden de compra')&&lbl.includes('mes')) return 'Revisar semanalmente órdenes mayores a 30 días. Cancelar o reactivar con proveedor según corresponda.';
+    if(lbl.includes('picking')&&lbl.includes('justific')) return 'Monitorear ZVA05VTAS al inicio de cada turno. Establecer control que impida cierre del día con pickings sin justificar.';
+    if(lbl.includes('vl06p')) return 'Monitorear VL06P diariamente. Contabilizar entregas pendientes antes del cierre operativo.';
+    if(lbl.includes('vl06g')) return 'Registrar devoluciones de cliente al momento de recepción. Incluir indicador en reporte diario de Gerencia.';
+    if(lbl.includes('devolución')&&lbl.includes('proveedor')) return 'Generar MIRO en plazo máximo de 5 días hábiles posteriores a la salida física del material.';
+    if(lbl.includes('licencia')||lbl.includes('póliza')||lbl.includes('circulación')) return 'Mantener actualizada documentación vehicular con vigencia mínima de 30 días. Renovar antes del vencimiento.';
+    if(lbl.includes('puerta')) return 'Mantener puerta del área de cajas cerrada con seguro durante todo el turno operativo.';
+    if(lbl.includes('bolso')) return 'Prohibir bolsos de mano y artículos personales en el área de cajas. Asignar locker individual a cajeras.';
+    return 'Implementar control específico conforme a política interna y dar seguimiento mensual desde Gerencia de Sucursal.';
+  }
+
+  // Plazo según peso del ítem (mayor peso = más urgente)
+  function getPlazo(item){
+    if(item.pct>=0.14) return '7 días';
+    if(item.pct>=0.09) return '15 días';
+    return '30 días';
+  }
+
+  // Tabla de indicadores globales
+  let tablaSecciones='';
+  sections.forEach(sec=>{
+    const items=evalData.filter(e=>e.section===sec);
+    const sCump=items.filter(i=>i.value===1).length;
+    const sNoCump=items.filter(i=>i.value===0).length;
+    const sPct=Math.round(calcSectionScore(items)*100);
+    const sColor=sPct>=80?'#1A7A3C':sPct>=60?'#C97A0A':'#C0392B';
+    tablaSecciones+=`<tr>
+      <td style="padding:8px;border:1px solid #999;font-size:11px;font-weight:bold;">${sec}</td>
+      <td style="padding:8px;border:1px solid #999;font-size:11px;text-align:center;">${items.length}</td>
+      <td style="padding:8px;border:1px solid #999;font-size:11px;text-align:center;color:#1A7A3C;font-weight:bold;">${sCump}</td>
+      <td style="padding:8px;border:1px solid #999;font-size:11px;text-align:center;color:#C0392B;font-weight:bold;">${sNoCump}</td>
+      <td style="padding:8px;border:1px solid #999;font-size:11px;text-align:center;color:${sColor};font-weight:bold;">${sPct}%</td>
+      <td style="padding:8px;border:1px solid #999;font-size:11px;text-align:center;color:${sColor};font-weight:bold;">${100-sPct}%</td>
+    </tr>`;
+  });
+
+  // Tabla de plan de acción (solo no cumplidos)
+  const noCumplidosItems=evalData.filter(i=>i.value===0);
+  let tablaPlan='';
+  let prioridad=1;
+  noCumplidosItems.sort((a,b)=>b.pct-a.pct).forEach(item=>{
+    const plazo=getPlazo(item);
+    const rec=getRecomendacion(item);
+    const prioridadLbl=item.pct>=0.14?'ALTA':item.pct>=0.09?'MEDIA':'BAJA';
+    const prioridadColor=item.pct>=0.14?'#C0392B':item.pct>=0.09?'#C97A0A':'#1A5276';
+    tablaPlan+=`<tr>
+      <td style="padding:8px;border:1px solid #999;font-size:10px;text-align:center;font-weight:bold;">${String(prioridad).padStart(2,'0')}</td>
+      <td style="padding:8px;border:1px solid #999;font-size:10px;">${item.section}</td>
+      <td style="padding:8px;border:1px solid #999;font-size:10px;"><strong>Hallazgo:</strong> ${item.label}</td>
+      <td style="padding:8px;border:1px solid #999;font-size:10px;">${rec}</td>
+      <td style="padding:8px;border:1px solid #999;font-size:10px;text-align:center;color:${prioridadColor};font-weight:bold;">${prioridadLbl}</td>
+      <td style="padding:8px;border:1px solid #999;font-size:10px;text-align:center;font-weight:bold;">${plazo}</td>
+      <td style="padding:8px;border:1px solid #999;font-size:10px;text-align:center;">Gerencia Sucursal</td>
+    </tr>`;
+    prioridad++;
+  });
+
+  // HTML para Word con namespace MSO
+  const htmlPlan=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8">
+<title>Plan de Acción — ${cfg.num}</title>
+<!--[if gte mso 9]><xml>
+<w:WordDocument><w:View>Print</w:View><w:Zoom>90</w:Zoom><w:DoNotPromptForConvert/></w:WordDocument>
+</xml><![endif]-->
+<style>
+@page WordSection1 { size: 21.59cm 27.94cm; margin: 2cm 2cm 2cm 2cm; mso-header-margin:.5cm; mso-footer-margin:.5cm; }
+div.WordSection1 { page: WordSection1; }
+body { font-family: 'Calibri', Arial, sans-serif; font-size: 11pt; color: #1C2130; line-height: 1.5; }
+h1 { color: #0F1E3C; font-size: 22pt; font-weight: bold; margin: 0 0 6pt; border-bottom: 3px solid #C0392B; padding-bottom: 8pt; }
+h2 { color: #0F1E3C; font-size: 14pt; font-weight: bold; margin: 18pt 0 8pt; border-left: 5px solid #C0392B; padding-left: 10pt; background: #F0F2F8; padding: 6pt 10pt; }
+h3 { color: #C0392B; font-size: 12pt; font-weight: bold; margin: 14pt 0 6pt; }
+p { margin: 6pt 0; }
+table { border-collapse: collapse; width: 100%; margin: 8pt 0; }
+th { background: #0F1E3C; color: #fff; padding: 8pt; font-size: 10pt; font-weight: bold; text-align: left; border: 1px solid #999; }
+td { padding: 6pt 8pt; border: 1px solid #999; font-size: 10pt; vertical-align: top; }
+.kpi-box { display: table; width: 100%; margin: 10pt 0; }
+.kpi-cell { display: table-cell; padding: 12pt; border: 1.5px solid #E0E6F0; background: #F7F9FF; text-align: center; }
+.kpi-label { font-size: 9pt; color: #888; font-weight: bold; text-transform: uppercase; }
+.kpi-val { font-size: 22pt; font-weight: bold; margin: 4pt 0; }
+.firma-table td { border: none; padding: 30pt 10pt 4pt; }
+.firma-line { border-top: 1.5px solid #333; padding-top: 4pt; text-align: center; font-weight: bold; font-size: 11pt; }
+</style></head>
+<body>
+<div class="WordSection1">
+
+<table style="width:100%;border:none;margin-bottom:18pt;"><tr>
+<td style="border:none;padding:0;"><span style="color:#C0392B;font-size:10pt;font-weight:bold;letter-spacing:2pt;">KURODA S.A. DE C.V.</span><br><span style="color:#888;font-size:9pt;">Dirección de Auditoría Interna</span></td>
+<td style="border:none;padding:0;text-align:right;"><span style="background:#0F1E3C;color:#fff;padding:6pt 14pt;font-size:9pt;font-weight:bold;letter-spacing:1.5pt;">DOCUMENTO CONFIDENCIAL</span></td>
+</tr></table>
+
+<h1>PLAN DE ACCIÓN — AUDITORÍA INTERNA</h1>
+<p style="font-size:11pt;color:#666;margin:4pt 0 18pt;"><strong>Informe:</strong> ${cfg.num} &nbsp;|&nbsp; <strong>Sucursal:</strong> ${cfg.suc} (${cfg.ciu}) &nbsp;|&nbsp; <strong>Fecha:</strong> ${cfg.fAud}</p>
+
+<h2>1. RESUMEN EJECUTIVO DE CUMPLIMIENTO</h2>
+<p>El presente Plan de Acción se deriva de la evaluación de cumplimiento aplicada a la sucursal <strong>${cfg.suc}</strong>, ubicada en <strong>${cfg.ciu}</strong>. El nivel global determinado es <strong style="color:${colorGlobal};">${nivelGlobal}</strong>, con un cumplimiento general del <strong>${totalScore}%</strong>.</p>
+
+<table>
+<tr>
+<td style="border:1.5px solid #E0E6F0;background:#F0FDF4;padding:14pt;text-align:center;width:25%;">
+<div style="font-size:9pt;color:#888;font-weight:bold;text-transform:uppercase;">Total Criterios</div>
+<div style="font-size:20pt;font-weight:bold;color:#0F1E3C;margin:4pt 0;">${totalItems}</div>
+<div style="font-size:9pt;color:#888;">Evaluados</div>
+</td>
+<td style="border:1.5px solid #E0E6F0;background:#F0FDF4;padding:14pt;text-align:center;width:25%;">
+<div style="font-size:9pt;color:#888;font-weight:bold;text-transform:uppercase;">Cumplidos</div>
+<div style="font-size:20pt;font-weight:bold;color:#1A7A3C;margin:4pt 0;">${cumplidos}</div>
+<div style="font-size:9pt;color:#1A7A3C;font-weight:bold;">${pctCumplido}%</div>
+</td>
+<td style="border:1.5px solid #E0E6F0;background:#FEF0F0;padding:14pt;text-align:center;width:25%;">
+<div style="font-size:9pt;color:#888;font-weight:bold;text-transform:uppercase;">No Cumplidos</div>
+<div style="font-size:20pt;font-weight:bold;color:#C0392B;margin:4pt 0;">${noCumplidos}</div>
+<div style="font-size:9pt;color:#C0392B;font-weight:bold;">${pctNoCumplido}%</div>
+</td>
+<td style="border:1.5px solid #E0E6F0;background:#EEF4FF;padding:14pt;text-align:center;width:25%;">
+<div style="font-size:9pt;color:#888;font-weight:bold;text-transform:uppercase;">Cumplimiento Global</div>
+<div style="font-size:20pt;font-weight:bold;color:${colorGlobal};margin:4pt 0;">${totalScore}%</div>
+<div style="font-size:9pt;color:${colorGlobal};font-weight:bold;">${nivelGlobal}</div>
+</td>
+</tr>
+</table>
+
+<h2>2. INDICADORES DE CUMPLIMIENTO POR ÁREA</h2>
+<p>El cuadro siguiente resume el desempeño por área evaluada, mostrando los porcentajes de cumplimiento e incumplimiento que sirven de base para la priorización del Plan de Acción.</p>
+<table>
+<thead>
+<tr>
+<th>Área Auditada</th>
+<th style="text-align:center;width:12%;">Total Criterios</th>
+<th style="text-align:center;width:12%;">Cumplen</th>
+<th style="text-align:center;width:12%;">No Cumplen</th>
+<th style="text-align:center;width:14%;">% Cumplido</th>
+<th style="text-align:center;width:14%;">% No Cumplido</th>
+</tr>
+</thead>
+<tbody>${tablaSecciones}
+<tr style="background:#0F1E3C;color:#fff;">
+<td style="padding:8pt;border:1px solid #999;font-size:11px;font-weight:bold;color:#fff;">TOTAL GENERAL</td>
+<td style="padding:8pt;border:1px solid #999;font-size:11px;text-align:center;color:#fff;font-weight:bold;">${totalItems}</td>
+<td style="padding:8pt;border:1px solid #999;font-size:11px;text-align:center;color:#5FE395;font-weight:bold;">${cumplidos}</td>
+<td style="padding:8pt;border:1px solid #999;font-size:11px;text-align:center;color:#FF8888;font-weight:bold;">${noCumplidos}</td>
+<td style="padding:8pt;border:1px solid #999;font-size:11px;text-align:center;color:#5FE395;font-weight:bold;">${pctCumplido}%</td>
+<td style="padding:8pt;border:1px solid #999;font-size:11px;text-align:center;color:#FF8888;font-weight:bold;">${pctNoCumplido}%</td>
+</tr>
+</tbody>
+</table>
+
+<h2>3. HALLAZGOS Y RECOMENDACIONES — PLAN DE ACCIÓN DETALLADO</h2>
+<p>${noCumplidos===0?'<strong style="color:#1A7A3C;">No se identificaron criterios incumplidos.</strong> Mantener controles vigentes y revisión mensual.':`Se identificaron <strong style="color:#C0392B;">${noCumplidos} criterio(s) incumplido(s)</strong> que requieren acción correctiva. El cuadro siguiente detalla los hallazgos, recomendaciones, prioridad asignada según peso del criterio, plazo de cumplimiento y responsable.`}</p>
+
+${noCumplidos>0?`<table>
+<thead>
+<tr>
+<th style="text-align:center;width:5%;">N°</th>
+<th style="width:14%;">Área</th>
+<th style="width:30%;">Hallazgo Identificado</th>
+<th style="width:30%;">Recomendación</th>
+<th style="text-align:center;width:8%;">Prioridad</th>
+<th style="text-align:center;width:7%;">Plazo</th>
+<th style="text-align:center;width:8%;">Responsable</th>
+</tr>
+</thead>
+<tbody>${tablaPlan}</tbody>
+</table>`:''}
+
+<h2>4. METODOLOGÍA DE PRIORIZACIÓN</h2>
+<p>La asignación de prioridad y plazos se realizó conforme a los siguientes criterios objetivos:</p>
+<table>
+<thead><tr><th>Prioridad</th><th>Peso del Criterio</th><th>Plazo Máximo</th><th>Justificación</th></tr></thead>
+<tbody>
+<tr><td style="color:#C0392B;font-weight:bold;">ALTA</td><td>≥ 14%</td><td>7 días</td><td>Criterio crítico con alto impacto en el control interno. Requiere acción inmediata.</td></tr>
+<tr><td style="color:#C97A0A;font-weight:bold;">MEDIA</td><td>9% — 14%</td><td>15 días</td><td>Criterio relevante con impacto operativo. Requiere acción en corto plazo.</td></tr>
+<tr><td style="color:#1A5276;font-weight:bold;">BAJA</td><td>&lt; 9%</td><td>30 días</td><td>Criterio complementario. Acción dentro del ciclo mensual de mejora.</td></tr>
+</tbody>
+</table>
+
+<h2>5. SEGUIMIENTO Y CIERRE</h2>
+<p>La Gerencia de Sucursal deberá enviar a la Dirección de Auditoría Interna un <strong>reporte de avance quincenal</strong> con evidencia documental del cumplimiento de cada acción. El cierre formal del Plan de Acción se realizará una vez verificada la implementación de la totalidad de las acciones correctivas. Los criterios incumplidos en la próxima auditoría que ya hubieran sido identificados en el presente plan se considerarán como <strong>incumplimiento reincidente</strong> y serán reportados a la Dirección General.</p>
+
+<p style="margin-top:18pt;font-size:10pt;color:#666;font-style:italic;">El presente Plan de Acción es un documento de cumplimiento obligatorio para la Gerencia de Sucursal y forma parte integral del Informe de Auditoría ${cfg.num}.</p>
+
+<table class="firma-table" style="margin-top:40pt;">
+<tr>
+<td style="width:50%;border:none;"><div class="firma-line">${cfg.aud}</div><div style="text-align:center;font-size:10pt;color:#666;">Auditor Interno — Auditoría Interna KURODA S.A. DE C.V.</div></td>
+<td style="width:50%;border:none;"><div class="firma-line">${cfg.gerente}</div><div style="text-align:center;font-size:10pt;color:#666;">Gerente de Sucursal — ${cfg.suc}</div></td>
+</tr>
+</table>
+
+<p style="margin-top:24pt;font-size:8pt;color:#999;text-align:center;border-top:1px solid #ccc;padding-top:8pt;">Plan de Acción ${cfg.num} | Generado el ${todayDMY()} | KURODA S.A. DE C.V. — Auditoría Interna | Documento Confidencial</p>
+
+</div>
+</body></html>`;
+
+  const blob=new Blob(['\ufeff'+htmlPlan],{type:'application/msword;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`PlanAccion_${cfg.num}.doc`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 // ===================== GUARDAR =====================
@@ -1596,8 +1894,844 @@ function descargarPlantilla(){
   XLSX.writeFile(wb, fileName);
 }
 
+// ===================== SELECTOR DE TIPO E INFORME =====================
+let tipoInforme = 'operativo';
+
+const SECCIONES_DISPONIBLES = [
+  {id:'efectivo',    label:'💵 Efectivo & Arqueos',          defOn:true},
+  {id:'resguardos',  label:'📦 Mercancía en Resguardo',       defOn:true},
+  {id:'trSol',       label:'🔄 Traspasos Solicitados',         defOn:true},
+  {id:'trDet',       label:'🔍 Detalle de Traspasos',          defOn:true},
+  {id:'trSum',       label:'📨 Traspasos Suministrados',        defOn:true},
+  {id:'pedidos',     label:'📋 Pedidos a Proveedor',           defOn:true},
+  {id:'pickings',    label:'🛒 Pickings',                      defOn:true},
+  {id:'vl06p',       label:'🚚 VL06P — Monitor Entregas',      defOn:true},
+  {id:'vl06g',       label:'↩️ VL06G — Salidas Pendientes',   defOn:true},
+  {id:'devoluciones',label:'📤 Devoluciones a Proveedor',     defOn:true},
+  {id:'vehiculos',   label:'🚗 Vehículos',                     defOn:true},
+  {id:'evaluacion',  label:'🏅 Evaluación de Cumplimiento',    defOn:true},
+];
+let seccionesSeleccionadas = {};
+
+function abrirSelectorInforme(){
+  // Init selections
+  SECCIONES_DISPONIBLES.forEach(s=>{ if(!(s.id in seccionesSeleccionadas)) seccionesSeleccionadas[s.id]=s.defOn; });
+  renderSeccionesGrid();
+  $('modalSelector').style.display='block';
+}
+
+function cerrarSelectorInforme(){
+  $('modalSelector').style.display='none';
+}
+
+function selTipo(tipo){
+  tipoInforme=tipo;
+  const tipos=['operativo','ejecutivo'];
+  tipos.forEach(t=>{
+    const card=$('tipoCard_'+t);
+    const lbl=$('tipoLbl_'+t);
+    if(t===tipo){
+      card.style.border='2px solid var(--navy)';card.style.background='#EEF4FF';
+      lbl.style.background='var(--navy)';lbl.style.color='#fff';lbl.textContent='SELECCIONADO ✓';
+    } else {
+      card.style.border='2px solid var(--border)';card.style.background='#FAFBFD';
+      lbl.style.background='var(--border)';lbl.style.color='var(--muted)';lbl.textContent='SELECCIONAR';
+    }
+  });
+}
+
+function renderSeccionesGrid(){
+  const grid=$('seccionesGrid');
+  grid.innerHTML=SECCIONES_DISPONIBLES.map(s=>`
+    <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid ${seccionesSeleccionadas[s.id]?'var(--navy)':'var(--border)'};border-radius:8px;cursor:pointer;background:${seccionesSeleccionadas[s.id]?'#EEF4FF':'#FAFBFD'};transition:.15s;font-size:12px;font-weight:600;">
+      <input type="checkbox" ${seccionesSeleccionadas[s.id]?'checked':''} onchange="toggleSeccion('${s.id}',this.checked)" style="width:16px;height:16px;accent-color:var(--navy);cursor:pointer;">
+      ${s.label}
+    </label>`).join('');
+}
+
+function toggleSeccion(id, checked){
+  seccionesSeleccionadas[id]=checked;
+  renderSeccionesGrid();
+}
+
+function toggleAllSections(val){
+  SECCIONES_DISPONIBLES.forEach(s=>seccionesSeleccionadas[s.id]=val);
+  renderSeccionesGrid();
+}
+
+function confirmarGeneracion(){
+  cerrarSelectorInforme();
+  if(tipoInforme==='ejecutivo') generarInformeEjecutivo();
+  else generarInforme();
+}
+
+// ===================== INFORME EJECUTIVO (AUDITOR SENIOR) =====================
+async function generarInformeEjecutivo(){
+  hi('p3');sh('p4');setStep(4);
+  prog(5,'Analizando hallazgos...','Preparando análisis ejecutivo');await sleep(100);
+
+  const cfg={
+    num:$('cNum').value.trim()||'AUD-COL-KC24-ABR-2026',
+    suc:$('cSuc').value.trim()||'Kuroda Costa Rica',
+    ciu:$('cCiu').value.trim()||'Culiacán, Sinaloa',
+    fAud:fmtInputDate($('cFAud').value)||todayDMY(),
+    fCon:fmtInputDate($('cFCon').value)||todayDMY(),
+    aud:$('cAud').value.trim()||'___________________________',
+    gerente:$('cGerente').value.trim()||'___________________________',
+    obs:$('cObs').value.trim()
+  };
+
+  const resg   = data['RESGUARDOS']   || [];
+  const trSol  = data['TRASPASOS_SOL']|| [];
+  const trSum  = data['TRASPASOS_SUM']|| [];
+  const picks  = data['PICKINGS']     || [];
+  const ped    = data['PEDIDOS']      || [];
+  const vl6p   = data['VL06P']        || [];
+  const vl6g   = data['VL06G']        || [];
+  const devs   = data['DEVOLUCIONES'] || [];
+  const arqueoRows = data['ARQUEO_PV']||[];
+  const aq = arqueoRows.length?arqueoRows[0]:{};
+
+  const aqDifRaw = aq.DIFERENCIA_SOBRANTE?parseFloat(String(aq.DIFERENCIA_SOBRANTE).replace(/[^0-9.-]/g,'')):0;
+  const totResg  = resg.reduce((s,r)=>s+(parseFloat(r.CANTIDAD)||0),0);
+  const venc     = resg.filter(r=>parseInt(r.DIAS_ANTIGUEDAD)>30);
+  const costPick = picks.reduce((s,r)=>s+(parseFloat(String(r.COSTO_PEND||0).replace(/[^0-9.-]/g,''))||0),0);
+  const costPickNJ = picks.filter(r=>r._status==='A'||r._status==='B').reduce((s,r)=>s+(parseFloat(String(r.COSTO_PEND||0).replace(/[^0-9.-]/g,''))||0),0);
+  const costTrSol= trSol.reduce((s,r)=>s+(parseFloat(String(r.COSTO_PEND_SURTIR||0).replace(/[^0-9.-]/g,''))||0),0);
+  const costPed  = ped.reduce((s,r)=>s+(parseFloat(String(r.COSTO_PEND||0).replace(/[^0-9.-]/g,''))||0),0);
+  const evalScore= evalData.length?Math.round(calcTotalScore()*100):null;
+
+  prog(30,'Calculando riesgos...','Categorizando hallazgos');await sleep(100);
+
+  // ── Nivel de riesgo global ─────────────────────────────────────
+  let riskScore=0;
+  if(venc.length>3) riskScore+=3; else if(venc.length>0) riskScore+=2;
+  if(costPickNJ>5000) riskScore+=3; else if(costPickNJ>1000) riskScore+=2;
+  if(vl6g.length>5) riskScore+=2; else if(vl6g.length>0) riskScore+=1;
+  if(aqDifRaw>0) riskScore+=1;
+  if(evalScore!==null&&evalScore<70) riskScore+=3; else if(evalScore!==null&&evalScore<85) riskScore+=1;
+  const riskLevel = riskScore>=7?'ALTO':riskScore>=4?'MODERADO':'BAJO';
+  const riskColor = riskLevel==='ALTO'?'#C0392B':riskLevel==='MODERADO'?'#C97A0A':'#1A7A3C';
+  const riskBg    = riskLevel==='ALTO'?'#FEF0F0':riskLevel==='MODERADO'?'#FFF8EE':'#F0FDF4';
+
+  prog(50,'Redactando hallazgos...','Generando narrativa ejecutiva');await sleep(100);
+
+  // ── Hallazgos categorizados ────────────────────────────────────
+  const hallazgos=[];
+  const rec=[];
+
+  // H1: Efectivo
+  if(seccionesSeleccionadas['efectivo']){
+    if(aqDifRaw>0){
+      hallazgos.push({num:'H-01',area:'Control de Efectivo',riesgo:'Moderado',rColor:'#C97A0A',
+        titulo:`Diferencia no identificada en arqueo de punto de venta por ${money(aqDifRaw)}`,
+        desc:`Durante el arqueo practicado en la fecha de auditoría, se identificó un sobrante no justificado de <strong>${money(aqDifRaw)}</strong> en el punto de venta de la sucursal <strong>${cfg.suc}</strong>. La diferencia fue registrada en el corte de venta del día en curso conforme al procedimiento establecido; sin embargo, su recurrencia podría indicar debilidades en la segregación de funciones o en el proceso de cuadre de caja.`,
+        impacto:`Riesgo de pérdida de integridad en el registro de operaciones de efectivo.`,
+        ref:'Política de Control de Efectivo — Sección 3.2'
+      });
+      rec.push({ref:'H-01',texto:`Implementar doble validación del arqueo de caja al inicio y cierre de turno. Documentar y reportar a Contraloría cualquier diferencia mayor a $10.00 dentro de las 24 horas siguientes.`});
+    }
+  }
+
+  // H2: Resguardos
+  if(seccionesSeleccionadas['resguardos']&&resg.length>0){
+    if(venc.length>0){
+      hallazgos.push({num:'H-02',area:'Mercancía en Resguardo',riesgo:'Alto',rColor:'#C0392B',
+        titulo:`${venc.length} resguardo(s) con antigüedad mayor a 30 días sin gestión de recuperación`,
+        desc:`Se identificaron <strong>${venc.length} de ${resg.length}</strong> resguardos activos (${Math.round(venc.length/resg.length*100)}% del total) con una antigüedad superior a 30 días, representando <strong>${venc.reduce((s,r)=>s+(parseFloat(r.CANTIDAD)||0),0)} piezas</strong> de mercancía fuera del plazo normativo. El incumplimiento del plazo de entrega genera riesgo de pérdida, deterioro del material y conflictos con clientes. Adicionalmente, se reportó la pérdida de documentación soporte atribuida a un incidente de inundación durante Semana Santa, sin que se haya activado un procedimiento de respaldo de contingencia.`,
+        impacto:`Exposición de inventario sin respaldo documental. Potencial riesgo legal ante reclamaciones de clientes.`,
+        ref:'Política de Mercancía en Resguardo — Sección 2.1 y 4.3'
+      });
+      rec.push({ref:'H-02',texto:`Contactar a los ${venc.length} clientes con resguardos vencidos en un plazo máximo de 5 días hábiles. En caso de no obtener respuesta, proceder al ajuste de entrada conforme a la política. Establecer respaldo digital de la documentación de resguardos y definir un procedimiento de contingencia ante siniestros.`});
+    } else {
+      hallazgos.push({num:'H-02',area:'Mercancía en Resguardo',riesgo:'Bajo',rColor:'#1A7A3C',
+        titulo:`Proceso de resguardos dentro del plazo normativo — ${resg.length} resguardos activos`,
+        desc:`Los ${resg.length} resguardos activos se encuentran dentro del plazo de 30 días establecido en política, con una existencia total de <strong>${totResg} piezas</strong>. El cliente firma de conformidad en el formato correspondiente. No se identificaron salidas pendientes de contabilizar.`,
+        impacto:`Sin impacto material identificado en esta área.`,
+        ref:'Política de Mercancía en Resguardo'
+      });
+    }
+  }
+
+  // H3: Pickings
+  if(seccionesSeleccionadas['pickings']&&picks.length>0){
+    const pNJ=picks.filter(r=>r._status==='A'||r._status==='B');
+    const pJ=picks.filter(r=>r._status==='C'||r._status==='D'||r._status==='E');
+    hallazgos.push({num:'H-03',area:'Contabilización de Pedidos (Pickings)',riesgo:pNJ.length>3?'Alto':'Moderado',rColor:pNJ.length>3?'#C0392B':'#C97A0A',
+      titulo:`${picks.length} pedido(s) de venta pendiente(s) de contabilizar por ${money(costPick)}`,
+      desc:`Al cierre de la auditoría, se identificaron <strong>${picks.length} documentos</strong> con un costo total pendiente de contabilizar de <strong>${money(costPick)}</strong>. De estos, <strong>${pNJ.length} no cuentan con justificación válida</strong> (${money(costPickNJ)} — Estatus A y B), lo que afecta directamente la confiabilidad del inventario y los reportes de existencias en tiempo real. Los <strong>${pJ.length} restantes</strong> corresponden a material en tránsito con justificación documentada. Durante la auditoría se contabilizaron los de Estatus A y se enviaron solicitudes de ajuste para los de Estatus B a la Mesa de Servicio.`,
+      impacto:`Subestimación de salidas de inventario por ${money(costPickNJ)} en los reportes de existencias. Riesgo de discrepancias en cierres contables.`,
+      ref:'Procedimiento ZVA05VTAS — Control de Pedidos de Venta'
+    });
+    rec.push({ref:'H-03',texto:`Monitorear la transacción ZVA05VTAS de forma diaria al inicio de cada turno. Establecer un control operativo que impida el cierre del día si existen pickings sin justificación. Capacitar al personal en la identificación y gestión oportuna de los diferentes estatus.`});
+  }
+
+  // H4: Traspasos
+  if(seccionesSeleccionadas['trSol']&&trSol.length>0){
+    hallazgos.push({num:'H-04',area:'Traspasos y Abastecimiento',riesgo:'Moderado',rColor:'#C97A0A',
+      titulo:`Quiebre de stock en CEDIS afecta ${trSol.length} solicitud(es) de traspaso por ${money(costTrSol)}`,
+      desc:`Se detectaron <strong>${trSol.length} solicitudes de traspaso</strong> con código(s) sin existencia disponible en CEDIS (KC00) por un valor total de <strong>${money(costTrSol)}</strong>, lo que limita la capacidad de venta y entrega de material de alta rotación. Adicionalmente, se identificaron solicitudes elaboradas sobre mercancía con entrega previa pendiente, generando riesgo de duplicidad en los despachos y contraviniendo el procedimiento PRO-CED-011.`,
+      impacto:`Reducción de la capacidad de venta de la sucursal por desabasto de CEDIS. Riesgo de entrega duplicada de mercancía.`,
+      ref:'PRO-CED-011 — Traspasos Solicitados entre Sucursales o a CEDIS'
+    });
+    rec.push({ref:'H-04',texto:`Notificar al área de Compras los artículos no suministrados antes de cancelar cualquier solicitud, para su inclusión en el plan de compras. Reforzar la capacitación en el proceso PRO-CED-011 y establecer una validación previa que impida la elaboración de traspasos sobre material con entrega abierta.`});
+  }
+
+  // H5: VL06G Devoluciones
+  if(seccionesSeleccionadas['vl06g']&&vl6g.length>0){
+    hallazgos.push({num:'H-05',area:'Registro de Devoluciones',riesgo:'Moderado',rColor:'#C97A0A',
+      titulo:`${vl6g.length} devolución(es) de cliente sin contabilizar en sistema`,
+      desc:`Al momento de la auditoría se encontraron <strong>${vl6g.length} devoluciones</strong> pendientes de contabilizar en la transacción VL06G, correspondientes a operaciones del día anterior. La falta de registro oportuno impide la reincorporación inmediata del material al inventario disponible, generando discrepancias entre el stock físico y el sistema SAP.`,
+      impacto:`Sobrestimación del inventario disponible. Riesgo de ventas comprometidas sobre material no disponible físicamente.`,
+      ref:'Procedimiento VL06G — Gestión de Devoluciones de Cliente'
+    });
+    rec.push({ref:'H-05',texto:`Establecer como obligatorio el registro de devoluciones en el sistema al momento de recibir el material, antes del cierre del turno. Incluir este indicador en el reporte diario de seguimiento de la gerencia.`});
+  }
+
+  prog(70,'Estructurando informe...','Aplicando formato ejecutivo');await sleep(100);
+
+  // ── Tabla resumen de hallazgos ────────────────────────────────
+  const resumenHallazgos = hallazgos.map(h=>`
+    <tr>
+      <td style="font-weight:700;color:var(--navy);font-size:11px;">${h.num}</td>
+      <td style="font-size:11px;">${h.area}</td>
+      <td style="font-size:11px;">${h.titulo}</td>
+      <td style="text-align:center;"><span style="background:${h.riesgo==='Alto'?'#FEF0F0':h.riesgo==='Moderado'?'#FFF8EE':'#F0FDF4'};color:${h.rColor};font-weight:700;font-size:10px;padding:3px 10px;border-radius:10px;border:1.5px solid ${h.rColor};white-space:nowrap;">${h.riesgo}</span></td>
+    </tr>`).join('');
+
+  const detalleHallazgos = hallazgos.map(h=>`
+    <div style="margin-bottom:28px;border:1px solid #E8EDF5;border-radius:8px;overflow:hidden;">
+      <div style="background:${h.riesgo==='Alto'?'#C0392B':h.riesgo==='Moderado'?'#C97A0A':'#1A7A3C'};color:#fff;padding:10px 18px;display:flex;align-items:center;gap:12px;">
+        <span style="font-weight:700;font-size:14px;">${h.num}</span>
+        <span style="font-weight:600;font-size:12px;">${h.titulo}</span>
+        <span style="margin-left:auto;background:rgba(255,255,255,.2);font-size:10px;padding:3px 10px;border-radius:10px;font-weight:700;">Riesgo ${h.riesgo}</span>
+      </div>
+      <div style="padding:16px 18px;background:#fff;">
+        <div style="margin-bottom:10px;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;margin-bottom:5px;">Área</div>
+          <div style="font-size:12px;font-weight:600;">${h.area}</div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;margin-bottom:5px;">Descripción del Hallazgo</div>
+          <div style="font-size:12px;line-height:1.7;">${h.desc}</div>
+        </div>
+        <div style="background:#F7F9FF;border-left:4px solid #1A5276;padding:10px 14px;border-radius:0 6px 6px 0;">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#1A5276;margin-bottom:3px;">Impacto Potencial</div>
+          <div style="font-size:11px;color:#333;">${h.impacto}</div>
+        </div>
+        <div style="margin-top:8px;font-size:10px;color:#aaa;">Referencia normativa: ${h.ref}</div>
+      </div>
+    </div>`).join('');
+
+  const detalleRecs = rec.map((r,i)=>`
+    <div style="display:flex;gap:14px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #F0F2F8;">
+      <div style="width:36px;height:36px;background:#0F1E3C;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;">${String(i+1).padStart(2,'0')}</div>
+      <div>
+        <div style="font-size:10px;color:#888;font-weight:700;margin-bottom:3px;">Referencia: ${r.ref}</div>
+        <div style="font-size:12px;line-height:1.6;">${r.texto}</div>
+      </div>
+    </div>`).join('');
+
+  // ── Sección de evaluación ────────────────────────────────────
+  let evalSectionEje='';
+  if(seccionesSeleccionadas['evaluacion']&&evalData.length){
+    const pct=evalScore||0;
+    const eColor=pct>=80?'#1A7A3C':pct>=60?'#C97A0A':'#C0392B';
+    const eNivel=pct>=80?'SATISFACTORIO':pct>=60?'REQUIERE ATENCIÓN':'DEFICIENTE — ACCIÓN INMEDIATA';
+    const sections=[...new Set(evalData.map(e=>e.section))];
+    const secRows=sections.map(sec=>{
+      const items=evalData.filter(e=>e.section===sec);
+      const sp=Math.round(calcSectionScore(items)*100);
+      const sc=sp>=80?'#1A7A3C':sp>=60?'#C97A0A':'#C0392B';
+      const fallos=items.filter(i=>i.value===0).length;
+      return `<tr>
+        <td style="font-size:11px;font-weight:600;">${sec}</td>
+        <td style="text-align:center;font-size:11px;">${items.length}</td>
+        <td style="text-align:center;font-size:11px;color:${sc};font-weight:700;">${items.length-fallos}</td>
+        <td style="text-align:center;font-size:11px;color:#C0392B;font-weight:700;">${fallos}</td>
+        <td style="text-align:center;"><span style="color:${sc};font-weight:700;font-size:12px;">${sp}%</span></td>
+      </tr>`;
+    }).join('');
+    evalSectionEje=`
+      <div class="sec-header" style="background:#0F1E3C;color:#fff;padding:9px 16px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;border-left:5px solid #C0392B;margin:28px 0 0;">🏅 RESULTADO DE EVALUACIÓN DE CUMPLIMIENTO</div>
+      <div style="display:flex;align-items:center;gap:20px;padding:20px;background:#F7F9FF;border:1px solid #E0E6F0;border-radius:8px;margin:16px 0;">
+        <div style="text-align:center;flex-shrink:0;">
+          <div style="width:90px;height:90px;border-radius:50%;background:conic-gradient(${eColor} 0% ${pct}%, #E8EDF5 ${pct}% 100%);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;">
+            <div style="width:66px;height:66px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+              <div style="font-size:18px;font-weight:700;color:#0F1E3C;">${pct}%</div>
+            </div>
+          </div>
+          <div style="font-size:9px;color:#888;text-transform:uppercase;">Cumplimiento</div>
+        </div>
+        <div>
+          <div style="font-size:16px;font-weight:700;color:${eColor};">NIVEL: ${eNivel}</div>
+          <div style="font-size:12px;color:#555;margin-top:4px;">${evalData.filter(i=>i.value===1).length} de ${evalData.length} criterios evaluados cumplen con los estándares de auditoría interna.</div>
+          <div style="height:8px;background:#E8EDF5;border-radius:4px;margin-top:10px;overflow:hidden;max-width:300px;">
+            <div style="width:${pct}%;height:100%;background:${eColor};border-radius:4px;"></div>
+          </div>
+        </div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:11.5px;">
+        <thead><tr>
+          <th style="background:#0F1E3C;color:#fff;padding:8px 10px;text-align:left;">Área Auditada</th>
+          <th style="background:#0F1E3C;color:#fff;padding:8px 10px;text-align:center;">Total Criterios</th>
+          <th style="background:#0F1E3C;color:#fff;padding:8px 10px;text-align:center;">Cumplen</th>
+          <th style="background:#0F1E3C;color:#fff;padding:8px 10px;text-align:center;">No Cumplen</th>
+          <th style="background:#0F1E3C;color:#fff;padding:8px 10px;text-align:center;">Cumplimiento</th>
+        </tr></thead>
+        <tbody>${secRows}</tbody>
+      </table>`;
+  }
+
+  prog(85,'Ensamblando documento ejecutivo...');await sleep(80);
+
+  // ── KPI cards para portada ejecutiva ─────────────────────────
+  const kpiCards=[
+    {label:'Nivel de Riesgo Global',val:riskLevel,sub:`Score: ${riskScore}/11`,color:riskColor,bg:riskBg},
+    {label:'Cumplimiento Evaluación',val:evalScore!==null?evalScore+'%':'N/A',sub:evalScore!==null?(evalScore>=80?'Satisfactorio':evalScore>=60?'Requiere atención':'Deficiente'):'Sin evaluación',color:evalScore!==null?(evalScore>=80?'#1A7A3C':evalScore>=60?'#C97A0A':'#C0392B'):'#888',bg:evalScore!==null?(evalScore>=80?'#F0FDF4':evalScore>=60?'#FFF8EE':'#FEF0F0'):'#F5F5F5'},
+    {label:'Hallazgos Identificados',val:hallazgos.length,sub:`${hallazgos.filter(h=>h.riesgo==='Alto').length} Alto · ${hallazgos.filter(h=>h.riesgo==='Moderado').length} Moderado`,color:'#1A5276',bg:'#EEF4FF'},
+    {label:'Exposición Financiera',val:money(costPickNJ+aqDifRaw),sub:'Pickings NJ + Diferencia arqueo',color:'#6C3483',bg:'#F5F0FF'},
+  ].map(k=>`
+    <div style="background:${k.bg};border:1.5px solid ${k.color}20;border-radius:10px;padding:16px 18px;">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;margin-bottom:6px;">${k.label}</div>
+      <div style="font-size:22px;font-weight:700;color:${k.color};">${k.val}</div>
+      <div style="font-size:10px;color:#888;margin-top:3px;">${k.sub}</div>
+    </div>`).join('');
+
+  // ── DETALLE DE DATOS CARGADOS DESDE EXCEL (TABLAS COMPARATIVAS) ────
+  const stTblWrap = 'overflow-x:auto;margin:12px 0 24px;border-radius:8px;border:1px solid #E0E6F0;';
+  const stTbl     = 'width:100%;border-collapse:collapse;font-size:10.5px;background:#fff;';
+  const stTh      = 'background:#0F1E3C;color:#fff;padding:8px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border:none;white-space:nowrap;';
+  const stTd      = 'padding:7px 10px;border-bottom:1px solid #EEF1F7;font-size:10.5px;color:#1C2130;';
+  const stTdNum   = 'padding:7px 10px;border-bottom:1px solid #EEF1F7;font-size:10.5px;font-family:\'IBM Plex Mono\',monospace;text-align:right;';
+  const subTitleSt= 'font-size:13px;font-weight:700;color:#0F1E3C;margin:20px 0 6px;display:flex;align-items:center;gap:10px;';
+  const subTagSt  = 'background:#C0392B;color:#fff;font-size:9px;padding:3px 9px;border-radius:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;';
+  const captionSt = 'font-size:11px;color:#666;margin-bottom:8px;font-style:italic;';
+
+  function statusBadge(modulo, val){
+    if(!val) return '<span style="color:#999;font-size:10px;">—</span>';
+    const map = {
+      'PICKINGS': {
+        'A':{txt:'A — Pendiente contab.',bg:'#FFF0F0',br:'#C0392B',cl:'#C0392B'},
+        'B':{txt:'B — Ajuste pendiente',bg:'#FFF8E7',br:'#C97A0A',cl:'#9A5C00'},
+        'C':{txt:'C — En curso',bg:'#EBF7EE',br:'#1A7A3C',cl:'#1A7A3C'},
+        'D':{txt:'D — Reportado audit.',bg:'#EEF4FF',br:'#1A5276',cl:'#1A5276'},
+        'E':{txt:'E — Con traspaso',bg:'#F8F0FF',br:'#7D3C98',cl:'#6C3483'}
+      },
+      'TRASPASOS_SOL': {
+        'A':{txt:'A — Sin stock CEDIS',bg:'#FFF0F0',br:'#C0392B',cl:'#C0392B'},
+        'B':{txt:'B — Pend. envío',bg:'#FFF8E7',br:'#C97A0A',cl:'#9A5C00'},
+        'C':{txt:'C — En curso',bg:'#EBF7EE',br:'#1A7A3C',cl:'#1A7A3C'},
+        'E':{txt:'E — Sin existencia',bg:'#F8F0FF',br:'#7D3C98',cl:'#6C3483'}
+      },
+      'RESGUARDOS': {
+        'A':{txt:'A — Sin documentos',bg:'#FFF0F0',br:'#C0392B',cl:'#C0392B'},
+        'B':{txt:'B — Pend. entrega',bg:'#FFF8E7',br:'#C97A0A',cl:'#9A5C00'},
+        'C':{txt:'C — Entregado OK',bg:'#EBF7EE',br:'#1A7A3C',cl:'#1A7A3C'}
+      }
+    };
+    const cfg = (map[modulo]||{})[String(val).trim()];
+    if(!cfg) return `<span style="font-size:10px;color:#1C2130;">${val}</span>`;
+    return `<span style="background:${cfg.bg};color:${cfg.cl};border:1px solid ${cfg.br};padding:2px 8px;border-radius:10px;font-size:9.5px;font-weight:700;white-space:nowrap;">${cfg.txt}</span>`;
+  }
+
+  let tablasEvidencia = '';
+
+  if(seccionesSeleccionadas['efectivo'] && arqueoRows.length){
+    const aqRows = arqueoRows.map(a=>{
+      const dif = parseFloat(String(a.DIFERENCIA_SOBRANTE||0).replace(/[^0-9.-]/g,''))||0;
+      const difCol = dif>0?'#C0392B':dif<0?'#1A5276':'#1A7A3C';
+      const fc = parseFloat(String(a.FONDO_CAMBIO_MONTO||0).replace(/[^0-9.-]/g,''))||0;
+      const cc = parseFloat(String(a.FONDO_CAJA_CHICA_MONTO||0).replace(/[^0-9.-]/g,''))||0;
+      return `<tr>
+        <td style="${stTd}">${fmt(a.FONDO_CAMBIO_RESULTADO)||'—'}</td>
+        <td style="${stTdNum}">${money(fc)}</td>
+        <td style="${stTd}">${fmt(a.FONDO_CAJA_CHICA_RESULTADO)||'—'}</td>
+        <td style="${stTdNum}">${money(cc)}</td>
+        <td style="${stTd};text-align:center;"><strong style="color:${a.CAJERA_INCAPACITADA==='S'?'#C0392B':'#1A7A3C'};">${a.CAJERA_INCAPACITADA||'—'}</strong></td>
+        <td style="${stTd};text-align:center;"><strong style="color:${a.FACTURAS_PENDIENTES==='S'?'#C97A0A':'#1A7A3C'};">${a.FACTURAS_PENDIENTES||'—'}</strong></td>
+        <td style="${stTdNum};color:${difCol};font-weight:700;">${money(dif)}</td>
+      </tr>`;
+    }).join('');
+    tablasEvidencia += `
+      <div style="${subTitleSt}">💵 Arqueo de Punto de Venta <span style="${subTagSt}">FBL5N · Tabla ARQUEO_PV</span></div>
+      <div style="${captionSt}">Cuadro comparativo del estado de los fondos y diferencias detectadas durante el arqueo.</div>
+      <div style="${stTblWrap}">
+        <table style="${stTbl}">
+          <thead><tr>
+            <th style="${stTh}">Fondo Cambio</th>
+            <th style="${stTh};text-align:right;">Monto</th>
+            <th style="${stTh}">Caja Chica</th>
+            <th style="${stTh};text-align:right;">Monto</th>
+            <th style="${stTh};text-align:center;">Cajera Incap.</th>
+            <th style="${stTh};text-align:center;">Fact. Pend.</th>
+            <th style="${stTh};text-align:right;">Diferencia / Sobrante</th>
+          </tr></thead>
+          <tbody>${aqRows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  if(seccionesSeleccionadas['resguardos'] && resg.length){
+    const resgSorted = [...resg].sort((a,b)=>(parseInt(b.DIAS_ANTIGUEDAD)||0)-(parseInt(a.DIAS_ANTIGUEDAD)||0));
+    const totalPzas = resgSorted.reduce((s,r)=>s+(parseFloat(r.CANTIDAD)||0),0);
+    const vencidos = resgSorted.filter(r=>parseInt(r.DIAS_ANTIGUEDAD)>30).length;
+    const rRows = resgSorted.slice(0,15).map(r=>{
+      const d = parseInt(r.DIAS_ANTIGUEDAD)||0;
+      const dCol = d>30?'#C0392B':d>15?'#C97A0A':'#1A7A3C';
+      return `<tr>
+        <td style="${stTd}">${formatDateToDMY(r.FECHA_ENTRADA)}</td>
+        <td style="${stTdNum};color:${dCol};font-weight:700;">${d}</td>
+        <td style="${stTd}">${fmt(r.REFERENCIA)}</td>
+        <td style="${stTd};font-family:\'IBM Plex Mono\',monospace;">${fmt(r.FOLIO_RESGUARDO)}</td>
+        <td style="${stTdNum};">${fmt(r.CANTIDAD)}</td>
+        <td style="${stTd};text-align:center;">${statusBadge('RESGUARDOS', r._status)}</td>
+      </tr>`;
+    }).join('');
+    const masRows = resgSorted.length>15?`<tr><td colspan="6" style="${stTd};text-align:center;color:#888;font-style:italic;background:#F7F9FF;">… ${resgSorted.length-15} registro(s) adicional(es) no mostrado(s) en este resumen ejecutivo.</td></tr>`:'';
+    tablasEvidencia += `
+      <div style="${subTitleSt}">📦 Mercancía en Resguardo <span style="${subTagSt}">MB52 · Tabla RESGUARDOS</span></div>
+      <div style="${captionSt}">Total: <strong>${resgSorted.length}</strong> resguardo(s) · <strong>${totalPzas}</strong> pieza(s) · <strong style="color:${vencidos>0?'#C0392B':'#1A7A3C'};">${vencidos} con antigüedad &gt; 30 días</strong>. Ordenados por días de antigüedad.</div>
+      <div style="${stTblWrap}">
+        <table style="${stTbl}">
+          <thead><tr>
+            <th style="${stTh}">Fecha Entrada</th>
+            <th style="${stTh};text-align:right;">Días</th>
+            <th style="${stTh}">Referencia</th>
+            <th style="${stTh}">Folio</th>
+            <th style="${stTh};text-align:right;">Cant.</th>
+            <th style="${stTh};text-align:center;">Estatus</th>
+          </tr></thead>
+          <tbody>${rRows}${masRows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  if(seccionesSeleccionadas['pickings'] && picks.length){
+    const picksByStatus = {A:0,B:0,C:0,D:0,E:0};
+    const costByStatus  = {A:0,B:0,C:0,D:0,E:0};
+    picks.forEach(p=>{
+      const s = p._status||'C';
+      const c = parseFloat(String(p.COSTO_PEND||0).replace(/[^0-9.-]/g,''))||0;
+      if(picksByStatus[s]!==undefined){picksByStatus[s]++;costByStatus[s]+=c;}
+    });
+    const labels = {A:'A — Pend. contab.',B:'B — Ajuste pend.',C:'C — En curso',D:'D — Reportado audit.',E:'E — Con traspaso'};
+    const colors = {A:'#C0392B',B:'#C97A0A',C:'#1A7A3C',D:'#1A5276',E:'#6C3483'};
+    const totPicks = picks.length;
+    const distRows = Object.keys(labels).map(k=>{
+      const n = picksByStatus[k];
+      const pct = totPicks?Math.round(n/totPicks*100):0;
+      return `<tr>
+        <td style="${stTd}"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${colors[k]};margin-right:8px;vertical-align:middle;"></span><strong>${labels[k]}</strong></td>
+        <td style="${stTdNum};font-weight:700;">${n}</td>
+        <td style="${stTd}"><div style="background:#EEF1F7;border-radius:4px;height:8px;overflow:hidden;width:120px;display:inline-block;vertical-align:middle;"><div style="width:${pct}%;height:100%;background:${colors[k]};"></div></div> <span style="font-size:10px;color:#666;margin-left:6px;">${pct}%</span></td>
+        <td style="${stTdNum};color:${n>0?colors[k]:'#999'};font-weight:700;">${money(costByStatus[k])}</td>
+      </tr>`;
+    }).join('');
+    const picksCriticos = picks.filter(p=>p._status==='A'||p._status==='B').slice(0,12);
+    const pcRows = picksCriticos.map(p=>`<tr>
+      <td style="${stTd}">${formatDateToDMY(p.FECHA)}</td>
+      <td style="${stTd};font-family:\'IBM Plex Mono\',monospace;">${fmt(p.NUMERO_PEDIDO)}</td>
+      <td style="${stTd};font-family:\'IBM Plex Mono\',monospace;font-size:10px;">${fmt(p.COD_MATERIAL)}</td>
+      <td style="${stTdNum};">${fmt(p.CANTIDAD)}</td>
+      <td style="${stTdNum};color:#C0392B;font-weight:700;">${money(p.COSTO_PEND)}</td>
+      <td style="${stTd};text-align:center;">${statusBadge('PICKINGS', p._status)}</td>
+    </tr>`).join('');
+    const totalCriticos = picks.filter(p=>p._status==='A'||p._status==='B').length;
+    const pcMas = totalCriticos>12?`<tr><td colspan="6" style="${stTd};text-align:center;color:#888;font-style:italic;background:#F7F9FF;">… ${totalCriticos-12} pickings críticos adicionales.</td></tr>`:'';
+
+    tablasEvidencia += `
+      <div style="${subTitleSt}">🛒 Pickings — Pedidos Pendientes de Contabilizar <span style="${subTagSt}">ZVA05VTAS · Tabla PICKINGS</span></div>
+      <div style="${captionSt}">Distribución por estatus de los <strong>${totPicks}</strong> pedidos pendientes y costo financiero asociado.</div>
+      <div style="${stTblWrap}">
+        <table style="${stTbl}">
+          <thead><tr>
+            <th style="${stTh}">Estatus</th>
+            <th style="${stTh};text-align:right;">Cantidad</th>
+            <th style="${stTh}">Distribución</th>
+            <th style="${stTh};text-align:right;">Costo Pendiente</th>
+          </tr></thead>
+          <tbody>${distRows}
+            <tr style="background:#F0F2F8;">
+              <td style="${stTd};font-weight:700;color:#0F1E3C;">TOTAL GENERAL</td>
+              <td style="${stTdNum};font-weight:700;color:#0F1E3C;">${totPicks}</td>
+              <td style="${stTd};">—</td>
+              <td style="${stTdNum};font-weight:700;color:#0F1E3C;">${money(costPick)}</td>
+            </tr>
+            <tr style="background:#FFF0F0;">
+              <td style="${stTd};font-weight:700;color:#C0392B;">↳ NO JUSTIFICADOS (A+B)</td>
+              <td style="${stTdNum};font-weight:700;color:#C0392B;">${picksByStatus.A+picksByStatus.B}</td>
+              <td style="${stTd};">—</td>
+              <td style="${stTdNum};font-weight:700;color:#C0392B;">${money(costPickNJ)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      ${picksCriticos.length?`
+      <div style="${captionSt};margin-top:10px;">Detalle de pickings <strong style="color:#C0392B;">críticos</strong> (Estatus A y B — sin justificación):</div>
+      <div style="${stTblWrap}">
+        <table style="${stTbl}">
+          <thead><tr>
+            <th style="${stTh}">Fecha</th>
+            <th style="${stTh}">N° Pedido</th>
+            <th style="${stTh}">Cód. Material</th>
+            <th style="${stTh};text-align:right;">Cantidad</th>
+            <th style="${stTh};text-align:right;">Costo Pend.</th>
+            <th style="${stTh};text-align:center;">Estatus</th>
+          </tr></thead>
+          <tbody>${pcRows}${pcMas}</tbody>
+        </table>
+      </div>`:''}`;
+  }
+
+  if(seccionesSeleccionadas['trSol'] && trSol.length){
+    const trRows = trSol.slice(0,12).map(t=>`<tr>
+      <td style="${stTd}">${formatDateToDMY(t.FECHA)}</td>
+      <td style="${stTd}">${fmt(t.CENTRO_SUM)}</td>
+      <td style="${stTd};font-family:\'IBM Plex Mono\',monospace;">${fmt(t.SOLICITUD)}</td>
+      <td style="${stTdNum};">${fmt(t.CANT_CODIGOS)}</td>
+      <td style="${stTdNum};">${fmt(t.CANT_PEND_SURTIR)}</td>
+      <td style="${stTdNum};color:#C97A0A;font-weight:700;">${money(t.COSTO_PEND_SURTIR)}</td>
+      <td style="${stTd};text-align:center;">${statusBadge('TRASPASOS_SOL', t._status)}</td>
+    </tr>`).join('');
+    const trMas = trSol.length>12?`<tr><td colspan="7" style="${stTd};text-align:center;color:#888;font-style:italic;background:#F7F9FF;">… ${trSol.length-12} traspaso(s) adicional(es).</td></tr>`:'';
+    tablasEvidencia += `
+      <div style="${subTitleSt}">🔄 Traspasos Solicitados <span style="${subTagSt}">ZREPSOLTRAS · Tabla TRASPASOS_SOL</span></div>
+      <div style="${captionSt}">Total: <strong>${trSol.length}</strong> solicitud(es) · Costo pendiente de surtir: <strong style="color:#C97A0A;">${money(costTrSol)}</strong></div>
+      <div style="${stTblWrap}">
+        <table style="${stTbl}">
+          <thead><tr>
+            <th style="${stTh}">Fecha</th>
+            <th style="${stTh}">Centro Sum.</th>
+            <th style="${stTh}">Solicitud</th>
+            <th style="${stTh};text-align:right;">Cód.</th>
+            <th style="${stTh};text-align:right;">Pend. Surt.</th>
+            <th style="${stTh};text-align:right;">Costo Pend.</th>
+            <th style="${stTh};text-align:center;">Estatus</th>
+          </tr></thead>
+          <tbody>${trRows}${trMas}</tbody>
+        </table>
+      </div>`;
+  }
+
+  if(seccionesSeleccionadas['pedidos'] && ped.length){
+    const pdRows = ped.slice(0,12).map(p=>`<tr>
+      <td style="${stTd}">${fmt(p.PROVEEDOR)}</td>
+      <td style="${stTd}">${formatDateToDMY(p.FECHA)}</td>
+      <td style="${stTd};font-family:\'IBM Plex Mono\',monospace;">${fmt(p.ORDEN_COMPRA)}</td>
+      <td style="${stTdNum};">${fmt(p.CANT_CODIGOS)}</td>
+      <td style="${stTdNum};">${fmt(p.CANTIDAD_PEND)}</td>
+      <td style="${stTdNum};color:#1A5276;font-weight:700;">${money(p.COSTO_PEND)}</td>
+    </tr>`).join('');
+    const pdMas = ped.length>12?`<tr><td colspan="6" style="${stTd};text-align:center;color:#888;font-style:italic;background:#F7F9FF;">… ${ped.length-12} pedido(s) adicional(es).</td></tr>`:'';
+    tablasEvidencia += `
+      <div style="${subTitleSt}">📋 Pedidos a Proveedor en Backorder <span style="${subTagSt}">ZREPORDCOMP · Tabla PEDIDOS</span></div>
+      <div style="${captionSt}">Total: <strong>${ped.length}</strong> orden(es) de compra · Costo pendiente: <strong style="color:#1A5276;">${money(costPed)}</strong></div>
+      <div style="${stTblWrap}">
+        <table style="${stTbl}">
+          <thead><tr>
+            <th style="${stTh}">Proveedor</th>
+            <th style="${stTh}">Fecha</th>
+            <th style="${stTh}">Orden de Compra</th>
+            <th style="${stTh};text-align:right;">Cód.</th>
+            <th style="${stTh};text-align:right;">Cant. Pend.</th>
+            <th style="${stTh};text-align:right;">Costo Pend.</th>
+          </tr></thead>
+          <tbody>${pdRows}${pdMas}</tbody>
+        </table>
+      </div>`;
+  }
+
+  if(seccionesSeleccionadas['vl06p'] && vl6p.length){
+    const v6pRows = vl6p.slice(0,10).map(v=>`<tr>
+      <td style="${stTd}">${fmt(v.NOMBRE_CLIENTE)}</td>
+      <td style="${stTd}">${formatDateToDMY(v.FECHA_ENTREGA)}</td>
+      <td style="${stTd};font-family:\'IBM Plex Mono\',monospace;">${fmt(v.ENTREGA)}</td>
+      <td style="${stTd}">${fmt(v.CREADO_POR)}</td>
+    </tr>`).join('');
+    const v6pMas = vl6p.length>10?`<tr><td colspan="4" style="${stTd};text-align:center;color:#888;font-style:italic;background:#F7F9FF;">… ${vl6p.length-10} entrega(s) adicional(es).</td></tr>`:'';
+    tablasEvidencia += `
+      <div style="${subTitleSt}">🚚 Monitor de Entregas Pendientes <span style="${subTagSt}">VL06P · Tabla VL06P</span></div>
+      <div style="${captionSt}">Total: <strong>${vl6p.length}</strong> entrega(s) pendiente(s) de contabilizar.</div>
+      <div style="${stTblWrap}">
+        <table style="${stTbl}">
+          <thead><tr>
+            <th style="${stTh}">Cliente</th>
+            <th style="${stTh}">Fecha Entrega</th>
+            <th style="${stTh}">N° Entrega</th>
+            <th style="${stTh}">Creado Por</th>
+          </tr></thead>
+          <tbody>${v6pRows}${v6pMas}</tbody>
+        </table>
+      </div>`;
+  }
+
+  if(seccionesSeleccionadas['vl06g'] && vl6g.length){
+    const v6gRows = vl6g.slice(0,10).map(v=>`<tr>
+      <td style="${stTd}">${fmt(v.NOMBRE_CLIENTE)}</td>
+      <td style="${stTd}">${formatDateToDMY(v.FECHA_ENTREGA)}</td>
+      <td style="${stTd};font-family:\'IBM Plex Mono\',monospace;">${fmt(v.ENTREGA)}</td>
+      <td style="${stTd}">${fmt(v.CREADO_POR)}</td>
+    </tr>`).join('');
+    const v6gMas = vl6g.length>10?`<tr><td colspan="4" style="${stTd};text-align:center;color:#888;font-style:italic;background:#F7F9FF;">… ${vl6g.length-10} salida(s) adicional(es).</td></tr>`:'';
+    tablasEvidencia += `
+      <div style="${subTitleSt}">↩️ Salidas Pendientes — Devoluciones de Cliente <span style="${subTagSt}">VL06G · Tabla VL06G</span></div>
+      <div style="${captionSt}">Total: <strong style="color:#C97A0A;">${vl6g.length}</strong> devolución(es) pendiente(s) de contabilizar.</div>
+      <div style="${stTblWrap}">
+        <table style="${stTbl}">
+          <thead><tr>
+            <th style="${stTh}">Cliente</th>
+            <th style="${stTh}">Fecha Entrega</th>
+            <th style="${stTh}">N° Entrega</th>
+            <th style="${stTh}">Creado Por</th>
+          </tr></thead>
+          <tbody>${v6gRows}${v6gMas}</tbody>
+        </table>
+      </div>`;
+  }
+
+  if(seccionesSeleccionadas['devoluciones'] && devs.length){
+    const totalImp = devs.reduce((s,d)=>s+(parseFloat(String(d.IMPORTE||0).replace(/[^0-9.-]/g,''))||0),0);
+    const dvRows = devs.slice(0,10).map(d=>{
+      const dias = parseInt(d.DIAS_ANTIGUEDAD)||0;
+      const dCol = dias>30?'#C0392B':dias>15?'#C97A0A':'#1A7A3C';
+      return `<tr>
+        <td style="${stTd}">${fmt(d.PROVEEDOR)}</td>
+        <td style="${stTd};font-family:\'IBM Plex Mono\',monospace;">${fmt(d.ORDEN_COMPRA)}</td>
+        <td style="${stTd}">${formatDateToDMY(d.FECHA_OC)}</td>
+        <td style="${stTd};font-family:\'IBM Plex Mono\',monospace;">${fmt(d.SALIDA)}</td>
+        <td style="${stTd}">${formatDateToDMY(d.FECHA_SALIDA)}</td>
+        <td style="${stTdNum};color:${dCol};font-weight:700;">${dias}</td>
+        <td style="${stTdNum};color:#1A5276;font-weight:700;">${money(d.IMPORTE)}</td>
+      </tr>`;
+    }).join('');
+    const dvMas = devs.length>10?`<tr><td colspan="7" style="${stTd};text-align:center;color:#888;font-style:italic;background:#F7F9FF;">… ${devs.length-10} devolución(es) adicional(es).</td></tr>`:'';
+    tablasEvidencia += `
+      <div style="${subTitleSt}">📤 Devoluciones a Proveedor <span style="${subTagSt}">ZREPCOMPRAS · Tabla DEVOLUCIONES</span></div>
+      <div style="${captionSt}">Total: <strong>${devs.length}</strong> devolución(es) · Importe acumulado: <strong style="color:#1A5276;">${money(totalImp)}</strong></div>
+      <div style="${stTblWrap}">
+        <table style="${stTbl}">
+          <thead><tr>
+            <th style="${stTh}">Proveedor</th>
+            <th style="${stTh}">Orden Compra</th>
+            <th style="${stTh}">Fecha OC</th>
+            <th style="${stTh}">Salida</th>
+            <th style="${stTh}">Fecha Salida</th>
+            <th style="${stTh};text-align:right;">Días</th>
+            <th style="${stTh};text-align:right;">Importe</th>
+          </tr></thead>
+          <tbody>${dvRows}${dvMas}</tbody>
+        </table>
+      </div>`;
+  }
+
+  if(!tablasEvidencia){
+    tablasEvidencia = `<div style="background:#FFF8E7;border:1.5px solid #C97A0A;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:11.5px;color:#9A5C00;"><strong>⚠ Aviso:</strong> No se cargaron datos de Excel suficientes para mostrar el detalle de evidencia. El informe se basa exclusivamente en la evaluación de cumplimiento.</div>`;
+  }
+
+  const evidenciaSection = `
+    <div class="sec-header">📑 III-bis. EVIDENCIA DOCUMENTAL — DATOS CARGADOS DEL SISTEMA SAP</div>
+    <p class="intro-text" style="margin-top:14px;font-size:12px;">A continuación se presentan los cuadros comparativos derivados de la información cargada desde el archivo de control operativo, organizados por transacción SAP y módulo. Los estatus reflejan la clasificación efectuada por el auditor durante la revisión.</p>
+    ${tablasEvidencia}`;
+
+  // ── HTML FINAL DEL INFORME EJECUTIVO ─────────────────────────
+  const htmlEje=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+<title>Informe Ejecutivo — ${cfg.num}</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',Arial,sans-serif;color:#1C2130;background:#F4F6FA;font-size:13px;line-height:1.7;}
+.page{max-width:960px;margin:0 auto;background:#fff;box-shadow:0 0 40px rgba(0,0,0,.08);}
+.cover{background:linear-gradient(135deg,#0A1428 0%,#162A52 50%,#0F1E3C 100%);color:#fff;padding:0;position:relative;overflow:hidden;border-bottom:6px solid #C0392B;}
+.cover::before{content:'';position:absolute;right:-80px;top:-80px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(192,57,43,.18) 0%,rgba(192,57,43,0) 70%);}
+.cover::after{content:'';position:absolute;left:-60px;bottom:-100px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(201,150,12,.12) 0%,rgba(201,150,12,0) 70%);}
+.cover-strip{position:absolute;left:0;top:0;bottom:0;width:8px;background:linear-gradient(180deg,#C0392B 0%,#C9960C 50%,#C0392B 100%);}
+.cover-inner{position:relative;padding:48px 60px 44px 68px;z-index:2;}
+.cover-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:38px;}
+.cover-logo{display:flex;align-items:center;gap:12px;}
+.cover-logo-mark{width:46px;height:46px;background:#C0392B;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff;box-shadow:0 4px 12px rgba(192,57,43,.4);}
+.cover-logo-text{display:flex;flex-direction:column;}
+.cover-brand{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:2.5px;color:#fff;line-height:1.2;}
+.cover-brand-sub{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:2.2px;color:#8FA0CC;margin-top:2px;}
+.cover-stamp{border:2px solid rgba(201,150,12,.6);color:#C9960C;padding:8px 14px;border-radius:6px;font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:2px;}
+.cover-divider{width:60px;height:3px;background:#C0392B;margin-bottom:18px;}
+.cover-type{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:3.5px;color:#C9960C;margin-bottom:16px;}
+.cover-title{font-size:36px;font-weight:700;line-height:1.15;margin-bottom:8px;letter-spacing:-.5px;}
+.cover-sub{font-size:14px;color:#B8C4DE;margin-bottom:28px;font-weight:400;}
+.cover-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:20px 28px;margin-top:36px;padding-top:28px;border-top:1px solid rgba(255,255,255,.14);}
+.cover-meta-item{font-size:9.5px;text-transform:uppercase;letter-spacing:1.2px;color:#8FA0CC;margin-bottom:5px;font-weight:700;}
+.cover-meta-val{font-size:13px;font-weight:600;color:#fff;}
+.risk-badge{display:inline-flex;align-items:center;gap:10px;padding:10px 22px;border-radius:6px;font-weight:800;font-size:12px;margin-top:6px;background:${riskBg};color:${riskColor};border:2px solid ${riskColor};box-shadow:0 4px 14px rgba(0,0,0,.25);text-transform:uppercase;letter-spacing:1.5px;}
+.cover-ribbon{position:absolute;top:24px;right:-44px;background:#C0392B;color:#fff;padding:6px 50px;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;transform:rotate(35deg);box-shadow:0 4px 10px rgba(0,0,0,.3);z-index:3;}
+
+.body{padding:48px 60px;}
+.sec-header{background:#0F1E3C;color:#fff;padding:9px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin:32px 0 0;border-left:5px solid #C0392B;}
+.sub-header{color:#C0392B;font-weight:700;font-size:13px;border-bottom:1.5px solid #E8EDF5;padding-bottom:5px;margin:20px 0 10px;}
+.intro-text{font-size:13px;line-height:1.8;color:#333;}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0;}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:11.5px;}
+th{background:#0F1E3C;color:#fff;padding:8px 10px;text-align:left;font-size:11px;}
+td{border:1px solid #E8EDF5;padding:7px 10px;vertical-align:top;}
+tr:nth-child(even) td{background:#F7F9FF;}
+.var{color:var(--navy);}
+ul{margin:10px 0 14px 20px;}li{margin-bottom:6px;line-height:1.6;}
+.rec-box{background:linear-gradient(135deg,#0F1E3C,#1A3060);color:#fff;border-radius:10px;padding:20px 24px;margin:20px 0;}
+.rec-box-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:.6;margin-bottom:12px;}
+.sign-section{display:flex;justify-content:space-around;margin-top:60px;padding-top:30px;border-top:1px solid #E8EDF5;}
+.sign-box{text-align:center;width:220px;}
+.sign-line{border-top:1.5px solid #333;margin:14px auto 8px;width:180px;}
+.sign-name{font-weight:700;font-size:13px;}
+.sign-role{font-size:11px;color:#888;margin-top:3px;}
+.footer{background:#0F1E3C;color:#fff;padding:20px 60px;font-size:10px;display:flex;justify-content:space-between;opacity:.9;}
+.confidential{background:#FEF0F0;border:1.5px solid #C0392B;color:#C0392B;font-size:10px;font-weight:700;text-align:center;padding:6px;letter-spacing:1px;text-transform:uppercase;}
+@media print{body{background:#fff;}.page{box-shadow:none;}@page{size:letter;margin:1.5cm;}}
+</style>
+</head><body>
+<div class="page">
+
+<!-- PORTADA EJECUTIVA — DISEÑO PROFESIONAL -->
+<div class="cover">
+  <div class="cover-strip"></div>
+  <div class="cover-ribbon">CONFIDENCIAL</div>
+  <div class="cover-inner">
+    <div class="cover-top">
+      <div class="cover-logo">
+        <div class="cover-logo-mark">K</div>
+        <div class="cover-logo-text">
+          <div class="cover-brand">KURODA S.A. DE C.V.</div>
+          <div class="cover-brand-sub">Dirección de Auditoría Interna</div>
+        </div>
+      </div>
+      <div class="cover-stamp">★ Informe Oficial ★</div>
+    </div>
+    <div class="cover-divider"></div>
+    <div class="cover-type">Informe Ejecutivo de Auditoría Interna</div>
+    <div class="cover-title">${cfg.suc}</div>
+    <div class="cover-sub">${cfg.ciu} &nbsp;·&nbsp; Período auditado: <strong style="color:#fff;">${cfg.fAud}</strong></div>
+    <div class="risk-badge">⚠ Riesgo Global Determinado: ${riskLevel}</div>
+    <div class="cover-meta">
+      <div><div class="cover-meta-item">N° de Informe</div><div class="cover-meta-val">${cfg.num}</div></div>
+      <div><div class="cover-meta-item">Fecha de Auditoría</div><div class="cover-meta-val">${cfg.fAud}</div></div>
+      <div><div class="cover-meta-item">Fecha de Conclusión</div><div class="cover-meta-val">${cfg.fCon}</div></div>
+      <div><div class="cover-meta-item">Auditor Responsable</div><div class="cover-meta-val">${cfg.aud}</div></div>
+      <div><div class="cover-meta-item">Gerente de Sucursal</div><div class="cover-meta-val">${cfg.gerente}</div></div>
+      <div><div class="cover-meta-item">Cumplimiento Global</div><div class="cover-meta-val" style="color:${evalScore!==null?(evalScore>=80?'#5FE395':evalScore>=60?'#FFD166':'#FF8888'):'#fff'};">${evalScore!==null?evalScore+'%':'Pendiente'}</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="confidential">🔒 DOCUMENTO CONFIDENCIAL — USO INTERNO EXCLUSIVO — AUDITORÍA INTERNA KURODA S.A. DE C.V.</div>
+
+<div class="body">
+
+<!-- RESUMEN EJECUTIVO -->
+<div class="sec-header">📋 I. RESUMEN EJECUTIVO</div>
+<p class="intro-text" style="margin-top:16px;">
+En cumplimiento con el programa anual de auditoría interna de <strong>KURODA S.A. DE C.V.</strong>, se practicó una revisión integral a la sucursal <strong>${cfg.suc}</strong>, ubicada en <strong>${cfg.ciu}</strong>, el día <strong>${cfg.fAud}</strong>. La auditoría abarcó las áreas de control de efectivo, mercancía en resguardo, gestión de traspasos, pedidos a proveedores, contabilización de pedidos de venta (Pickings) y registro de devoluciones.
+</p>
+<p class="intro-text" style="margin-top:10px;">
+Como resultado del proceso, se identificaron <strong>${hallazgos.length} hallazgo(s)</strong>, de los cuales <strong style="color:#C0392B;">${hallazgos.filter(h=>h.riesgo==='Alto').length} representan riesgo Alto</strong> y <strong style="color:#C97A0A;">${hallazgos.filter(h=>h.riesgo==='Moderado').length} riesgo Moderado</strong>. El nivel de riesgo global de la sucursal se determina como <strong style="color:${riskColor};">${riskLevel}</strong>.
+</p>
+${cfg.obs?`<p class="intro-text" style="margin-top:10px;font-style:italic;color:#555;">Nota del auditor: ${cfg.obs}</p>`:''}
+
+<!-- KPIs -->
+<div class="kpi-grid">${kpiCards}</div>
+
+<!-- TABLA RESUMEN DE HALLAZGOS -->
+<div class="sec-header">📊 II. CUADRO RESUMEN DE HALLAZGOS</div>
+<table style="margin-top:16px;">
+  <thead><tr>
+    <th style="width:60px;">Ref.</th>
+    <th style="width:180px;">Área</th>
+    <th>Descripción del Hallazgo</th>
+    <th style="width:100px;text-align:center;">Nivel de Riesgo</th>
+  </tr></thead>
+  <tbody>${resumenHallazgos}</tbody>
+</table>
+
+<!-- DETALLE DE HALLAZGOS -->
+<div class="sec-header">🔍 III. DETALLE DE HALLAZGOS</div>
+<div style="margin-top:20px;">${detalleHallazgos}</div>
+
+<!-- EVIDENCIA DOCUMENTAL — TABLAS COMPARATIVAS -->
+${evidenciaSection}
+
+${evalSectionEje}
+
+<!-- RECOMENDACIONES -->
+<div class="sec-header">💡 IV. RECOMENDACIONES ESTRATÉGICAS</div>
+<div class="rec-box" style="margin-top:20px;">
+  <div class="rec-box-title">📌 Plan de Acción Sugerido — Auditoría ${cfg.num}</div>
+  ${detalleRecs||'<p style="opacity:.7;font-size:12px;">No se generaron recomendaciones adicionales para las secciones seleccionadas.</p>'}
+</div>
+
+<!-- ALCANCE Y METODOLOGÍA -->
+<div class="sec-header">📐 V. ALCANCE Y METODOLOGÍA</div>
+<div style="margin-top:16px;">
+  <p style="font-size:12px;line-height:1.8;color:#333;">La presente auditoría fue realizada bajo los lineamientos del programa de auditoría interna de KURODA S.A. DE C.V., utilizando las siguientes transacciones del sistema SAP HANA como fuentes de información primaria:</p>
+  <ul style="margin-top:10px;font-size:12px;">
+    ${seccionesSeleccionadas['resguardos']?'<li><strong>MB52</strong> — Reporte de existencias en centro de resguardo (CR24).</li>':''} 
+    ${seccionesSeleccionadas['trSol']?'<li><strong>ZREPSOLTRAS</strong> — Reporte de traspasos solicitados y su estatus.</li>':''} 
+    ${seccionesSeleccionadas['pedidos']?'<li><strong>ZREPORDCOMP</strong> — Reporte de órdenes de compra en backorder.</li>':''} 
+    ${seccionesSeleccionadas['pickings']?'<li><strong>ZVA05VTAS</strong> — Pedidos de venta pendientes de contabilizar.</li>':''} 
+    ${seccionesSeleccionadas['vl06p']?'<li><strong>VL06P</strong> — Monitor de entregas pendientes.</li>':''} 
+    ${seccionesSeleccionadas['vl06g']?'<li><strong>VL06G</strong> — Salidas pendientes de contabilizar (devoluciones).</li>':''} 
+    ${seccionesSeleccionadas['devoluciones']?'<li><strong>ZREPCOMPRAS</strong> — Devoluciones a proveedor sin MIRO.</li>':''}
+    ${seccionesSeleccionadas['efectivo']?'<li><strong>FBL5N</strong> — Facturas de contados pendientes de compensar.</li>':''}
+  </ul>
+  <p style="font-size:12px;line-height:1.8;color:#333;margin-top:10px;">Los hallazgos presentados en este informe se fundamentan en evidencia documental y en la revisión física de los procesos operativos durante la visita. Las cifras corresponden al día <strong>${cfg.fAud}</strong> salvo indicación en contrario.</p>
+</div>
+
+<!-- CONCLUSIÓN -->
+<div class="sec-header">📋 VI. CONCLUSIÓN</div>
+<p style="font-size:12px;line-height:1.8;color:#333;margin-top:16px;">
+Con base en los procedimientos de auditoría aplicados, se concluye que la sucursal <strong>${cfg.suc}</strong> presenta un nivel de control interno <strong style="color:${riskColor};">${riskLevel==='BAJO'?'adecuado, con oportunidades de mejora menores':riskLevel==='MODERADO'?'con debilidades que requieren atención en el corto plazo':'con deficiencias significativas que requieren acción correctiva inmediata'}</strong>. Se exhorta a la Gerencia de Sucursal a implementar las recomendaciones contenidas en este informe en los plazos establecidos, dando seguimiento a través de los mecanismos de control definidos por la Dirección de Auditoría Interna.
+</p>
+<p style="font-size:12px;line-height:1.8;color:#333;margin-top:10px;">
+El presente informe queda sujeto a revisión por parte de la Dirección de Auditoría Interna y será resguardado con carácter confidencial conforme a las políticas de información de KURODA S.A. DE C.V.
+</p>
+
+<!-- FIRMAS -->
+<div class="sign-section">
+  <div class="sign-box">
+    <div class="sign-line"></div>
+    <div class="sign-name">${cfg.aud}</div>
+    <div class="sign-role">Auditor Interno</div>
+    <div class="sign-role" style="color:#C0392B;font-size:10px;margin-top:4px;">Auditoría Interna — KURODA S.A. DE C.V.</div>
+  </div>
+  <div class="sign-box">
+    <div class="sign-line"></div>
+    <div class="sign-name">${cfg.gerente}</div>
+    <div class="sign-role">Gerente de Sucursal</div>
+    <div class="sign-role" style="color:#555;font-size:10px;margin-top:4px;">${cfg.suc} — ${cfg.ciu}</div>
+  </div>
+</div>
+
+</div><!-- /body -->
+
+<div class="footer">
+  <span>Informe ${cfg.num} | ${cfg.suc} | Confidencial</span>
+  <span>Generado el ${todayDMY()} | KURODA S.A. DE C.V. — Auditoría Interna</span>
+</div>
+
+</div><!-- /page -->
+</body></html>`;
+
+  prog(100,'¡Informe Ejecutivo generado!','Listo para exportar');await sleep(150);
+  htmlReporte=htmlEje;
+  htmlEval=buildEvalReport(cfg);
+  hi('p4');sh('p5');setStep(4);
+  const blob=new Blob([htmlEje],{type:'text/html;charset=utf-8'});
+  $('previewFrame').src=URL.createObjectURL(blob);
+}
+
+// ===================== SELECTOR DE TIPO (INIT DEFAULT) =====================
+SECCIONES_DISPONIBLES.forEach(s=>{seccionesSeleccionadas[s.id]=s.defOn;});
+
 function resetAll(){
   data={};htmlReporte=null;htmlEval=null;
+  tipoInforme='operativo';
+  SECCIONES_DISPONIBLES.forEach(s=>{seccionesSeleccionadas[s.id]=s.defOn;});
   initEvalData();
   $('fileIn').value='';
   hi('p2');hi('p3');hi('p4');hi('p5');
@@ -1609,4 +2743,3 @@ updateCounters();
 </script>
 </body>
 </html>
-
