@@ -342,6 +342,19 @@ textarea{resize:vertical;min-height:68px;}
               <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;">Documento formal para Dirección y Gerencia. Narrativa profesional, hallazgos en lenguaje de negocio, riesgos categorizados e impacto cuantificado.</div>
               <div style="margin-top:10px;font-size:10px;font-weight:700;padding:4px 10px;border-radius:12px;display:inline-block;background:var(--border);color:var(--muted);" id="tipoLbl_ejecutivo">SELECCIONAR</div>
             </div>
+            <div id="tipoCard_riesgo" onclick="selTipo('riesgo')" style="border:2px solid var(--border);background:#FAFBFD;border-radius:10px;padding:16px;cursor:pointer;transition:.15s;position:relative;">
+              <span style="position:absolute;top:8px;right:8px;background:#1A7A3C;color:#fff;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;letter-spacing:.5px;">⭐ RECOMENDADO</span>
+              <div style="font-size:22px;margin-bottom:6px;">🎯</div>
+              <div style="font-weight:700;font-size:13px;color:var(--navy);">Informe de Riesgo de Pendientes</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;">Análisis financiero centrado en el riesgo de los pendientes. Clasifica cada renglón del Excel (Pickings, Traspasos, Resguardos, Devoluciones) en semáforo Crítico / Alto / Moderado / Bajo con exposición monetaria total.</div>
+              <div style="margin-top:10px;font-size:10px;font-weight:700;padding:4px 10px;border-radius:12px;display:inline-block;background:var(--border);color:var(--muted);" id="tipoLbl_riesgo">SELECCIONAR</div>
+            </div>
+            <div id="tipoCard_antiguedad" onclick="selTipo('antiguedad')" style="border:2px solid var(--border);background:#FAFBFD;border-radius:10px;padding:16px;cursor:pointer;transition:.15s;">
+              <div style="font-size:22px;margin-bottom:6px;">⏰</div>
+              <div style="font-weight:700;font-size:13px;color:var(--navy);">Informe de Antigüedad de Pendientes</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;">Cuadros de aging (0-15, 16-30, 31-60, 60+ días) por categoría. Identifica los pendientes con mayor permanencia y prioriza acciones por vencimiento.</div>
+              <div style="margin-top:10px;font-size:10px;font-weight:700;padding:4px 10px;border-radius:12px;display:inline-block;background:var(--border);color:var(--muted);" id="tipoLbl_antiguedad">SELECCIONAR</div>
+            </div>
           </div>
         </div>
 
@@ -356,7 +369,7 @@ textarea{resize:vertical;min-height:68px;}
         </div>
 
         <div style="background:#EEF4FF;border-radius:8px;padding:12px 16px;font-size:11px;color:var(--blue);margin-bottom:20px;line-height:1.6;">
-          ℹ️ <strong>Informe Operativo:</strong> datos técnicos con tablas y estatus del Excel. &nbsp;|&nbsp; <strong>Informe Ejecutivo:</strong> análisis formal en lenguaje directivo, hallazgos consolidados, nivel de riesgo, impacto financiero estimado y recomendaciones estratégicas.
+          ℹ️ <strong>Operativo:</strong> tablas y estatus técnicos. &nbsp;|&nbsp; <strong>Ejecutivo:</strong> narrativa formal para Dirección. &nbsp;|&nbsp; <strong>🎯 Riesgo de Pendientes:</strong> semáforo financiero por renglón con exposición total (recomendado para revisión de control). &nbsp;|&nbsp; <strong>Antigüedad:</strong> aging buckets por categoría.
         </div>
 
         <div style="display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap;">
@@ -1926,10 +1939,11 @@ function cerrarSelectorInforme(){
 
 function selTipo(tipo){
   tipoInforme=tipo;
-  const tipos=['operativo','ejecutivo'];
+  const tipos=['operativo','ejecutivo','riesgo','antiguedad'];
   tipos.forEach(t=>{
     const card=$('tipoCard_'+t);
     const lbl=$('tipoLbl_'+t);
+    if(!card||!lbl)return;
     if(t===tipo){
       card.style.border='2px solid var(--navy)';card.style.background='#EEF4FF';
       lbl.style.background='var(--navy)';lbl.style.color='#fff';lbl.textContent='SELECCIONADO ✓';
@@ -1962,6 +1976,8 @@ function toggleAllSections(val){
 function confirmarGeneracion(){
   cerrarSelectorInforme();
   if(tipoInforme==='ejecutivo') generarInformeEjecutivo();
+  else if(tipoInforme==='riesgo') generarInformeRiesgo();
+  else if(tipoInforme==='antiguedad') generarInformeAntiguedad();
   else generarInforme();
 }
 
@@ -2587,50 +2603,33 @@ ul{margin:10px 0 14px 20px;}li{margin-bottom:6px;line-height:1.6;}
 @media print{body{background:#fff;}.page{box-shadow:none;}@page{size:letter;margin:1.5cm;}}
 </style>
 </head><body>
-<div class="page">
+<div class="page" style="padding:40px 50px;">
 
-<!-- PORTADA EJECUTIVA — DISEÑO PROFESIONAL -->
-<div class="cover">
-  <div class="cover-strip"></div>
-  <div class="cover-ribbon">CONFIDENCIAL</div>
-  <div class="cover-inner">
-    <div class="cover-top">
-      <div class="cover-logo">
-        <div class="cover-logo-mark">K</div>
-        <div class="cover-logo-text">
-          <div class="cover-brand">KURODA S.A. DE C.V.</div>
-          <div class="cover-brand-sub">Dirección de Auditoría Interna</div>
-        </div>
-      </div>
-      <div class="cover-stamp">★ Informe Oficial ★</div>
-    </div>
-    <div class="cover-divider"></div>
-    <div class="cover-type">Informe Ejecutivo de Auditoría Interna</div>
-    <div class="cover-title">${cfg.suc}</div>
-    <div class="cover-sub">${cfg.ciu} &nbsp;·&nbsp; Período auditado: <strong style="color:#fff;">${cfg.fAud}</strong></div>
-    <div class="risk-badge">⚠ Riesgo Global Determinado: ${riskLevel}</div>
-    <div class="cover-meta">
-      <div><div class="cover-meta-item">N° de Informe</div><div class="cover-meta-val">${cfg.num}</div></div>
-      <div><div class="cover-meta-item">Fecha de Auditoría</div><div class="cover-meta-val">${cfg.fAud}</div></div>
-      <div><div class="cover-meta-item">Fecha de Conclusión</div><div class="cover-meta-val">${cfg.fCon}</div></div>
-      <div><div class="cover-meta-item">Auditor Responsable</div><div class="cover-meta-val">${cfg.aud}</div></div>
-      <div><div class="cover-meta-item">Gerente de Sucursal</div><div class="cover-meta-val">${cfg.gerente}</div></div>
-      <div><div class="cover-meta-item">Cumplimiento Global</div><div class="cover-meta-val" style="color:${evalScore!==null?(evalScore>=80?'#5FE395':evalScore>=60?'#FFD166':'#FF8888'):'#fff'};">${evalScore!==null?evalScore+'%':'Pendiente'}</div></div>
-    </div>
-  </div>
+<!-- ENCABEZADO PLANO — ALINEADO AL INFORME OPERATIVO -->
+<h1 style="color:#C0392B;text-align:center;font-size:22px;font-weight:700;">KURODA S.A. DE C.V.</h1>
+<div style="text-align:center;font-size:15px;font-weight:700;margin:6px 0 4px;">Informe Ejecutivo de Auditoría — ${cfg.num}</div>
+<div style="text-align:center;font-size:11px;color:#888;margin-bottom:20px;text-transform:uppercase;letter-spacing:1.5px;">Dirección de Auditoría Interna · Documento Confidencial</div>
+
+<p class="intro-text" style="margin-bottom:14px;">El presente informe ejecutivo contiene el resultado consolidado de la auditoría practicada en la Sucursal <strong>${cfg.suc}</strong> en la ciudad de <strong>${cfg.ciu}</strong>, realizada el día <strong>${cfg.fAud}</strong> y concluida el <strong>${cfg.fCon}</strong>. El nivel de riesgo global determinado es <strong style="color:${riskColor};">${riskLevel}</strong>${evalScore!==null?` con un cumplimiento de evaluación de <strong>${evalScore}%</strong>`:''}.</p>
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 20px;font-size:11px;border:1px solid #E0E6F0;border-radius:6px;padding:12px 14px;background:#FAFBFD;">
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">N° Informe:</strong> ${cfg.num}</div>
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Fecha Auditoría:</strong> ${cfg.fAud}</div>
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Fecha Conclusión:</strong> ${cfg.fCon}</div>
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Auditor:</strong> ${cfg.aud}</div>
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Gerente:</strong> ${cfg.gerente}</div>
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Cumplimiento:</strong> <span style="color:${evalScore!==null?(evalScore>=80?'#1A7A3C':evalScore>=60?'#C97A0A':'#C0392B'):'#888'};font-weight:700;">${evalScore!==null?evalScore+'%':'Pendiente'}</span></div>
 </div>
 
-<div class="confidential">🔒 DOCUMENTO CONFIDENCIAL — USO INTERNO EXCLUSIVO — AUDITORÍA INTERNA KURODA S.A. DE C.V.</div>
-
-<div class="body">
+<div class="body" style="padding:0;">
 
 <!-- RESUMEN EJECUTIVO -->
 <div class="sec-header">📋 I. RESUMEN EJECUTIVO</div>
 <p class="intro-text" style="margin-top:16px;">
-En cumplimiento con el programa anual de auditoría interna de <strong>KURODA S.A. DE C.V.</strong>, se practicó una revisión integral a la sucursal <strong>${cfg.suc}</strong>, ubicada en <strong>${cfg.ciu}</strong>, el día <strong>${cfg.fAud}</strong>. La auditoría abarcó las áreas de control de efectivo, mercancía en resguardo, gestión de traspasos, pedidos a proveedores, contabilización de pedidos de venta (Pickings) y registro de devoluciones.
+La auditoría abarcó las áreas de control de efectivo, mercancía en resguardo, gestión de traspasos, pedidos a proveedores, contabilización de pedidos de venta (Pickings) y registro de devoluciones, en cumplimiento con el programa anual de auditoría interna de <strong>KURODA S.A. DE C.V.</strong>
 </p>
 <p class="intro-text" style="margin-top:10px;">
-Como resultado del proceso, se identificaron <strong>${hallazgos.length} hallazgo(s)</strong>, de los cuales <strong style="color:#C0392B;">${hallazgos.filter(h=>h.riesgo==='Alto').length} representan riesgo Alto</strong> y <strong style="color:#C97A0A;">${hallazgos.filter(h=>h.riesgo==='Moderado').length} riesgo Moderado</strong>. El nivel de riesgo global de la sucursal se determina como <strong style="color:${riskColor};">${riskLevel}</strong>.
+Como resultado del proceso, se identificaron <strong>${hallazgos.length} hallazgo(s)</strong>, de los cuales <strong style="color:#C0392B;">${hallazgos.filter(h=>h.riesgo==='Alto').length} representan riesgo Alto</strong> y <strong style="color:#C97A0A;">${hallazgos.filter(h=>h.riesgo==='Moderado').length} riesgo Moderado</strong>.
 </p>
 ${cfg.obs?`<p class="intro-text" style="margin-top:10px;font-style:italic;color:#555;">Nota del auditor: ${cfg.obs}</p>`:''}
 
@@ -2722,6 +2721,544 @@ El presente informe queda sujeto a revisión por parte de la Dirección de Audit
   htmlEval=buildEvalReport(cfg);
   hi('p4');sh('p5');setStep(4);
   const blob=new Blob([htmlEje],{type:'text/html;charset=utf-8'});
+  $('previewFrame').src=URL.createObjectURL(blob);
+}
+
+// ===================== INFORME DE RIESGO DE PENDIENTES (NUEVO) =====================
+async function generarInformeRiesgo(){
+  hi('p3');sh('p4');setStep(4);
+  prog(5,'Analizando pendientes...','Clasificando por nivel de riesgo');await sleep(80);
+
+  const cfg={
+    num:$('cNum').value.trim()||'AUD-COL-KC24-ABR-2026',
+    suc:$('cSuc').value.trim()||'Kuroda Costa Rica',
+    ciu:$('cCiu').value.trim()||'Culiacán, Sinaloa',
+    fAud:fmtInputDate($('cFAud').value)||todayDMY(),
+    fCon:fmtInputDate($('cFCon').value)||todayDMY(),
+    aud:$('cAud').value.trim()||'___________________________',
+    gerente:$('cGerente').value.trim()||'___________________________',
+    obs:$('cObs').value.trim()
+  };
+
+  prog(20,'Cargando tablas del Excel...');await sleep(80);
+  const resg  = data['RESGUARDOS']   || [];
+  const trSol = data['TRASPASOS_SOL']|| [];
+  const trDet = data['TRASPASOS_DET']|| [];
+  const picks = data['PICKINGS']     || [];
+  const ped   = data['PEDIDOS']      || [];
+  const vl6p  = data['VL06P']        || [];
+  const vl6g  = data['VL06G']        || [];
+  const devs  = data['DEVOLUCIONES'] || [];
+
+  // Helper: clasifica un valor monetario en niveles de riesgo
+  function nivelMonto(m){
+    const v=Math.abs(parseFloat(m)||0);
+    if(v>=10000) return {nv:'CRÍTICO',cl:'#C0392B',bg:'#FEF0F0'};
+    if(v>=5000)  return {nv:'ALTO',cl:'#E67E22',bg:'#FFF4E5'};
+    if(v>=1000)  return {nv:'MODERADO',cl:'#C97A0A',bg:'#FFF8E7'};
+    return {nv:'BAJO',cl:'#1A7A3C',bg:'#EBF7EE'};
+  }
+  function nivelDias(d){
+    const v=parseInt(d)||0;
+    if(v>60) return {nv:'CRÍTICO',cl:'#C0392B',bg:'#FEF0F0'};
+    if(v>30) return {nv:'ALTO',cl:'#E67E22',bg:'#FFF4E5'};
+    if(v>15) return {nv:'MODERADO',cl:'#C97A0A',bg:'#FFF8E7'};
+    return {nv:'BAJO',cl:'#1A7A3C',bg:'#EBF7EE'};
+  }
+  function nivelCombinado(monto, dias){
+    // Toma el más severo entre los dos
+    const orden={'CRÍTICO':4,'ALTO':3,'MODERADO':2,'BAJO':1};
+    const nm=nivelMonto(monto), nd=nivelDias(dias);
+    return orden[nm.nv]>=orden[nd.nv]?nm:nd;
+  }
+
+  prog(45,'Calculando exposición financiera...');await sleep(80);
+
+  // ── BUCKETS GLOBALES ─────────────────────────────────────
+  const buckets={'CRÍTICO':{n:0,monto:0},'ALTO':{n:0,monto:0},'MODERADO':{n:0,monto:0},'BAJO':{n:0,monto:0}};
+  const items=[];
+
+  // Pickings
+  if(seccionesSeleccionadas['pickings']){
+    picks.forEach(p=>{
+      const monto=parseFloat(String(p.COSTO_PEND||0).replace(/[^0-9.-]/g,''))||0;
+      const noJust=(p._status==='A'||p._status==='B');
+      const n=noJust?nivelMonto(monto):{nv:'BAJO',cl:'#1A7A3C',bg:'#EBF7EE'};
+      // Si no justificado y monto bajo, mínimo MODERADO
+      const nivel=(noJust&&n.nv==='BAJO')?{nv:'MODERADO',cl:'#C97A0A',bg:'#FFF8E7'}:n;
+      buckets[nivel.nv].n++;buckets[nivel.nv].monto+=monto;
+      items.push({cat:'Picking',ref:p.NUMERO_PEDIDO||'—',desc:`Mat. ${p.COD_MATERIAL||'—'} — Est. ${p._status||'C'}`,monto,dias:'—',nivel});
+    });
+  }
+  // Traspasos Solicitados
+  if(seccionesSeleccionadas['trSol']){
+    trSol.forEach(t=>{
+      const monto=parseFloat(String(t.COSTO_PEND_SURTIR||0).replace(/[^0-9.-]/g,''))||0;
+      const nivel=nivelMonto(monto);
+      buckets[nivel.nv].n++;buckets[nivel.nv].monto+=monto;
+      items.push({cat:'Traspaso Sol.',ref:t.SOLICITUD||'—',desc:`Centro ${t.CENTRO_SUM||'—'} — ${t.CANT_PEND_SURTIR||0} pza pend.`,monto,dias:'—',nivel});
+    });
+  }
+  // Detalle Traspasos (TRASPASOS_DET)
+  if(seccionesSeleccionadas['trDet']){
+    trDet.forEach(d=>{
+      const monto=parseFloat(String(d.COSTO_SIN_SURTIR||0).replace(/[^0-9.-]/g,''))||0;
+      const ex=parseInt(d.EXISTENCIA_CEDIS)||0;
+      // Sin existencia en CEDIS eleva el riesgo
+      let nivel=nivelMonto(monto);
+      if(ex===0&&nivel.nv==='BAJO') nivel={nv:'MODERADO',cl:'#C97A0A',bg:'#FFF8E7'};
+      if(ex===0&&nivel.nv==='MODERADO') nivel={nv:'ALTO',cl:'#E67E22',bg:'#FFF4E5'};
+      buckets[nivel.nv].n++;buckets[nivel.nv].monto+=monto;
+      items.push({cat:'Detalle Trasp.',ref:(d.INDICADOR||'—'),desc:`${d.DESCRIPCION||'—'} — CEDIS: ${ex}`,monto,dias:'—',nivel});
+    });
+  }
+  // Resguardos
+  if(seccionesSeleccionadas['resguardos']){
+    resg.forEach(r=>{
+      const dias=parseInt(r.DIAS_ANTIGUEDAD)||0;
+      const nivel=nivelDias(dias);
+      buckets[nivel.nv].n++;
+      items.push({cat:'Resguardo',ref:r.FOLIO_RESGUARDO||'—',desc:`${r.REFERENCIA||'—'} — ${r.CANTIDAD||0} pza`,monto:0,dias,nivel});
+    });
+  }
+  // Devoluciones
+  if(seccionesSeleccionadas['devoluciones']){
+    devs.forEach(d=>{
+      const monto=parseFloat(String(d.IMPORTE||0).replace(/[^0-9.-]/g,''))||0;
+      const dias=parseInt(d.DIAS_ANTIGUEDAD)||0;
+      const nivel=nivelCombinado(monto,dias);
+      buckets[nivel.nv].n++;buckets[nivel.nv].monto+=Math.abs(monto);
+      items.push({cat:'Devolución',ref:d.ORDEN_COMPRA||'—',desc:`${d.PROVEEDOR||'—'} — ${dias} días`,monto:Math.abs(monto),dias,nivel});
+    });
+  }
+  // VL06G y VL06P — sin monto, peso por cantidad
+  if(seccionesSeleccionadas['vl06g']){
+    vl6g.forEach(v=>{
+      const nivel={nv:'ALTO',cl:'#E67E22',bg:'#FFF4E5'}; // devoluciones pendientes son siempre Alto
+      buckets[nivel.nv].n++;
+      items.push({cat:'Salida VL06G',ref:v.ENTREGA||'—',desc:`${v.NOMBRE_CLIENTE||'—'}`,monto:0,dias:'—',nivel});
+    });
+  }
+  if(seccionesSeleccionadas['vl06p']){
+    vl6p.forEach(v=>{
+      const nivel={nv:'MODERADO',cl:'#C97A0A',bg:'#FFF8E7'};
+      buckets[nivel.nv].n++;
+      items.push({cat:'Entrega VL06P',ref:v.ENTREGA||'—',desc:`${v.NOMBRE_CLIENTE||'—'}`,monto:0,dias:'—',nivel});
+    });
+  }
+  // Pedidos
+  if(seccionesSeleccionadas['pedidos']){
+    ped.forEach(p=>{
+      const monto=parseFloat(String(p.COSTO_PEND||0).replace(/[^0-9.-]/g,''))||0;
+      const nivel=nivelMonto(monto);
+      buckets[nivel.nv].n++;buckets[nivel.nv].monto+=monto;
+      items.push({cat:'Pedido Prov.',ref:p.ORDEN_COMPRA||'—',desc:`${p.PROVEEDOR||'—'} — ${p.CANTIDAD_PEND||0} pza`,monto,dias:'—',nivel});
+    });
+  }
+
+  prog(70,'Generando tablas y semáforo...');await sleep(80);
+
+  const totalItems=items.length;
+  const totalExp=buckets['CRÍTICO'].monto+buckets['ALTO'].monto+buckets['MODERADO'].monto+buckets['BAJO'].monto;
+
+  // Ordenar items por severidad y monto
+  const orden={'CRÍTICO':4,'ALTO':3,'MODERADO':2,'BAJO':1};
+  items.sort((a,b)=>(orden[b.nivel.nv]-orden[a.nivel.nv])||(b.monto-a.monto));
+
+  // ── BUILD HTML ─────────────────────────────────────
+  const semaforoCards=['CRÍTICO','ALTO','MODERADO','BAJO'].map(k=>{
+    const colors={'CRÍTICO':'#C0392B','ALTO':'#E67E22','MODERADO':'#C97A0A','BAJO':'#1A7A3C'};
+    const bgs={'CRÍTICO':'#FEF0F0','ALTO':'#FFF4E5','MODERADO':'#FFF8E7','BAJO':'#EBF7EE'};
+    const pct=totalItems?Math.round(buckets[k].n/totalItems*100):0;
+    return `<div style="border:2px solid ${colors[k]};background:${bgs[k]};border-radius:10px;padding:14px 16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-size:10px;font-weight:800;color:${colors[k]};letter-spacing:1px;">⬤ RIESGO ${k}</div>
+        <div style="font-size:11px;color:${colors[k]};font-weight:700;">${pct}%</div>
+      </div>
+      <div style="font-size:28px;font-weight:700;color:${colors[k]};font-family:'IBM Plex Mono',monospace;line-height:1;">${buckets[k].n}</div>
+      <div style="font-size:10px;color:#666;margin-top:6px;">pendientes</div>
+      <div style="font-size:12px;font-weight:700;color:${colors[k]};margin-top:8px;border-top:1px dashed ${colors[k]}40;padding-top:6px;">${money(buckets[k].monto)}</div>
+      <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.5px;">exposición</div>
+    </div>`;
+  }).join('');
+
+  const itemsRows=items.slice(0,40).map(it=>`<tr>
+    <td style="padding:7px 10px;border-bottom:1px solid #EEF1F7;font-size:10.5px;"><span style="background:${it.nivel.bg};color:${it.nivel.cl};border:1px solid ${it.nivel.cl};padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;white-space:nowrap;">⬤ ${it.nivel.nv}</span></td>
+    <td style="padding:7px 10px;border-bottom:1px solid #EEF1F7;font-size:10.5px;font-weight:600;">${it.cat}</td>
+    <td style="padding:7px 10px;border-bottom:1px solid #EEF1F7;font-size:10px;font-family:'IBM Plex Mono',monospace;">${it.ref}</td>
+    <td style="padding:7px 10px;border-bottom:1px solid #EEF1F7;font-size:10.5px;">${it.desc}</td>
+    <td style="padding:7px 10px;border-bottom:1px solid #EEF1F7;font-size:10.5px;text-align:right;color:#1A5276;font-weight:700;font-family:'IBM Plex Mono',monospace;">${it.monto>0?money(it.monto):'—'}</td>
+    <td style="padding:7px 10px;border-bottom:1px solid #EEF1F7;font-size:10.5px;text-align:center;color:${it.dias!=='—'&&parseInt(it.dias)>30?'#C0392B':'#333'};font-weight:700;">${it.dias}</td>
+  </tr>`).join('');
+  const masItems=items.length>40?`<tr><td colspan="6" style="padding:8px;text-align:center;color:#888;font-style:italic;background:#F7F9FF;font-size:11px;">… ${items.length-40} pendientes adicionales no mostrados en este resumen.</td></tr>`:'';
+
+  // Categoría con mayor exposición
+  const catExp={};
+  items.forEach(it=>{catExp[it.cat]=(catExp[it.cat]||0)+it.monto;});
+  const catSorted=Object.entries(catExp).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const catRows=catSorted.map(([c,m])=>{
+    const pct=totalExp?Math.round(m/totalExp*100):0;
+    return `<tr>
+      <td style="padding:8px 12px;border-bottom:1px solid #EEF1F7;font-size:11.5px;font-weight:600;">${c}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #EEF1F7;font-size:11px;font-family:'IBM Plex Mono',monospace;text-align:right;color:#1A5276;font-weight:700;">${money(m)}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid #EEF1F7;font-size:11px;">
+        <div style="display:inline-block;background:#EEF1F7;border-radius:4px;height:8px;width:160px;vertical-align:middle;overflow:hidden;"><div style="width:${pct}%;height:100%;background:#0F1E3C;"></div></div>
+        <span style="font-size:10px;color:#666;margin-left:8px;">${pct}%</span>
+      </td>
+    </tr>`;
+  }).join('');
+
+  prog(90,'Ensamblando documento...');await sleep(80);
+
+  const htmlR=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+<title>Informe de Riesgo de Pendientes — ${cfg.num}</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',Arial,sans-serif;color:#1C2130;background:#fff;font-size:13px;line-height:1.6;}
+.page{max-width:960px;margin:0 auto;padding:40px 50px;}
+h1{color:#C0392B;text-align:center;font-size:22px;}
+.sub-title{text-align:center;font-size:15px;font-weight:700;margin:6px 0 4px;}
+.sub-meta{text-align:center;font-size:11px;color:#888;margin-bottom:20px;text-transform:uppercase;letter-spacing:1.5px;}
+.intro{margin-bottom:18px;font-size:13px;line-height:1.7;color:#333;}
+.sec-header{background:#0F1E3C;color:#fff;padding:9px 16px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin:28px 0 0;border-left:5px solid #C0392B;}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:11.5px;}
+th{background:#0F1E3C;color:#fff;padding:8px 10px;text-align:left;font-size:11px;}
+.footer{text-align:center;margin-top:40px;font-size:10px;color:#aaa;border-top:1px solid #eee;padding-top:14px;}
+.firma-wrap{display:flex;justify-content:space-around;margin-top:60px;}
+.firma{text-align:center;width:250px;}
+.firma-line{border-top:1.5px solid #333;margin:10px auto 6px;width:210px;}
+@media print{body{padding:0;}@page{size:letter;margin:2.54cm;}}
+</style></head><body><div class="page">
+
+<h1>KURODA S.A. DE C.V.</h1>
+<div class="sub-title">Informe de Riesgo de Pendientes — ${cfg.num}</div>
+<div class="sub-meta">Dirección de Auditoría Interna · Documento Confidencial</div>
+
+<p class="intro">El presente informe clasifica los pendientes operativos de la Sucursal <strong>${cfg.suc}</strong> (<strong>${cfg.ciu}</strong>) al día <strong>${cfg.fAud}</strong> en un semáforo de cuatro niveles de riesgo: <strong style="color:#C0392B;">CRÍTICO</strong>, <strong style="color:#E67E22;">ALTO</strong>, <strong style="color:#C97A0A;">MODERADO</strong> y <strong style="color:#1A7A3C;">BAJO</strong>. La clasificación combina el <em>impacto financiero</em> (monto del pendiente) y la <em>permanencia temporal</em> (días sin resolver), priorizando la severidad mayor.</p>
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 20px;font-size:11px;border:1px solid #E0E6F0;border-radius:6px;padding:12px 14px;background:#FAFBFD;">
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">N° Informe:</strong> ${cfg.num}</div>
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Fecha Auditoría:</strong> ${cfg.fAud}</div>
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Auditor:</strong> ${cfg.aud}</div>
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Total Pendientes:</strong> <strong style="color:#0F1E3C;">${totalItems}</strong></div>
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Exposición Total:</strong> <strong style="color:#C0392B;">${money(totalExp)}</strong></div>
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Gerente:</strong> ${cfg.gerente}</div>
+</div>
+
+<!-- SEMÁFORO -->
+<div class="sec-header">🚦 I. SEMÁFORO DE RIESGO</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0;">${semaforoCards}</div>
+
+<!-- TOP CATEGORÍAS -->
+<div class="sec-header">📊 II. EXPOSICIÓN POR CATEGORÍA</div>
+<p style="font-size:12px;color:#555;margin-top:10px;">Ranking de las categorías con mayor exposición financiera acumulada:</p>
+<table style="border:1px solid #E0E6F0;border-radius:8px;overflow:hidden;">
+  <thead><tr>
+    <th>Categoría</th>
+    <th style="text-align:right;">Exposición</th>
+    <th>Participación</th>
+  </tr></thead>
+  <tbody>${catRows||'<tr><td colspan="3" style="padding:10px;text-align:center;color:#888;">Sin datos</td></tr>'}</tbody>
+</table>
+
+<!-- DETALLE -->
+<div class="sec-header">🔍 III. DETALLE DE PENDIENTES — TOP ${Math.min(40,items.length)}</div>
+<p style="font-size:12px;color:#555;margin-top:10px;">Ordenados de mayor a menor severidad y luego por monto:</p>
+<table style="border:1px solid #E0E6F0;border-radius:8px;overflow:hidden;">
+  <thead><tr>
+    <th>Nivel</th>
+    <th>Categoría</th>
+    <th>Referencia</th>
+    <th>Descripción</th>
+    <th style="text-align:right;">Monto</th>
+    <th style="text-align:center;">Días</th>
+  </tr></thead>
+  <tbody>${itemsRows||'<tr><td colspan="6" style="padding:10px;text-align:center;color:#888;">Sin pendientes registrados</td></tr>'}${masItems}</tbody>
+</table>
+
+<!-- INTERPRETACIÓN -->
+<div class="sec-header">📋 IV. INTERPRETACIÓN Y CRITERIOS</div>
+<div style="background:#F0F7FF;border-left:4px solid #0F1E3C;padding:14px 18px;margin:14px 0;border-radius:0 6px 6px 0;">
+  <p style="font-size:12px;line-height:1.7;margin-bottom:8px;"><strong style="color:#C0392B;">⬤ CRÍTICO:</strong> Monto ≥ $10,000 o antigüedad &gt; 60 días. Requiere acción inmediata del Gerente de Sucursal y notificación a Dirección.</p>
+  <p style="font-size:12px;line-height:1.7;margin-bottom:8px;"><strong style="color:#E67E22;">⬤ ALTO:</strong> Monto $5,000–$10,000 o antigüedad 31–60 días. Atender en un plazo máximo de 5 días hábiles.</p>
+  <p style="font-size:12px;line-height:1.7;margin-bottom:8px;"><strong style="color:#C97A0A;">⬤ MODERADO:</strong> Monto $1,000–$5,000 o antigüedad 16–30 días. Atender en un plazo máximo de 10 días hábiles.</p>
+  <p style="font-size:12px;line-height:1.7;"><strong style="color:#1A7A3C;">⬤ BAJO:</strong> Monto &lt; $1,000 y antigüedad ≤ 15 días. Seguimiento rutinario en revisión semanal.</p>
+</div>
+
+<p style="font-size:11px;color:#777;font-style:italic;margin-top:14px;">${cfg.obs?'📋 Nota del auditor: '+cfg.obs:'Este informe es generado de forma automática a partir de las tablas cargadas en el sistema. Los criterios de clasificación pueden ajustarse por la Dirección de Auditoría Interna según la política vigente.'}</p>
+
+<div class="firma-wrap">
+  <div class="firma">
+    <div class="firma-line"></div>
+    <div style="font-weight:700;font-size:13px;">${cfg.aud}</div>
+    <div style="font-size:11px;color:#888;margin-top:3px;">Auditor Interno</div>
+    <div style="font-size:10px;color:#C0392B;margin-top:4px;">KURODA S.A. DE C.V.</div>
+  </div>
+  <div class="firma">
+    <div class="firma-line"></div>
+    <div style="font-weight:700;font-size:13px;">${cfg.gerente}</div>
+    <div style="font-size:11px;color:#888;margin-top:3px;">Gerente de Sucursal</div>
+    <div style="font-size:10px;color:#555;margin-top:4px;">${cfg.suc}</div>
+  </div>
+</div>
+
+<div class="footer">Informe ${cfg.num} | ${cfg.suc} | Generado el ${todayDMY()} | KURODA S.A. DE C.V. — Auditoría Interna</div>
+
+</div></body></html>`;
+
+  prog(100,'¡Informe de Riesgo generado!','Listo para exportar');await sleep(150);
+  htmlReporte=htmlR;
+  htmlEval=buildEvalReport(cfg);
+  hi('p4');sh('p5');setStep(4);
+  const blob=new Blob([htmlR],{type:'text/html;charset=utf-8'});
+  $('previewFrame').src=URL.createObjectURL(blob);
+}
+
+// ===================== INFORME DE ANTIGÜEDAD DE PENDIENTES (NUEVO) =====================
+async function generarInformeAntiguedad(){
+  hi('p3');sh('p4');setStep(4);
+  prog(5,'Calculando antigüedades...','Construyendo aging buckets');await sleep(80);
+
+  const cfg={
+    num:$('cNum').value.trim()||'AUD-COL-KC24-ABR-2026',
+    suc:$('cSuc').value.trim()||'Kuroda Costa Rica',
+    ciu:$('cCiu').value.trim()||'Culiacán, Sinaloa',
+    fAud:fmtInputDate($('cFAud').value)||todayDMY(),
+    fCon:fmtInputDate($('cFCon').value)||todayDMY(),
+    aud:$('cAud').value.trim()||'___________________________',
+    gerente:$('cGerente').value.trim()||'___________________________',
+    obs:$('cObs').value.trim()
+  };
+
+  const resg = data['RESGUARDOS']  || [];
+  const devs = data['DEVOLUCIONES']|| [];
+  const trSol= data['TRASPASOS_SOL']||[];
+  const picks= data['PICKINGS']    || [];
+  const ped  = data['PEDIDOS']     || [];
+
+  // Helper: días entre fecha del Excel y fecha de auditoría
+  function parseDMY(s){
+    if(!s)return null;
+    const m=String(s).match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+    if(!m)return null;
+    const y=m[3].length===2?(2000+parseInt(m[3])):parseInt(m[3]);
+    return new Date(y,parseInt(m[2])-1,parseInt(m[1]));
+  }
+  function diasDesde(fStr){
+    const f=parseDMY(fStr);
+    if(!f)return 0;
+    const audDate=parseDMY(cfg.fAud)||new Date();
+    return Math.max(0,Math.floor((audDate-f)/(1000*60*60*24)));
+  }
+
+  prog(30,'Clasificando por edad...');await sleep(80);
+
+  function bucketDias(d){
+    if(d>60) return '60+';
+    if(d>30) return '31-60';
+    if(d>15) return '16-30';
+    return '0-15';
+  }
+
+  // Construir estructura de aging por categoría
+  const cats=[];
+
+  if(seccionesSeleccionadas['resguardos']&&resg.length){
+    const cat={nombre:'📦 Resguardos',transac:'MB52',rows:[]};
+    resg.forEach(r=>{
+      const d=parseInt(r.DIAS_ANTIGUEDAD)||0;
+      cat.rows.push({dias:d,bucket:bucketDias(d),desc:`${r.REFERENCIA||'—'} — ${r.FOLIO_RESGUARDO||''}`,extra:`${r.CANTIDAD||0} pza`});
+    });
+    cats.push(cat);
+  }
+  if(seccionesSeleccionadas['devoluciones']&&devs.length){
+    const cat={nombre:'📤 Devoluciones a Proveedor',transac:'ZREPCOMPRAS',rows:[]};
+    devs.forEach(d=>{
+      const dd=parseInt(d.DIAS_ANTIGUEDAD)||0;
+      cat.rows.push({dias:dd,bucket:bucketDias(dd),desc:`${d.PROVEEDOR||'—'}`,extra:`${money(Math.abs(parseFloat(String(d.IMPORTE||0).replace(/[^0-9.-]/g,''))||0))}`});
+    });
+    cats.push(cat);
+  }
+  if(seccionesSeleccionadas['trSol']&&trSol.length){
+    const cat={nombre:'🔄 Traspasos Solicitados',transac:'ZREPSOLTRAS',rows:[]};
+    trSol.forEach(t=>{
+      const dd=diasDesde(t.FECHA);
+      cat.rows.push({dias:dd,bucket:bucketDias(dd),desc:`Sol. ${t.SOLICITUD||'—'} → ${t.CENTRO_SUM||'—'}`,extra:`${money(parseFloat(String(t.COSTO_PEND_SURTIR||0).replace(/[^0-9.-]/g,''))||0)}`});
+    });
+    cats.push(cat);
+  }
+  if(seccionesSeleccionadas['pickings']&&picks.length){
+    const cat={nombre:'🛒 Pickings',transac:'ZVA05VTAS',rows:[]};
+    picks.forEach(p=>{
+      const dd=diasDesde(p.FECHA);
+      cat.rows.push({dias:dd,bucket:bucketDias(dd),desc:`Ped. ${p.NUMERO_PEDIDO||'—'} — ${p.COD_MATERIAL||''}`,extra:`${money(parseFloat(String(p.COSTO_PEND||0).replace(/[^0-9.-]/g,''))||0)} · Est. ${p._status||'C'}`});
+    });
+    cats.push(cat);
+  }
+  if(seccionesSeleccionadas['pedidos']&&ped.length){
+    const cat={nombre:'📋 Pedidos a Proveedor',transac:'ZREPORDCOMP',rows:[]};
+    ped.forEach(p=>{
+      const dd=diasDesde(p.FECHA);
+      cat.rows.push({dias:dd,bucket:bucketDias(dd),desc:`OC ${p.ORDEN_COMPRA||'—'} — ${p.PROVEEDOR||''}`,extra:`${money(parseFloat(String(p.COSTO_PEND||0).replace(/[^0-9.-]/g,''))||0)}`});
+    });
+    cats.push(cat);
+  }
+
+  prog(60,'Construyendo tablas aging...');await sleep(80);
+
+  const bucketsCol={'0-15':{cl:'#1A7A3C',bg:'#EBF7EE'},'16-30':{cl:'#C97A0A',bg:'#FFF8E7'},'31-60':{cl:'#E67E22',bg:'#FFF4E5'},'60+':{cl:'#C0392B',bg:'#FEF0F0'}};
+  const bucketsOrden=['0-15','16-30','31-60','60+'];
+
+  // ── RESUMEN GLOBAL POR BUCKET ─────────────────────────
+  const totGlobal={'0-15':0,'16-30':0,'31-60':0,'60+':0};
+  cats.forEach(c=>c.rows.forEach(r=>totGlobal[r.bucket]++));
+  const totRows=cats.reduce((s,c)=>s+c.rows.length,0);
+
+  const resumenCards=bucketsOrden.map(b=>{
+    const pct=totRows?Math.round(totGlobal[b]/totRows*100):0;
+    const lbl={'0-15':'0–15 días','16-30':'16–30 días','31-60':'31–60 días','60+':'+60 días'}[b];
+    return `<div style="border:2px solid ${bucketsCol[b].cl};background:${bucketsCol[b].bg};border-radius:10px;padding:14px 16px;">
+      <div style="font-size:10px;font-weight:800;color:${bucketsCol[b].cl};letter-spacing:1px;margin-bottom:4px;">${lbl}</div>
+      <div style="font-size:28px;font-weight:700;color:${bucketsCol[b].cl};font-family:'IBM Plex Mono',monospace;line-height:1;">${totGlobal[b]}</div>
+      <div style="font-size:10px;color:#666;margin-top:4px;">pendientes (${pct}%)</div>
+    </div>`;
+  }).join('');
+
+  // ── TABLAS POR CATEGORÍA ─────────────────────────────
+  const tablasCat=cats.map(c=>{
+    const tot={'0-15':0,'16-30':0,'31-60':0,'60+':0};
+    c.rows.forEach(r=>tot[r.bucket]++);
+    const totalCat=c.rows.length;
+    if(!totalCat) return '';
+
+    // Top 5 pendientes con mayor antigüedad de la categoría
+    const top5=[...c.rows].sort((a,b)=>b.dias-a.dias).slice(0,5);
+    const top5Rows=top5.map(r=>`<tr>
+      <td style="padding:7px 10px;border-bottom:1px solid #EEF1F7;font-size:11px;">${r.desc}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #EEF1F7;font-size:11px;text-align:right;font-family:'IBM Plex Mono',monospace;color:${bucketsCol[r.bucket].cl};font-weight:700;">${r.dias} d</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #EEF1F7;font-size:10.5px;text-align:center;"><span style="background:${bucketsCol[r.bucket].bg};color:${bucketsCol[r.bucket].cl};border:1px solid ${bucketsCol[r.bucket].cl};padding:2px 8px;border-radius:10px;font-size:9.5px;font-weight:700;">${r.bucket}</span></td>
+      <td style="padding:7px 10px;border-bottom:1px solid #EEF1F7;font-size:10.5px;color:#1A5276;">${r.extra}</td>
+    </tr>`).join('');
+
+    const distRow=bucketsOrden.map(b=>{
+      const pct=totalCat?Math.round(tot[b]/totalCat*100):0;
+      return `<td style="padding:8px 10px;border:1px solid #E8EDF5;text-align:center;background:${bucketsCol[b].bg};">
+        <div style="font-size:18px;font-weight:700;color:${bucketsCol[b].cl};font-family:'IBM Plex Mono',monospace;">${tot[b]}</div>
+        <div style="font-size:9px;color:#666;">${pct}%</div>
+      </td>`;
+    }).join('');
+
+    return `<div style="margin:24px 0;border:1px solid #E0E6F0;border-radius:8px;overflow:hidden;">
+      <div style="background:#0F1E3C;color:#fff;padding:10px 16px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:13px;font-weight:700;">${c.nombre}</span>
+        <span style="background:#C0392B;color:#fff;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;letter-spacing:.5px;">${c.transac}</span>
+        <span style="margin-left:auto;font-size:11px;opacity:.8;">Total: <strong>${totalCat}</strong></span>
+      </div>
+      <div style="padding:14px 16px;">
+        <table style="width:100%;border-collapse:collapse;margin-bottom:10px;">
+          <thead><tr>
+            ${bucketsOrden.map(b=>`<th style="background:#fff;color:${bucketsCol[b].cl};padding:6px 10px;text-align:center;font-size:10px;border:1px solid #E8EDF5;text-transform:uppercase;letter-spacing:.5px;">${b==='60+'?'+60 días':b+' días'}</th>`).join('')}
+          </tr></thead>
+          <tbody><tr>${distRow}</tr></tbody>
+        </table>
+        ${top5Rows?`<div style="font-size:11px;color:#666;margin:14px 0 6px;font-style:italic;">Top 5 pendientes de mayor antigüedad en esta categoría:</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11px;border:1px solid #E0E6F0;border-radius:6px;overflow:hidden;">
+          <thead><tr>
+            <th style="background:#F0F2F8;color:#0F1E3C;padding:7px 10px;text-align:left;font-size:10px;">Pendiente</th>
+            <th style="background:#F0F2F8;color:#0F1E3C;padding:7px 10px;text-align:right;font-size:10px;">Días</th>
+            <th style="background:#F0F2F8;color:#0F1E3C;padding:7px 10px;text-align:center;font-size:10px;">Bucket</th>
+            <th style="background:#F0F2F8;color:#0F1E3C;padding:7px 10px;text-align:left;font-size:10px;">Adicional</th>
+          </tr></thead>
+          <tbody>${top5Rows}</tbody>
+        </table>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  prog(90,'Ensamblando documento...');await sleep(80);
+
+  const htmlA=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
+<title>Informe de Antigüedad — ${cfg.num}</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'IBM Plex Sans',Arial,sans-serif;color:#1C2130;background:#fff;font-size:13px;line-height:1.6;}
+.page{max-width:960px;margin:0 auto;padding:40px 50px;}
+h1{color:#C0392B;text-align:center;font-size:22px;}
+.sub-title{text-align:center;font-size:15px;font-weight:700;margin:6px 0 4px;}
+.sub-meta{text-align:center;font-size:11px;color:#888;margin-bottom:20px;text-transform:uppercase;letter-spacing:1.5px;}
+.sec-header{background:#0F1E3C;color:#fff;padding:9px 16px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin:28px 0 0;border-left:5px solid #C0392B;}
+.footer{text-align:center;margin-top:40px;font-size:10px;color:#aaa;border-top:1px solid #eee;padding-top:14px;}
+.firma-wrap{display:flex;justify-content:space-around;margin-top:60px;}
+.firma{text-align:center;width:250px;}
+.firma-line{border-top:1.5px solid #333;margin:10px auto 6px;width:210px;}
+@media print{body{padding:0;}@page{size:letter;margin:2.54cm;}}
+</style></head><body><div class="page">
+
+<h1>KURODA S.A. DE C.V.</h1>
+<div class="sub-title">Informe de Antigüedad de Pendientes — ${cfg.num}</div>
+<div class="sub-meta">Dirección de Auditoría Interna · Análisis de Aging</div>
+
+<p style="margin-bottom:14px;font-size:13px;line-height:1.7;color:#333;">El presente informe presenta el análisis de antigüedad (<em>aging</em>) de los pendientes operativos de la Sucursal <strong>${cfg.suc}</strong> (<strong>${cfg.ciu}</strong>) al día <strong>${cfg.fAud}</strong>. Cada pendiente se clasifica en uno de los cuatro buckets temporales — <strong>0–15</strong>, <strong>16–30</strong>, <strong>31–60</strong> y <strong>+60 días</strong> — permitiendo priorizar la acción correctiva conforme al envejecimiento del pendiente.</p>
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 20px;font-size:11px;border:1px solid #E0E6F0;border-radius:6px;padding:12px 14px;background:#FAFBFD;">
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">N° Informe:</strong> ${cfg.num}</div>
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Fecha Auditoría:</strong> ${cfg.fAud}</div>
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Total Pendientes:</strong> <strong style="color:#0F1E3C;">${totRows}</strong></div>
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Auditor:</strong> ${cfg.aud}</div>
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Gerente:</strong> ${cfg.gerente}</div>
+  <div><strong style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px;">Categorías:</strong> ${cats.length}</div>
+</div>
+
+<!-- RESUMEN GLOBAL -->
+<div class="sec-header">⏰ I. DISTRIBUCIÓN GLOBAL POR ANTIGÜEDAD</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0;">${resumenCards}</div>
+
+<!-- ALERTAS -->
+${totGlobal['60+']>0?`<div style="background:#FEF0F0;border:1.5px solid #C0392B;border-radius:8px;padding:14px 18px;margin:14px 0;font-size:12px;color:#7A1F15;">
+  <strong style="color:#C0392B;">⚠ ALERTA:</strong> Se identificaron <strong>${totGlobal['60+']} pendiente(s) con más de 60 días</strong> de antigüedad. Estos casos requieren intervención inmediata del Gerente de Sucursal y reporte a Dirección.
+</div>`:''}
+
+<!-- DETALLE POR CATEGORÍA -->
+<div class="sec-header">📊 II. AGING POR CATEGORÍA</div>
+${tablasCat||'<p style="margin-top:14px;font-size:12px;color:#888;font-style:italic;">No se cargaron datos suficientes para generar el análisis de antigüedad.</p>'}
+
+<!-- INTERPRETACIÓN -->
+<div class="sec-header">📋 III. CRITERIOS Y PLAZOS DE ACCIÓN</div>
+<div style="background:#F0F7FF;border-left:4px solid #0F1E3C;padding:14px 18px;margin:14px 0;border-radius:0 6px 6px 0;">
+  <p style="font-size:12px;line-height:1.7;margin-bottom:8px;"><strong style="color:#1A7A3C;">⬤ 0–15 días:</strong> Rango normal de operación. Seguimiento rutinario semanal.</p>
+  <p style="font-size:12px;line-height:1.7;margin-bottom:8px;"><strong style="color:#C97A0A;">⬤ 16–30 días:</strong> Pendiente con riesgo moderado. Gestionar antes del cierre quincenal siguiente.</p>
+  <p style="font-size:12px;line-height:1.7;margin-bottom:8px;"><strong style="color:#E67E22;">⬤ 31–60 días:</strong> Fuera del plazo normativo. Acción requerida en máximo 5 días hábiles y reporte semanal a Gerencia.</p>
+  <p style="font-size:12px;line-height:1.7;"><strong style="color:#C0392B;">⬤ +60 días:</strong> Pendiente crítico. Notificación inmediata a Dirección. Evaluar ajuste contable o cancelación conforme a política.</p>
+</div>
+
+<p style="font-size:11px;color:#777;font-style:italic;margin-top:14px;">${cfg.obs?'📋 Nota del auditor: '+cfg.obs:'La antigüedad se calcula desde la fecha origen de cada documento hasta la fecha de auditoría. En categorías sin columna explícita de días, se calcula desde la fecha del documento.'}</p>
+
+<div class="firma-wrap">
+  <div class="firma">
+    <div class="firma-line"></div>
+    <div style="font-weight:700;font-size:13px;">${cfg.aud}</div>
+    <div style="font-size:11px;color:#888;margin-top:3px;">Auditor Interno</div>
+    <div style="font-size:10px;color:#C0392B;margin-top:4px;">KURODA S.A. DE C.V.</div>
+  </div>
+  <div class="firma">
+    <div class="firma-line"></div>
+    <div style="font-weight:700;font-size:13px;">${cfg.gerente}</div>
+    <div style="font-size:11px;color:#888;margin-top:3px;">Gerente de Sucursal</div>
+    <div style="font-size:10px;color:#555;margin-top:4px;">${cfg.suc}</div>
+  </div>
+</div>
+
+<div class="footer">Informe ${cfg.num} | ${cfg.suc} | Generado el ${todayDMY()} | KURODA S.A. DE C.V. — Auditoría Interna</div>
+
+</div></body></html>`;
+
+  prog(100,'¡Informe de Antigüedad generado!','Listo para exportar');await sleep(150);
+  htmlReporte=htmlA;
+  htmlEval=buildEvalReport(cfg);
+  hi('p4');sh('p5');setStep(4);
+  const blob=new Blob([htmlA],{type:'text/html;charset=utf-8'});
   $('previewFrame').src=URL.createObjectURL(blob);
 }
 
