@@ -395,6 +395,23 @@ textarea{resize:vertical;min-height:68px;}
 
   <!-- P5: EXPORTAR -->
   <div id="p5" class="hidden">
+
+    <!-- BARRA DE NAVEGACIÓN DE TIPO -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 16px;background:#fff;border:1.5px solid var(--border);border-radius:9px;flex-wrap:wrap;">
+      <button class="btn bo" style="padding:7px 14px;font-size:11px;" onclick="volverSelectorTipo()">← Cambiar tipo de informe</button>
+      <div class="export-divider"></div>
+      <span style="font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;">Cambio rápido:</span>
+      <select id="quickTipoSelect" onchange="cambioRapidoTipo(this.value)"
+        style="border:1.5px solid var(--border);border-radius:6px;padding:7px 12px;font-family:inherit;font-size:12px;font-weight:600;color:var(--navy);background:#FAFBFD;cursor:pointer;min-width:220px;">
+        <option value="operativo">🔧 Informe Operativo</option>
+        <option value="ejecutivo">🏛️ Informe Ejecutivo</option>
+        <option value="riesgo">🎯 Riesgo de Pendientes</option>
+        <option value="antiguedad">⏰ Antigüedad de Pendientes</option>
+      </select>
+      <button class="btn bp" style="padding:7px 14px;font-size:11px;" onclick="regenerarConTipo()">↻ Regenerar</button>
+      <span id="tipoActualLabel" style="font-size:10px;color:var(--muted);font-style:italic;margin-left:4px;"></span>
+    </div>
+
     <div class="export-panel">
       <h3>📤 Exportar Informe Principal</h3>
       <div class="export-divider"></div>
@@ -1202,7 +1219,7 @@ ${seccionesSeleccionadas['evaluacion']!==false?evalSection:''}
 
   prog(100,'¡Informe generado!','Listo para exportar');await sleep(150);
   htmlReporte=html;
-  hi('p4');sh('p5');setStep(4);
+  hi('p4');sh('p5');setStep(4);actualizarTipoLabel();
   const blob=new Blob([html],{type:'text/html;charset=utf-8'});
   $('previewFrame').src=URL.createObjectURL(blob);
 }
@@ -1975,6 +1992,7 @@ function toggleAllSections(val){
 
 function confirmarGeneracion(){
   cerrarSelectorInforme();
+  actualizarTipoLabel();
   if(tipoInforme==='ejecutivo') generarInformeEjecutivo();
   else if(tipoInforme==='riesgo') generarInformeRiesgo();
   else if(tipoInforme==='antiguedad') generarInformeAntiguedad();
@@ -2719,7 +2737,7 @@ El presente informe queda sujeto a revisión por parte de la Dirección de Audit
   prog(100,'¡Informe Ejecutivo generado!','Listo para exportar');await sleep(150);
   htmlReporte=htmlEje;
   htmlEval=buildEvalReport(cfg);
-  hi('p4');sh('p5');setStep(4);
+  hi('p4');sh('p5');setStep(4);actualizarTipoLabel();
   const blob=new Blob([htmlEje],{type:'text/html;charset=utf-8'});
   $('previewFrame').src=URL.createObjectURL(blob);
 }
@@ -3010,7 +3028,7 @@ th{background:#0F1E3C;color:#fff;padding:8px 10px;text-align:left;font-size:11px
   prog(100,'¡Informe de Riesgo generado!','Listo para exportar');await sleep(150);
   htmlReporte=htmlR;
   htmlEval=buildEvalReport(cfg);
-  hi('p4');sh('p5');setStep(4);
+  hi('p4');sh('p5');setStep(4);actualizarTipoLabel();
   const blob=new Blob([htmlR],{type:'text/html;charset=utf-8'});
   $('previewFrame').src=URL.createObjectURL(blob);
 }
@@ -3257,9 +3275,47 @@ ${tablasCat||'<p style="margin-top:14px;font-size:12px;color:#888;font-style:ita
   prog(100,'¡Informe de Antigüedad generado!','Listo para exportar');await sleep(150);
   htmlReporte=htmlA;
   htmlEval=buildEvalReport(cfg);
-  hi('p4');sh('p5');setStep(4);
+  hi('p4');sh('p5');setStep(4);actualizarTipoLabel();
   const blob=new Blob([htmlA],{type:'text/html;charset=utf-8'});
   $('previewFrame').src=URL.createObjectURL(blob);
+}
+
+// ===================== NAVEGACIÓN DESDE P5 =====================
+function volverSelectorTipo(){
+  hi('p5');
+  // Sincronizar el dropdown rápido con el modal antes de abrir
+  const qs=$('quickTipoSelect');
+  if(qs) qs.value=tipoInforme;
+  abrirSelectorInforme();
+}
+
+function actualizarTipoLabel(){
+  const labels={operativo:'🔧 Operativo',ejecutivo:'🏛️ Ejecutivo',riesgo:'🎯 Riesgo de Pendientes',antiguedad:'⏰ Antigüedad'};
+  const el=$('tipoActualLabel');
+  if(el) el.textContent='Tipo actual: '+( labels[tipoInforme]||tipoInforme );
+  const qs=$('quickTipoSelect');
+  if(qs) qs.value=tipoInforme;
+}
+
+function cambioRapidoTipo(tipo){
+  tipoInforme=tipo;
+  // Sincronizar también las cards del modal
+  const tipos=['operativo','ejecutivo','riesgo','antiguedad'];
+  tipos.forEach(t=>{
+    const card=$('tipoCard_'+t);const lbl=$('tipoLbl_'+t);
+    if(!card||!lbl)return;
+    if(t===tipo){card.style.border='2px solid var(--navy)';card.style.background='#EEF4FF';lbl.style.background='var(--navy)';lbl.style.color='#fff';lbl.textContent='SELECCIONADO ✓';}
+    else{card.style.border='2px solid var(--border)';card.style.background='#FAFBFD';lbl.style.background='var(--border)';lbl.style.color='var(--muted)';lbl.textContent='SELECCIONAR';}
+  });
+}
+
+function regenerarConTipo(){
+  actualizarTipoLabel();
+  hi('p5');sh('p4');
+  if(tipoInforme==='ejecutivo') generarInformeEjecutivo();
+  else if(tipoInforme==='riesgo') generarInformeRiesgo();
+  else if(tipoInforme==='antiguedad') generarInformeAntiguedad();
+  else generarInforme();
 }
 
 // ===================== SELECTOR DE TIPO (INIT DEFAULT) =====================
@@ -3280,3 +3336,4 @@ updateCounters();
 </script>
 </body>
 </html>
+
