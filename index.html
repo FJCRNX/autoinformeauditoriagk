@@ -223,10 +223,10 @@ textarea{resize:vertical;min-height:68px;}
             <tbody>
               <tr><td style="color:#C9960C;font-weight:700;">ARQUEO_PV</td><td>DIFERENCIA_SOBRANTE, CAJERA_INCAPACITADA (S/N), FACTURAS_PENDIENTES (S/N), FONDO_CAMBIO_MONTO, FONDO_CAMBIO_RESULTADO, FONDO_CAJA_CHICA_MONTO, FONDO_CAJA_CHICA_RESULTADO, NOTAS_ADICIONALES</td><td>💵 Efectivo / Arqueos</td></tr>
               <tr><td>RESGUARDOS</td><td>FECHA_ENTRADA, DIAS_ANTIGUEDAD, REFERENCIA, FOLIO_RESGUARDO, CANTIDAD</td><td>Mercancía en Resguardo</td></tr>
-              <tr><td>TRASPASOS_SOL</td><td>FECHA, CENTRO_SUM, SOLICITUD, CANT_CODIGOS, CANT_PEND_SURTIR, COSTO_PEND_SURTIR, CANT_PEND_ENTRAR, COSTO_PEND_ENTRAR</td><td>Traspasos Solicitados</td></tr>
-              <tr><td>TRASPASOS_DET</td><td>DESCRIPCION, CANT_SIN_SURTIR, COSTO_SIN_SURTIR, EXISTENCIA_CEDIS, INDICADOR</td><td>Detalle Traspasos</td></tr>
-              <tr><td>TRASPASOS_SUM</td><td>FECHA, TRASPASO, SOLICITANTE, CODIGO, DESCRIPCION, CANTIDAD, COSTO</td><td>Traspasos Suministrados</td></tr>
-              <tr><td>PEDIDOS</td><td>PROVEEDOR, FECHA, ORDEN_COMPRA, CANT_CODIGOS, CANTIDAD_PEND, COSTO_PEND</td><td>Pedidos a Proveedor</td></tr>
+              <tr><td>TRASPASOS_SOL</td><td>FECHA, CENTRO_SUM, SOLICITUD, CANT_CODIGOS, CANT_PEND_SURTIR, COSTO_PEND_SURTIR, CANT_PEND_ENTRAR, COSTO_PEND_ENTRAR</td><td>Traspasos Solicitados + Detalle</td></tr>
+              <tr><td>TRASPASOS_DET</td><td>DESCRIPCION, CANT_SIN_SURTIR, COSTO_SIN_SURTIR, EXISTENCIA_CEDIS, INDICADOR</td><td>↳ Embebido en Solicitados</td></tr>
+              <tr><td>TRASPASOS_SUM</td><td>FECHA, TRASPASO, SOLICITANTE, CODIGO, DESCRIPCION, CANTIDAD, COSTO</td><td>Traspasos Suministrados (con Estatus)</td></tr>
+              <tr><td>PEDIDOS</td><td>PROVEEDOR, FECHA, ORDEN_COMPRA, CANT_CODIGOS, CANTIDAD_PEND, COSTO_PEND <em style="color:#C9960C;">(columnas flexibles — se adaptan automáticamente)</em></td><td>Pedidos a Proveedor</td></tr>
               <tr><td>PICKINGS</td><td>FECHA, NUMERO_PEDIDO, COD_MATERIAL, CANTIDAD, COSTO_PEND</td><td>Pickings</td></tr>
               <tr><td>VL06P</td><td>NOMBRE_CLIENTE, FECHA_ENTREGA, ENTREGA, CREADO_POR</td><td>Monitor Entregas VL06P</td></tr>
               <tr><td>VL06G</td><td>NOMBRE_CLIENTE, FECHA_ENTREGA, ENTREGA, CREADO_POR</td><td>Salidas VL06G</td></tr>
@@ -234,7 +234,8 @@ textarea{resize:vertical;min-height:68px;}
             </tbody>
           </table>
           <div style="margin-top:10px;padding:10px 12px;background:rgba(201,150,12,.12);border-radius:6px;font-size:10px;color:#C9960C;">
-            ⚠️ La hoja <strong>Ejecutivo</strong> ya NO se carga desde Excel. La <strong>Evaluación de Cumplimiento</strong> se configura directamente en esta página (Paso 3), partiendo desde cero en cada auditoría.
+            ⚠️ La hoja <strong>Ejecutivo</strong> ya NO se carga desde Excel. La <strong>Evaluación de Cumplimiento</strong> se configura en esta página (Paso 3).<br>
+            💡 <strong>PEDIDOS es flexible:</strong> elimina columnas que no uses o renómbralas — el sistema las detecta. Los estatus de <strong>TRASPASOS_SUM</strong> se asignan en el Paso 3 igual que TRASPASOS_SOL.
           </div>
         </div>
         <div class="brow">
@@ -551,10 +552,25 @@ function parseWorkbook(wb){
   for(const name of sheets){
     if(wb.SheetNames.includes(name)){
       const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{raw:false,defval:''});
-      data[name]=rows.map(row=>{const out={...row};for(const col of DATE_COLUMNS){if(out[col])out[col]=formatDateToDMY(out[col]);}return out;});
+      // Filtrar columnas vacías en todas las filas: si una columna tiene todos los valores vacíos, se elimina
+      if(rows.length){
+        const allCols=Object.keys(rows[0]);
+        const nonEmptyCols=allCols.filter(col=>rows.some(r=>String(r[col]||'').trim()!==''));
+        data[name]=rows.map(row=>{
+          const out={};
+          for(const col of nonEmptyCols){
+            const val=row[col];
+            if(DATE_COLUMNS.includes(col)){out[col]=val?formatDateToDMY(val):'';} else {out[col]=val;}
+          }
+          return out;
+        });
+        // Guardar columnas detectadas para PEDIDOS (para renderizado dinámico)
+        if(name==='PEDIDOS') data['_PEDIDOS_COLS']=nonEmptyCols;
+      } else {
+        data[name]=[];
+      }
     }
   }
-  // La evaluación siempre parte desde cero en la página — no se lee del Excel
   initEvalData();
 }
 
@@ -711,6 +727,7 @@ const STATUS_OPTIONS={
   VL06P:[{val:'Pendiente',label:'⏳ Pendiente entrega',cls:'est-a'},{val:'Entregado',label:'✅ Entregado',cls:'est-c'}],
   VL06G:[{val:'Pendiente',label:'⏳ Pend. contab.',cls:'est-a'},{val:'Contabilizado',label:'✅ Contabilizado',cls:'est-c'}],
   TRASPASOS_SOL:[{val:'A',label:'A — Sin stock CEDIS',cls:'est-a'},{val:'B',label:'B — Pend. envío',cls:'est-b'},{val:'C',label:'C — En curso',cls:'est-c'},{val:'E',label:'E — Sin existencia',cls:'est-e'}],
+  TRASPASOS_SUM:[{val:'A',label:'A — Pend. cancelar',cls:'est-a'},{val:'B',label:'B — Cancelado parcial',cls:'est-b'},{val:'C',label:'C — Cancelado OK',cls:'est-c'},{val:'D',label:'D — Recibido y firmado',cls:'est-d'}],
   DEVOLUCIONES:[{val:'En trámite',label:'🔄 En trámite',cls:'est-b'},{val:'Aplicado',label:'✅ Aplicado',cls:'est-c'}],
 };
 
@@ -721,8 +738,8 @@ const BLOCK_META=[
   {key:'VL06G',label:'Salidas Pendientes VL06G',icon:'↩️',cols:['NOMBRE_CLIENTE','FECHA_ENTREGA','ENTREGA','CREADO_POR'],hasStatus:true},
   {key:'TRASPASOS_SOL',label:'Traspasos Solicitados',icon:'🔄',cols:['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR'],hasStatus:true},
   {key:'DEVOLUCIONES',label:'Devoluciones a Proveedor',icon:'📤',cols:['PROVEEDOR','ORDEN_COMPRA','FECHA_OC','SALIDA','FECHA_SALIDA','DIAS_ANTIGUEDAD','IMPORTE'],hasStatus:true},
-  {key:'TRASPASOS_SUM',label:'Traspasos Suministrados',icon:'📨',cols:['FECHA','TRASPASO','SOLICITANTE','CODIGO','DESCRIPCION','CANTIDAD','COSTO'],hasStatus:false},
-  {key:'PEDIDOS',label:'Pedidos a Proveedor',icon:'📋',cols:['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND'],hasStatus:false},
+  {key:'TRASPASOS_SUM',label:'Traspasos Suministrados',icon:'📨',cols:['FECHA','TRASPASO','SOLICITANTE','CODIGO','DESCRIPCION','CANTIDAD','COSTO'],hasStatus:true},
+  {key:'PEDIDOS',label:'Pedidos a Proveedor',icon:'📋',cols:null,hasStatus:false,dynamicCols:'_PEDIDOS_COLS',fallbackCols:['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND']},
 ];
 
 function renderStatusEditor(){
@@ -734,15 +751,16 @@ function renderStatusEditor(){
     section.style.marginBottom='24px';
     let html=`<div class="blk-title">${blk.icon} ${blk.label} <span style="font-size:11px;color:var(--muted);font-weight:400;margin-left:6px;">(${rows.length} registros)</span></div>`;
     if(!rows.length){html+=`<div class="alert alert-warn" style="font-size:11px;">⚠️ Sin datos para este bloque.</div>`;section.innerHTML=html;container.appendChild(section);continue;}
+    const cols=blk.dynamicCols?(data[blk.dynamicCols]||blk.fallbackCols):blk.cols;
     const opts=STATUS_OPTIONS[blk.key]||[];
     html+=`<div class="sed-wrap"><table class="sed-table"><thead><tr><th>#</th>`;
-    for(const col of blk.cols)html+=`<th>${col.replace(/_/g,' ')}</th>`;
+    for(const col of cols)html+=`<th>${col.replace(/_/g,' ')}</th>`;
     if(blk.hasStatus&&opts.length)html+=`<th>ESTATUS</th>`;
     html+=`</tr></thead><tbody>`;
     for(let i=0;i<rows.length;i++){
       const r=rows[i];
       html+=`<tr><td style="color:var(--muted);font-size:11px;">${i+1}</td>`;
-      for(const col of blk.cols)html+=`<td>${fmt(r[col])}</td>`;
+      for(const col of cols)html+=`<td>${fmt(r[col])}</td>`;
       if(blk.hasStatus&&opts.length){
         const cur=r._status||'';
         const curCls=opts.find(o=>o.val===cur)?.cls||'';
@@ -1144,7 +1162,7 @@ ${insightHTML(ins.traspasos)}
 <p>Se generó reporte de traspasos solicitados desde la transacción <strong>ZREPSOLTRAS</strong> al <strong>${cfg.fAud}</strong>, encontrando <strong>${trSol.length} traspaso(s)</strong> con un costo pendiente de <strong>${money(costTrSol)}</strong>.</p>
 ${buildTable(['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR','CANT_PEND_ENTRAR','COSTO_PEND_ENTRAR'],trSol,true,'TRASPASOS_SOL')}
 <ul><li>Los traspasos solicitados a <strong>CEDIS – KC00</strong> corresponden a semanas, sin suficiente existencia para suministrarlos, afectando ventas y entrega de material de alta rotación.</li><li>Se realizan solicitudes de traspaso de material con entregas previas — riesgo de duplicidad y contraviene lineamientos establecidos.</li></ul>
-${seccionesSeleccionadas['trDet']!==false&&trDet.length?`<p><strong>Detalle de artículos no suministrados:</strong></p>${buildTable(['DESCRIPCION','CANT_SIN_SURTIR','COSTO_SIN_SURTIR','EXISTENCIA_CEDIS','INDICADOR'],trDet)}`:''}
+${trDet.length?`<p><strong>Detalle de artículos no suministrados:</strong></p>${buildTable(['DESCRIPCION','CANT_SIN_SURTIR','COSTO_SIN_SURTIR','EXISTENCIA_CEDIS','INDICADOR'],trDet)}`:''}
 <div class="rec"><strong>✅ Recomendaciones</strong><ul>
   <li>Informar al área de Compras los artículos no suministrados antes de cancelar solicitudes.</li>
   <li>Apegarse al proceso <strong>PRO-CED-011 Traspasos solicitados entre Sucursales o a CEDIS</strong>.</li>
@@ -1153,13 +1171,14 @@ ${seccionesSeleccionadas['trDet']!==false&&trDet.length?`<p><strong>Detalle de a
 ${seccionesSeleccionadas['trSum']!==false?`
 <div class="sec-header">📨 TRASPASOS SUMINISTRADOS</div>
 <p>Se generó reporte de traspasos suministrados al <strong>${cfg.fAud}</strong>, encontrando <strong>${trSum.length} traspaso(s)</strong> con un costo de <strong>${money(costTrSum)}</strong>.</p>
-${buildTable(['FECHA','TRASPASO','SOLICITANTE','CODIGO','DESCRIPCION','CANTIDAD','COSTO'],trSum)}
+${buildTable(['FECHA','TRASPASO','SOLICITANTE','CODIGO','DESCRIPCION','CANTIDAD','COSTO'],trSum,true,'TRASPASOS_SUM')}
+<div class="st-legend"><strong>Estatus:</strong> A — Pendiente cancelar | B — Cancelado parcial | C — Cancelado OK | D — Recibido y firmado</div>
 <ul><li>Pendiente cancelar por el centro solicitante; la cancelación fue realizada durante el proceso de auditoría.</li><li>Las salidas son firmadas de recibido.</li></ul>`:''}
 
 ${seccionesSeleccionadas['pedidos']!==false?`
 <div class="sec-header">📋 PEDIDOS A PROVEEDOR</div>
 <p>Se generó reporte de órdenes de compra en Backorder en la transacción <strong>ZREPORDCOMP</strong> al <strong>${cfg.fAud}</strong>, identificando <strong>${ped.length} orden(es)</strong> con un costo pendiente de <strong>${money(costPed)}</strong>.</p>
-${buildTable(['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND'],ped)}
+${(()=>{const pedCols=data['_PEDIDOS_COLS']||['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND'];return buildTable(pedCols,ped);})()}
 <ul><li>Material en curso. Las órdenes de compra cuentan con antigüedad menor a 30 días.</li><li>No se cuenta con entradas pendientes de realizar.</li></ul>`:''}
 
 ${seccionesSeleccionadas['pickings']!==false?`
@@ -1724,7 +1743,7 @@ function usarDemoData(){
       {FECHA:'13/04/2026',CENTRO_SUM:'KC00',SOLICITUD:'8000081196',CANT_CODIGOS:'11',CANT_PEND_SURTIR:'157',COSTO_PEND_SURTIR:'17075.33',CANT_PEND_ENTRAR:'1',COSTO_PEND_ENTRAR:'179.60',_status:'A'},
       {FECHA:'14/04/2026',CENTRO_SUM:'KC17',SOLICITUD:'8000081224',CANT_CODIGOS:'1',CANT_PEND_SURTIR:'0',COSTO_PEND_SURTIR:'0',CANT_PEND_ENTRAR:'5',COSTO_PEND_ENTRAR:'1197.38',_status:'C'},
     ],
-    TRASPASOS_SUM:[{FECHA:'17/03/2026',TRASPASO:'8000076638',SOLICITANTE:'KC00',CODIGO:'ITS130',DESCRIPCION:'INT TERMOMAGNETICO 1X30 SIEMENS',CANTIDAD:'2.000',COSTO:'215.82'}],
+    TRASPASOS_SUM:[{FECHA:'17/03/2026',TRASPASO:'8000076638',SOLICITANTE:'KC00',CODIGO:'ITS130',DESCRIPCION:'INT TERMOMAGNETICO 1X30 SIEMENS',CANTIDAD:'2.000',COSTO:'215.82',_status:'A'}],
     PEDIDOS:[
       {PROVEEDOR:'DEBLOC DE SINALOA',FECHA:'07/04/2026',ORDEN_COMPRA:'4000026526',CANT_CODIGOS:'4',CANTIDAD_PEND:'10',COSTO_PEND:'10143.74'},
       {PROVEEDOR:'URREA HERRAMIENTAS PROFESIONALES',FECHA:'06/04/2026',ORDEN_COMPRA:'4000026385',CANT_CODIGOS:'84',CANTIDAD_PEND:'868',COSTO_PEND:'35796.46'},
@@ -1755,6 +1774,7 @@ function usarDemoData(){
     ],
     DEVOLUCIONES:[{PROVEEDOR:'FLUIDMASTER SALES MEXICO',ORDEN_COMPRA:'4000026690',FECHA_OC:'09/04/2026',SALIDA:'5000131544',FECHA_SALIDA:'13/04/2026',DIAS_ANTIGUEDAD:'3',IMPORTE:'-33.47',_status:'En trámite'}],
   };
+  data['_PEDIDOS_COLS']=['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND'];
   // La evaluación siempre parte desde cero
   initEvalData();
   buildConfig();
@@ -1930,8 +1950,7 @@ let tipoInforme = 'operativo';
 const SECCIONES_DISPONIBLES = [
   {id:'efectivo',    label:'💵 Efectivo & Arqueos',          defOn:true},
   {id:'resguardos',  label:'📦 Mercancía en Resguardo',       defOn:true},
-  {id:'trSol',       label:'🔄 Traspasos Solicitados',         defOn:true},
-  {id:'trDet',       label:'🔍 Detalle de Traspasos',          defOn:true},
+  {id:'trSol',       label:'🔄 Traspasos Solicitados (+ Detalle)',  defOn:true},
   {id:'trSum',       label:'📨 Traspasos Suministrados',        defOn:true},
   {id:'pedidos',     label:'📋 Pedidos a Proveedor',           defOn:true},
   {id:'pickings',    label:'🛒 Pickings',                      defOn:true},
@@ -2449,28 +2468,25 @@ async function generarInformeEjecutivo(){
   }
 
   if(seccionesSeleccionadas['pedidos'] && ped.length){
-    const pdRows = ped.slice(0,12).map(p=>`<tr>
-      <td style="${stTd}">${fmt(p.PROVEEDOR)}</td>
-      <td style="${stTd}">${formatDateToDMY(p.FECHA)}</td>
-      <td style="${stTd};font-family:\'IBM Plex Mono\',monospace;">${fmt(p.ORDEN_COMPRA)}</td>
-      <td style="${stTdNum};">${fmt(p.CANT_CODIGOS)}</td>
-      <td style="${stTdNum};">${fmt(p.CANTIDAD_PEND)}</td>
-      <td style="${stTdNum};color:#1A5276;font-weight:700;">${money(p.COSTO_PEND)}</td>
-    </tr>`).join('');
-    const pdMas = ped.length>12?`<tr><td colspan="6" style="${stTd};text-align:center;color:#888;font-style:italic;background:#F7F9FF;">… ${ped.length-12} pedido(s) adicional(es).</td></tr>`:'';
+    const pedCols=data['_PEDIDOS_COLS']||['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND'];
+    const pdRows = ped.slice(0,12).map(p=>{
+      const cells=pedCols.map(col=>{
+        const v=fmt(p[col]);
+        if(col==='FECHA'||DATE_COLUMNS.includes(col)) return `<td style="${stTd}">${formatDateToDMY(p[col])}</td>`;
+        if(col==='COSTO_PEND'||col.startsWith('COSTO')) return `<td style="${stTdNum};color:#1A5276;font-weight:700;">${money(p[col])}</td>`;
+        if(col==='CANT_CODIGOS'||col.startsWith('CANT')||col.startsWith('CANTIDAD')) return `<td style="${stTdNum};">${v}</td>`;
+        return `<td style="${stTd}">${v}</td>`;
+      }).join('');
+      return `<tr>${cells}</tr>`;
+    }).join('');
+    const pdMas = ped.length>12?`<tr><td colspan="${pedCols.length}" style="${stTd};text-align:center;color:#888;font-style:italic;background:#F7F9FF;">… ${ped.length-12} pedido(s) adicional(es).</td></tr>`:'';
+    const pedHeaders = pedCols.map(c=>`<th style="${stTh}">${c.replace(/_/g,' ')}</th>`).join('');
     tablasEvidencia += `
       <div style="${subTitleSt}">📋 Pedidos a Proveedor en Backorder <span style="${subTagSt}">ZREPORDCOMP · Tabla PEDIDOS</span></div>
       <div style="${captionSt}">Total: <strong>${ped.length}</strong> orden(es) de compra · Costo pendiente: <strong style="color:#1A5276;">${money(costPed)}</strong></div>
       <div style="${stTblWrap}">
         <table style="${stTbl}">
-          <thead><tr>
-            <th style="${stTh}">Proveedor</th>
-            <th style="${stTh}">Fecha</th>
-            <th style="${stTh}">Orden de Compra</th>
-            <th style="${stTh};text-align:right;">Cód.</th>
-            <th style="${stTh};text-align:right;">Cant. Pend.</th>
-            <th style="${stTh};text-align:right;">Costo Pend.</th>
-          </tr></thead>
+          <thead><tr>${pedHeaders}</tr></thead>
           <tbody>${pdRows}${pdMas}</tbody>
         </table>
       </div>`;
