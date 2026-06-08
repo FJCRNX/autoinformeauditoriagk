@@ -226,7 +226,7 @@ textarea{resize:vertical;min-height:68px;}
               <tr><td>TRASPASOS_SOL</td><td>FECHA, CENTRO_SUM, SOLICITUD, CANT_CODIGOS, CANT_PEND_SURTIR, COSTO_PEND_SURTIR, CANT_PEND_ENTRAR, COSTO_PEND_ENTRAR</td><td>Traspasos Solicitados + Detalle</td></tr>
               <tr><td>TRASPASOS_DET</td><td>DESCRIPCION, CANT_SIN_SURTIR, COSTO_SIN_SURTIR, EXISTENCIA_CEDIS, INDICADOR</td><td>↳ Embebido en Solicitados</td></tr>
               <tr><td>TRASPASOS_SUM</td><td>FECHA, TRASPASO, SOLICITANTE, CODIGO, DESCRIPCION, CANTIDAD, COSTO</td><td>Traspasos Suministrados (con Estatus)</td></tr>
-              <tr><td>PEDIDOS</td><td>PROVEEDOR, FECHA, ORDEN_COMPRA, CANT_CODIGOS, CANTIDAD_PEND, COSTO_PEND <em style="color:#C9960C;">(columnas flexibles — se adaptan automáticamente)</em></td><td>Pedidos a Proveedor</td></tr>
+              <tr><td>PEDIDOS</td><td>PROVEEDOR, FECHA, ORDEN_COMPRA, CANT_CODIGOS, CANTIDAD_PEND, COSTO_PEND <em style="color:#C9960C;">(columnas flexibles — se adaptan automáticamente)</em></td><td>Pedidos a Proveedor <span style="color:#1A7A3C;font-weight:700;">· Estatus asignable en Paso 3 ✓</span></td></tr>
               <tr><td>PICKINGS</td><td>FECHA, NUMERO_PEDIDO, COD_MATERIAL, CANTIDAD, COSTO_PEND</td><td>Pickings</td></tr>
               <tr><td>VL06P</td><td>NOMBRE_CLIENTE, FECHA_ENTREGA, ENTREGA, CREADO_POR</td><td>Monitor Entregas VL06P</td></tr>
               <tr><td>VL06G</td><td>NOMBRE_CLIENTE, FECHA_ENTREGA, ENTREGA, CREADO_POR</td><td>Salidas VL06G</td></tr>
@@ -235,7 +235,7 @@ textarea{resize:vertical;min-height:68px;}
           </table>
           <div style="margin-top:10px;padding:10px 12px;background:rgba(201,150,12,.12);border-radius:6px;font-size:10px;color:#C9960C;">
             ⚠️ La hoja <strong>Ejecutivo</strong> ya NO se carga desde Excel. La <strong>Evaluación de Cumplimiento</strong> se configura en esta página (Paso 3).<br>
-            💡 <strong>PEDIDOS es flexible:</strong> elimina columnas que no uses o renómbralas — el sistema las detecta. Los estatus de <strong>TRASPASOS_SUM</strong> se asignan en el Paso 3 igual que TRASPASOS_SOL.
+            💡 <strong>PEDIDOS es flexible:</strong> elimina columnas que no uses o renómbralas — el sistema las detecta. Los estatus de <strong>PEDIDOS</strong>, <strong>TRASPASOS_SUM</strong> y <strong>TRASPASOS_SOL</strong> se asignan en el Paso 3.
           </div>
         </div>
         <div class="brow">
@@ -729,6 +729,7 @@ const STATUS_OPTIONS={
   TRASPASOS_SOL:[{val:'A',label:'A — Sin stock CEDIS',cls:'est-a'},{val:'B',label:'B — Pend. envío',cls:'est-b'},{val:'C',label:'C — En curso',cls:'est-c'},{val:'E',label:'E — Sin existencia',cls:'est-e'}],
   TRASPASOS_SUM:[{val:'A',label:'A — Pend. cancelar',cls:'est-a'},{val:'B',label:'B — Cancelado parcial',cls:'est-b'},{val:'C',label:'C — Cancelado OK',cls:'est-c'},{val:'D',label:'D — Recibido y firmado',cls:'est-d'}],
   DEVOLUCIONES:[{val:'En trámite',label:'🔄 En trámite',cls:'est-b'},{val:'Aplicado',label:'✅ Aplicado',cls:'est-c'}],
+  PEDIDOS:[{val:'A',label:'A — En espera proveedor',cls:'est-a'},{val:'B',label:'B — Entrega parcial',cls:'est-b'},{val:'C',label:'C — En tránsito',cls:'est-c'},{val:'D',label:'D — OC recibida OK',cls:'est-d'},{val:'E',label:'E — Cancelar / N/A',cls:'est-e'}],
 };
 
 const BLOCK_META=[
@@ -739,7 +740,7 @@ const BLOCK_META=[
   {key:'TRASPASOS_SOL',label:'Traspasos Solicitados',icon:'🔄',cols:['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR'],hasStatus:true},
   {key:'DEVOLUCIONES',label:'Devoluciones a Proveedor',icon:'📤',cols:['PROVEEDOR','ORDEN_COMPRA','FECHA_OC','SALIDA','FECHA_SALIDA','DIAS_ANTIGUEDAD','IMPORTE'],hasStatus:true},
   {key:'TRASPASOS_SUM',label:'Traspasos Suministrados',icon:'📨',cols:['FECHA','TRASPASO','SOLICITANTE','CODIGO','DESCRIPCION','CANTIDAD','COSTO'],hasStatus:true},
-  {key:'PEDIDOS',label:'Pedidos a Proveedor',icon:'📋',cols:null,hasStatus:false,dynamicCols:'_PEDIDOS_COLS',fallbackCols:['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND']},
+  {key:'PEDIDOS',label:'Pedidos a Proveedor',icon:'📋',cols:null,hasStatus:true,dynamicCols:'_PEDIDOS_COLS',fallbackCols:['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND']},
 ];
 
 function renderStatusEditor(){
@@ -1178,8 +1179,10 @@ ${buildTable(['FECHA','TRASPASO','SOLICITANTE','CODIGO','DESCRIPCION','CANTIDAD'
 ${seccionesSeleccionadas['pedidos']!==false?`
 <div class="sec-header">📋 PEDIDOS A PROVEEDOR</div>
 <p>Se generó reporte de órdenes de compra en Backorder en la transacción <strong>ZREPORDCOMP</strong> al <strong>${cfg.fAud}</strong>, identificando <strong>${ped.length} orden(es)</strong> con un costo pendiente de <strong>${money(costPed)}</strong>.</p>
-${(()=>{const pedCols=data['_PEDIDOS_COLS']||['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND'];return buildTable(pedCols,ped);})()}
-<ul><li>Material en curso. Las órdenes de compra cuentan con antigüedad menor a 30 días.</li><li>No se cuenta con entradas pendientes de realizar.</li></ul>`:''}
+${(()=>{const pedCols=data['_PEDIDOS_COLS']||['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND'];return buildTable(pedCols,ped,true,'PEDIDOS');})()}
+<div class="st-legend"><strong>Estatus:</strong> A — En espera proveedor | B — Entrega parcial | C — En tránsito | D — OC recibida OK | E — Cancelar / N/A</div>
+${(()=>{const pPA=ped.filter(r=>r._status==='A'),pPB=ped.filter(r=>r._status==='B'),pPC=ped.filter(r=>r._status==='C'),pPD=ped.filter(r=>r._status==='D'),pPE=ped.filter(r=>r._status==='E'),sinE=ped.filter(r=>!r._status);const items=[];if(pPA.length)items.push(`<li><strong>A (En espera proveedor):</strong> ${pPA.length} orden(es) sin confirmación de fecha de entrega. Dar seguimiento al proveedor.</li>`);if(pPB.length)items.push(`<li><strong>B (Entrega parcial):</strong> ${pPB.length} orden(es) con surtido incompleto.</li>`);if(pPC.length)items.push(`<li><strong>C (En tránsito):</strong> ${pPC.length} orden(es) con entrega programada en curso.</li>`);if(pPD.length)items.push(`<li><strong>D (OC recibida OK):</strong> ${pPD.length} orden(es) recibidas; verificar entrada en sistema.</li>`);if(pPE.length)items.push(`<li><strong>E (Cancelar / N/A):</strong> ${pPE.length} orden(es) a gestionar cancelación.</li>`);if(sinE.length)items.push(`<li><strong>Sin estatus asignado:</strong> ${sinE.length} orden(es) — requieren clasificación.</li>`);return items.length?`<ul>${items.join('')}</ul>`:''})()}
+<ul><li>Material en curso. Dar seguimiento a órdenes sin estatus o con entrega parcial.</li></ul>`:''}
 
 ${seccionesSeleccionadas['pickings']!==false?`
 <div class="sec-header">🛒 PICKINGS</div>
@@ -2469,6 +2472,9 @@ async function generarInformeEjecutivo(){
 
   if(seccionesSeleccionadas['pedidos'] && ped.length){
     const pedCols=data['_PEDIDOS_COLS']||['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND'];
+    const pedStatusOpts={'A':'#C0392B','B':'#C97A0A','C':'#2471A3','D':'#1A7A3C','E':'#6C3483'};
+    const pedStatusBg={'A':'#FFF0F0','B':'#FFF8E7','C':'#EEF4FF','D':'#EBF7EE','E':'#F8F0FF'};
+    const pedStatusLbl={'A':'En espera','B':'Entrega parcial','C':'En tránsito','D':'Recibida OK','E':'Cancelar'};
     const pdRows = ped.slice(0,12).map(p=>{
       const cells=pedCols.map(col=>{
         const v=fmt(p[col]);
@@ -2477,16 +2483,20 @@ async function generarInformeEjecutivo(){
         if(col==='CANT_CODIGOS'||col.startsWith('CANT')||col.startsWith('CANTIDAD')) return `<td style="${stTdNum};">${v}</td>`;
         return `<td style="${stTd}">${v}</td>`;
       }).join('');
-      return `<tr>${cells}</tr>`;
+      const st=p._status||'';
+      const stCell=st
+        ?`<td style="${stTd};text-align:center;"><span style="background:${pedStatusBg[st]||'#F0F2F8'};color:${pedStatusOpts[st]||'#555'};border:1px solid ${pedStatusOpts[st]||'#ccc'};padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;white-space:nowrap;">${pedStatusLbl[st]||st}</span></td>`
+        :`<td style="${stTd};text-align:center;color:#aaa;font-size:10px;">—</td>`;
+      return `<tr>${cells}${stCell}</tr>`;
     }).join('');
-    const pdMas = ped.length>12?`<tr><td colspan="${pedCols.length}" style="${stTd};text-align:center;color:#888;font-style:italic;background:#F7F9FF;">… ${ped.length-12} pedido(s) adicional(es).</td></tr>`:'';
+    const pdMas = ped.length>12?`<tr><td colspan="${pedCols.length+1}" style="${stTd};text-align:center;color:#888;font-style:italic;background:#F7F9FF;">… ${ped.length-12} pedido(s) adicional(es).</td></tr>`:'';
     const pedHeaders = pedCols.map(c=>`<th style="${stTh}">${c.replace(/_/g,' ')}</th>`).join('');
     tablasEvidencia += `
       <div style="${subTitleSt}">📋 Pedidos a Proveedor en Backorder <span style="${subTagSt}">ZREPORDCOMP · Tabla PEDIDOS</span></div>
       <div style="${captionSt}">Total: <strong>${ped.length}</strong> orden(es) de compra · Costo pendiente: <strong style="color:#1A5276;">${money(costPed)}</strong></div>
       <div style="${stTblWrap}">
         <table style="${stTbl}">
-          <thead><tr>${pedHeaders}</tr></thead>
+          <thead><tr>${pedHeaders}<th style="${stTh};text-align:center;">ESTATUS</th></tr></thead>
           <tbody>${pdRows}${pdMas}</tbody>
         </table>
       </div>`;
@@ -2886,7 +2896,8 @@ async function generarInformeRiesgo(){
       const monto=parseFloat(String(p.COSTO_PEND||0).replace(/[^0-9.-]/g,''))||0;
       const nivel=nivelMonto(monto);
       buckets[nivel.nv].n++;buckets[nivel.nv].monto+=monto;
-      items.push({cat:'Pedido Prov.',ref:p.ORDEN_COMPRA||'—',desc:`${p.PROVEEDOR||'—'} — ${p.CANTIDAD_PEND||0} pza`,monto,dias:'—',nivel});
+      const stLbl=p._status?` · Est: ${p._status}`:'';
+      items.push({cat:'Pedido Prov.',ref:p.ORDEN_COMPRA||'—',desc:`${p.PROVEEDOR||'—'} — ${p.CANTIDAD_PEND||0} pza${stLbl}`,monto,dias:'—',nivel});
     });
   }
 
