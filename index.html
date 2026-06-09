@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sistema de Auditoría — KURODA S.A. DE C.V.</title>
+<title>Sistema de Auditoría — KURODA S.A. DE C.V.(07.06.2026)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap');
@@ -98,7 +98,7 @@ textarea{resize:vertical;min-height:68px;}
 .sel-status.est-e{background:#F8F0FF;border-color:#7D3C98;color:#6C3483;}
 .blk-title{font-size:13px;font-weight:700;color:var(--navy);padding:10px 0 6px;border-bottom:2px solid var(--border);margin-bottom:12px;}
 
-/* KPI */
+/* KPI (app dashboard) */
 .kpi-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px;}
 .kpi{background:linear-gradient(135deg,var(--navy),#1A3060);color:#fff;border-radius:9px;padding:13px 15px;}
 .kpi.red{background:linear-gradient(135deg,var(--red),#A93226);}
@@ -226,7 +226,7 @@ textarea{resize:vertical;min-height:68px;}
               <tr><td>TRASPASOS_SOL</td><td>FECHA, CENTRO_SUM, SOLICITUD, CANT_CODIGOS, CANT_PEND_SURTIR, COSTO_PEND_SURTIR, CANT_PEND_ENTRAR, COSTO_PEND_ENTRAR</td><td>Traspasos Solicitados + Detalle</td></tr>
               <tr><td>TRASPASOS_DET</td><td>DESCRIPCION, CANT_SIN_SURTIR, COSTO_SIN_SURTIR, EXISTENCIA_CEDIS, INDICADOR</td><td>↳ Embebido en Solicitados</td></tr>
               <tr><td>TRASPASOS_SUM</td><td>FECHA, TRASPASO, SOLICITANTE, CODIGO, DESCRIPCION, CANTIDAD, COSTO</td><td>Traspasos Suministrados (con Estatus)</td></tr>
-              <tr><td>PEDIDOS</td><td>PROVEEDOR, FECHA, ORDEN_COMPRA, CANT_CODIGOS, CANTIDAD_PEND, COSTO_PEND <em style="color:#C9960C;">(columnas flexibles — se adaptan automáticamente)</em></td><td>Pedidos a Proveedor <span style="color:#1A7A3C;font-weight:700;">· Estatus asignable en Paso 3 ✓</span></td></tr>
+              <tr><td>PEDIDOS</td><td>PROVEEDOR, FECHA, ORDEN_COMPRA, CANT_CODIGOS, CANTIDAD_PEND, COSTO_PEND <em style="color:#C9960C;">(columnas flexibles — se adaptan automáticamente)</em></td><td>Pedidos a Proveedor</td></tr>
               <tr><td>PICKINGS</td><td>FECHA, NUMERO_PEDIDO, COD_MATERIAL, CANTIDAD, COSTO_PEND</td><td>Pickings</td></tr>
               <tr><td>VL06P</td><td>NOMBRE_CLIENTE, FECHA_ENTREGA, ENTREGA, CREADO_POR</td><td>Monitor Entregas VL06P</td></tr>
               <tr><td>VL06G</td><td>NOMBRE_CLIENTE, FECHA_ENTREGA, ENTREGA, CREADO_POR</td><td>Salidas VL06G</td></tr>
@@ -235,7 +235,7 @@ textarea{resize:vertical;min-height:68px;}
           </table>
           <div style="margin-top:10px;padding:10px 12px;background:rgba(201,150,12,.12);border-radius:6px;font-size:10px;color:#C9960C;">
             ⚠️ La hoja <strong>Ejecutivo</strong> ya NO se carga desde Excel. La <strong>Evaluación de Cumplimiento</strong> se configura en esta página (Paso 3).<br>
-            💡 <strong>PEDIDOS es flexible:</strong> elimina columnas que no uses o renómbralas — el sistema las detecta. Los estatus de <strong>PEDIDOS</strong>, <strong>TRASPASOS_SUM</strong> y <strong>TRASPASOS_SOL</strong> se asignan en el Paso 3.
+            💡 <strong>PEDIDOS es flexible:</strong> elimina columnas que no uses o renómbralas — el sistema las detecta. Los estatus de <strong>TRASPASOS_SUM</strong> se asignan en el Paso 3 igual que TRASPASOS_SOL.
           </div>
         </div>
         <div class="brow">
@@ -729,7 +729,7 @@ const STATUS_OPTIONS={
   TRASPASOS_SOL:[{val:'A',label:'A — Sin stock CEDIS',cls:'est-a'},{val:'B',label:'B — Pend. envío',cls:'est-b'},{val:'C',label:'C — En curso',cls:'est-c'},{val:'E',label:'E — Sin existencia',cls:'est-e'}],
   TRASPASOS_SUM:[{val:'A',label:'A — Pend. cancelar',cls:'est-a'},{val:'B',label:'B — Cancelado parcial',cls:'est-b'},{val:'C',label:'C — Cancelado OK',cls:'est-c'},{val:'D',label:'D — Recibido y firmado',cls:'est-d'}],
   DEVOLUCIONES:[{val:'En trámite',label:'🔄 En trámite',cls:'est-b'},{val:'Aplicado',label:'✅ Aplicado',cls:'est-c'}],
-  PEDIDOS:[{val:'A',label:'A — En espera proveedor',cls:'est-a'},{val:'B',label:'B — Entrega parcial',cls:'est-b'},{val:'C',label:'C — En tránsito',cls:'est-c'},{val:'D',label:'D — OC recibida OK',cls:'est-d'},{val:'E',label:'E — Cancelar / N/A',cls:'est-e'}],
+  PEDIDOS:[{val:'A',label:'A — En curso / Normal',cls:'est-c'},{val:'B',label:'B — Retraso / Seguimiento',cls:'est-b'},{val:'C',label:'C — Urgente / Crítico',cls:'est-a'},{val:'D',label:'D — Cancelar / Revisar',cls:'est-d'}],
 };
 
 const BLOCK_META=[
@@ -1118,14 +1118,18 @@ ul{margin:10px 0 12px 22px;}li{margin-bottom:5px;}
 .ib-warn{border-color:#C97A0A;background:#FFFDF0;}.ib-warn strong{color:#A05C00;}
 .ib-ok{border-color:#1A7A3C;background:#F0FDF4;}.ib-ok strong{color:#1A7A3C;}
 .ib-info{border-color:#1A5276;background:#EEF4FF;}.ib-info strong{color:#1A5276;}
-.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0;}
-.kpi{background:linear-gradient(135deg,#0F1E3C,#1A3060);color:#fff;border-radius:8px;padding:13px 15px;}
-.kpi.red{background:linear-gradient(135deg,#C0392B,#A93226);}
-.kpi.amber{background:linear-gradient(135deg,#C97A0A,#A05C00);}
-.kpi.green{background:linear-gradient(135deg,#1A7A3C,#145E2E);}
-.kpi-label{font-size:9px;opacity:.7;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
-.kpi-val{font-size:20px;font-weight:700;}
-.kpi-sub{font-size:9px;opacity:.6;margin-top:2px;}
+.kpi-row{width:100%;border-collapse:collapse;margin:16px 0;}
+.kpi{border:1.5px solid #BCC6DC;background:#EEF4FF;text-align:center;padding:13px 15px;vertical-align:middle;}
+.kpi.red{background:#FEF0F0;border-color:#C0392B;}
+.kpi.green{background:#EBF7EE;border-color:#1A7A3C;}
+.kpi.amber{background:#FFF8E7;border-color:#C97A0A;}
+.kpi.gold{background:#FFF8E0;border-color:#C9960C;}
+.kpi-label{font-size:9px;color:#666;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;display:block;}
+.kpi-val{font-size:20px;font-weight:700;color:#0F1E3C;display:block;}
+.kpi.red .kpi-val{color:#C0392B;}
+.kpi.green .kpi-val{color:#1A7A3C;}
+.kpi.amber .kpi-val{color:#C97A0A;}
+.kpi-sub{font-size:9px;color:#666;margin-top:2px;display:block;}
 .firma-wrap{display:flex;justify-content:space-around;margin-top:60px;}
 .firma{text-align:center;width:250px;}
 .firma-line{border-top:1.5px solid #333;margin:10px auto 6px;width:210px;}
@@ -1136,12 +1140,12 @@ ul{margin:10px 0 12px 22px;}li{margin-bottom:5px;}
 <div class="sub-title">Informe de Auditoría — ${cfg.num}</div>
 <p class="intro">El presente informe contiene las observaciones del resultado de la auditoría practicada en la Sucursal <strong>${cfg.suc}</strong> en la ciudad <strong>${cfg.ciu}</strong>, realizada el día <strong>${cfg.fAud}</strong>.</p>
 ${cfg.obs?`<p style="font-style:italic;color:#555;margin-bottom:16px;">📋 ${cfg.obs}</p>`:''}
-<div class="kpi-row">
-  <div class="kpi"><div class="kpi-label">Resguardos Activos</div><div class="kpi-val">${resg.length}</div><div class="kpi-sub">${totResg} piezas totales</div></div>
-  <div class="kpi ${venc>0?'red':'green'}"><div class="kpi-label">Resguardos +30 días</div><div class="kpi-val">${venc}</div><div class="kpi-sub">${venc>0?'Requieren acción':'Bajo control'}</div></div>
-  <div class="kpi amber"><div class="kpi-label">Pickings Pendientes</div><div class="kpi-val">${picks.length}</div><div class="kpi-sub">${money(costPick)}</div></div>
-  <div class="kpi"><div class="kpi-label">Pedidos Proveedor</div><div class="kpi-val">${ped.length}</div><div class="kpi-sub">${money(costPed)}</div></div>
-</div>
+<table class="kpi-row"><tr>
+  <td class="kpi"><span class="kpi-label">Resguardos Activos</span><span class="kpi-val">${resg.length}</span><span class="kpi-sub">${totResg} piezas totales</span></td>
+  <td class="kpi ${venc>0?'red':'green'}"><span class="kpi-label">Resguardos +30 días</span><span class="kpi-val">${venc}</span><span class="kpi-sub">${venc>0?'Requieren acción':'Bajo control'}</span></td>
+  <td class="kpi amber"><span class="kpi-label">Pickings Pendientes</span><span class="kpi-val">${picks.length}</span><span class="kpi-sub">${money(costPick)}</span></td>
+  <td class="kpi"><span class="kpi-label">Pedidos Proveedor</span><span class="kpi-val">${ped.length}</span><span class="kpi-sub">${money(costPed)}</span></td>
+</tr></table>
 
 ${seccionesSeleccionadas['efectivo']!==false?efectivoSection:''}
 
@@ -1178,11 +1182,15 @@ ${buildTable(['FECHA','TRASPASO','SOLICITANTE','CODIGO','DESCRIPCION','CANTIDAD'
 
 ${seccionesSeleccionadas['pedidos']!==false?`
 <div class="sec-header">📋 PEDIDOS A PROVEEDOR</div>
-<p>Se generó reporte de órdenes de compra en Backorder en la transacción <strong>ZREPORDCOMP</strong> al <strong>${cfg.fAud}</strong>, identificando <strong>${ped.length} orden(es)</strong> con un costo pendiente de <strong>${money(costPed)}</strong>.</p>
-${(()=>{const pedCols=data['_PEDIDOS_COLS']||['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND'];return buildTable(pedCols,ped,true,'PEDIDOS');})()}
-<div class="st-legend"><strong>Estatus:</strong> A — En espera proveedor | B — Entrega parcial | C — En tránsito | D — OC recibida OK | E — Cancelar / N/A</div>
-${(()=>{const pPA=ped.filter(r=>r._status==='A'),pPB=ped.filter(r=>r._status==='B'),pPC=ped.filter(r=>r._status==='C'),pPD=ped.filter(r=>r._status==='D'),pPE=ped.filter(r=>r._status==='E'),sinE=ped.filter(r=>!r._status);const items=[];if(pPA.length)items.push(`<li><strong>A (En espera proveedor):</strong> ${pPA.length} orden(es) sin confirmación de fecha de entrega. Dar seguimiento al proveedor.</li>`);if(pPB.length)items.push(`<li><strong>B (Entrega parcial):</strong> ${pPB.length} orden(es) con surtido incompleto.</li>`);if(pPC.length)items.push(`<li><strong>C (En tránsito):</strong> ${pPC.length} orden(es) con entrega programada en curso.</li>`);if(pPD.length)items.push(`<li><strong>D (OC recibida OK):</strong> ${pPD.length} orden(es) recibidas; verificar entrada en sistema.</li>`);if(pPE.length)items.push(`<li><strong>E (Cancelar / N/A):</strong> ${pPE.length} orden(es) a gestionar cancelación.</li>`);if(sinE.length)items.push(`<li><strong>Sin estatus asignado:</strong> ${sinE.length} orden(es) — requieren clasificación.</li>`);return items.length?`<ul>${items.join('')}</ul>`:''})()}
-<ul><li>Material en curso. Dar seguimiento a órdenes sin estatus o con entrega parcial.</li></ul>`:''}
+${(()=>{
+  const pedCols=data['_PEDIDOS_COLS']||['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND'];
+  const hasCosto=pedCols.some(c=>c.startsWith('COSTO')||c==='COSTO_PEND');
+  const costStr=hasCosto?` con un costo pendiente de <strong>${money(costPed)}</strong>`:'';
+  return `<p>Se generó reporte de órdenes de compra en Backorder en la transacción <strong>ZREPORDCOMP</strong> al <strong>${cfg.fAud}</strong>, identificando <strong>${ped.length} orden(es)${costStr}</strong>.</p>
+${buildTable(pedCols,ped,true,'PEDIDOS')}
+<div class="st-legend"><strong>Estatus:</strong> A — En curso / Normal | B — Retraso / Seguimiento | C — Urgente / Crítico | D — Cancelar / Revisar</div>`;
+})()}
+<ul><li>Material en curso. Las órdenes de compra cuentan con antigüedad menor a 30 días.</li><li>No se cuenta con entradas pendientes de realizar.</li></ul>`:''}
 
 ${seccionesSeleccionadas['pickings']!==false?`
 <div class="sec-header">🛒 PICKINGS</div>
@@ -1262,10 +1270,80 @@ function exportHTML(){
   a.href=URL.createObjectURL(new Blob([htmlReporte],{type:'text/html;charset=utf-8'}));
   a.download=`${getCfg().num}.html`;a.click();
 }
+// ===================== WORD DOC BUILDER =====================
+function buildWordDoc(srcHtml){
+  // Strip out style/script/meta from the source HTML, keep body content only
+  let body=srcHtml
+    .replace(/<html[^>]*>/i,'').replace(/<\/html>/i,'')
+    .replace(/<head[\s\S]*?<\/head>/i,'')
+    .replace(/<body[^>]*>/i,'').replace(/<\/body>/i,'')
+    .replace(/<script[\s\S]*?<\/script>/gi,'')
+    .replace(/<meta[^>]*>/gi,'').replace(/<link[^>]*>/gi,'');
+  return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>90</w:Zoom><w:DoNotPromptForConvert/></w:WordDocument></xml><![endif]-->
+<style>
+@page WordSection1{size:21.59cm 27.94cm;margin:2cm 2cm 2cm 2cm;mso-header-margin:.5cm;mso-footer-margin:.5cm;}
+div.WordSection1{page:WordSection1;}
+body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1C2130;line-height:1.5;background:#fff;}
+h1{color:#C0392B;font-size:18pt;font-weight:bold;border-bottom:3px solid #C0392B;padding-bottom:6pt;margin:0 0 8pt;}
+h2,h3{color:#0F1E3C;font-weight:bold;}
+table{border-collapse:collapse;width:100%;margin:8pt 0;}
+th{background:#0F1E3C;color:#fff !important;padding:7pt 8pt;font-size:10pt;font-weight:bold;text-align:left;border:1px solid #999;}
+td{padding:6pt 8pt;border:1px solid #D0D6E8;font-size:10pt;vertical-align:top;color:#1C2130;}
+/* KPI row como tabla */
+.kpi-row{width:100%;border-collapse:collapse;margin:10pt 0;}
+.kpi{border:1.5px solid #BCC6DC;background:#EEF4FF;text-align:center;padding:8pt 10pt;vertical-align:middle;}
+.kpi.red{background:#FEF0F0;border-color:#C0392B;}
+.kpi.amber{background:#FFF8E7;border-color:#C97A0A;}
+.kpi.green{background:#EBF7EE;border-color:#1A7A3C;}
+.kpi-label{font-size:8pt;color:#666;text-transform:uppercase;font-weight:bold;display:block;}
+.kpi-val{font-size:16pt;font-weight:bold;color:#0F1E3C;display:block;}
+.kpi.red .kpi-val{color:#C0392B;}
+.kpi.amber .kpi-val{color:#C97A0A;}
+.kpi.green .kpi-val{color:#1A7A3C;}
+.kpi-sub{font-size:8pt;color:#666;display:block;margin-top:2pt;}
+/* Sec headers */
+.sec-header{background:#0F1E3C;color:#fff !important;padding:7pt 12pt;font-size:10pt;font-weight:bold;text-transform:uppercase;border-left:5px solid #C0392B;margin:16pt 0 6pt;display:block;}
+.sub-header{color:#C0392B;font-weight:bold;font-size:11pt;border-bottom:1.5px solid #E8E8E8;padding-bottom:4pt;margin:12pt 0 6pt;display:block;}
+/* Status tags */
+.stag{padding:1pt 5pt;font-size:9pt;font-weight:bold;border:1px solid #ccc;}
+.status-a{color:#C0392B;border-color:#C0392B;}
+.status-b{color:#C97A0A;border-color:#C97A0A;}
+.status-c{color:#1A7A3C;border-color:#1A7A3C;}
+.status-d{color:#1A5276;border-color:#1A5276;}
+.status-e{color:#6C3483;border-color:#6C3483;}
+.status-pendiente{color:#C97A0A;border-color:#C97A0A;}
+.status-entregado,.status-contabilizado,.status-aplicado{color:#1A7A3C;border-color:#1A7A3C;}
+/* Insight boxes */
+.ib{border-left:4px solid;padding:6pt 10pt;margin:6pt 0;}
+.ib-risk{border-color:#C0392B;background:#FEF0F0;}
+.ib-risk strong{color:#C0392B;}
+.ib-warn{border-color:#C97A0A;background:#FFFDF0;}
+.ib-warn strong{color:#C97A0A;}
+.ib-ok{border-color:#1A7A3C;background:#F0FDF4;}
+.ib-ok strong{color:#1A7A3C;}
+.ib-info{border-color:#1A5276;background:#EEF4FF;}
+.ib-info strong{color:#1A5276;}
+/* Misc */
+.tot-row td{background:#E8EDF5 !important;font-weight:bold;}
+.rec{background:#F0F7FF;border-left:4px solid #0F1E3C;padding:8pt 12pt;margin:10pt 0;}
+.rec strong{color:#0F1E3C;}
+ul{margin:6pt 0 10pt 18pt;}li{margin-bottom:4pt;}
+.firma-wrap{margin-top:40pt;}
+.firma-line{border-top:1.5px solid #333;padding-top:4pt;font-weight:bold;}
+.footer{text-align:center;font-size:9pt;color:#888;border-top:1px solid #ccc;padding-top:8pt;margin-top:20pt;}
+.st-legend{font-size:9pt;color:#555;font-style:italic;margin:4pt 0 12pt;}
+/* Firma */
+.firma{text-align:center;width:45%;}
+/* Ensure no white-on-white from gradient backgrounds */
+.kpi *{color:inherit;}
+</style></head><body><div class="WordSection1">${body}</div></body></html>`;
+}
+
 function exportWord(){
   if(!htmlReporte)return;
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob(['\ufeff'+htmlReporte],{type:'application/msword;charset=utf-8'}));
+  a.href=URL.createObjectURL(new Blob(['\ufeff'+buildWordDoc(htmlReporte)],{type:'application/msword;charset=utf-8'}));
   a.download=`${getCfg().num}.doc`;a.click();
 }
 function exportPDF(){
@@ -1692,8 +1770,9 @@ function exportWordGuardado(){
   const informes=getInformes();
   const inf=informes.find(i=>i.id===editingId);
   if(!inf||!inf.htmlReporte)return;
+  const msoW=buildWordDoc(inf.htmlReporte);
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob(['\ufeff'+inf.htmlReporte],{type:'application/msword;charset=utf-8'}));
+  a.href=URL.createObjectURL(new Blob(['\ufeff'+msoW],{type:'application/msword;charset=utf-8'}));
   a.download=`${inf.num}.doc`;a.click();
 }
 
@@ -2284,6 +2363,12 @@ async function generarInformeEjecutivo(){
         'A':{txt:'A — Sin documentos',bg:'#FFF0F0',br:'#C0392B',cl:'#C0392B'},
         'B':{txt:'B — Pend. entrega',bg:'#FFF8E7',br:'#C97A0A',cl:'#9A5C00'},
         'C':{txt:'C — Entregado OK',bg:'#EBF7EE',br:'#1A7A3C',cl:'#1A7A3C'}
+      },
+      'PEDIDOS': {
+        'A':{txt:'A — En curso',bg:'#EBF7EE',br:'#1A7A3C',cl:'#1A7A3C'},
+        'B':{txt:'B — Seguimiento',bg:'#FFF8E7',br:'#C97A0A',cl:'#9A5C00'},
+        'C':{txt:'C — Urgente',bg:'#FFF0F0',br:'#C0392B',cl:'#C0392B'},
+        'D':{txt:'D — Cancelar/Revisar',bg:'#EEF4FF',br:'#1A5276',cl:'#1A5276'}
       }
     };
     const cfg = (map[modulo]||{})[String(val).trim()];
@@ -2472,9 +2557,8 @@ async function generarInformeEjecutivo(){
 
   if(seccionesSeleccionadas['pedidos'] && ped.length){
     const pedCols=data['_PEDIDOS_COLS']||['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND'];
-    const pedStatusOpts={'A':'#C0392B','B':'#C97A0A','C':'#2471A3','D':'#1A7A3C','E':'#6C3483'};
-    const pedStatusBg={'A':'#FFF0F0','B':'#FFF8E7','C':'#EEF4FF','D':'#EBF7EE','E':'#F8F0FF'};
-    const pedStatusLbl={'A':'En espera','B':'Entrega parcial','C':'En tránsito','D':'Recibida OK','E':'Cancelar'};
+    const hasCostoPed=pedCols.some(c=>c.startsWith('COSTO')||c==='COSTO_PEND');
+    const pedCaptionCost=hasCostoPed?` · Costo pendiente: <strong style="color:#1A5276;">${money(costPed)}</strong>`:'';
     const pdRows = ped.slice(0,12).map(p=>{
       const cells=pedCols.map(col=>{
         const v=fmt(p[col]);
@@ -2483,23 +2567,20 @@ async function generarInformeEjecutivo(){
         if(col==='CANT_CODIGOS'||col.startsWith('CANT')||col.startsWith('CANTIDAD')) return `<td style="${stTdNum};">${v}</td>`;
         return `<td style="${stTd}">${v}</td>`;
       }).join('');
-      const st=p._status||'';
-      const stCell=st
-        ?`<td style="${stTd};text-align:center;"><span style="background:${pedStatusBg[st]||'#F0F2F8'};color:${pedStatusOpts[st]||'#555'};border:1px solid ${pedStatusOpts[st]||'#ccc'};padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700;white-space:nowrap;">${pedStatusLbl[st]||st}</span></td>`
-        :`<td style="${stTd};text-align:center;color:#aaa;font-size:10px;">—</td>`;
-      return `<tr>${cells}${stCell}</tr>`;
+      return `<tr>${cells}<td style="${stTd};text-align:center;">${statusBadge('PEDIDOS', p._status)}</td></tr>`;
     }).join('');
     const pdMas = ped.length>12?`<tr><td colspan="${pedCols.length+1}" style="${stTd};text-align:center;color:#888;font-style:italic;background:#F7F9FF;">… ${ped.length-12} pedido(s) adicional(es).</td></tr>`:'';
-    const pedHeaders = pedCols.map(c=>`<th style="${stTh}">${c.replace(/_/g,' ')}</th>`).join('');
+    const pedHeaders = pedCols.map(c=>`<th style="${stTh}">${c.replace(/_/g,' ')}</th>`).join('')+`<th style="${stTh};text-align:center;">Estatus</th>`;
     tablasEvidencia += `
       <div style="${subTitleSt}">📋 Pedidos a Proveedor en Backorder <span style="${subTagSt}">ZREPORDCOMP · Tabla PEDIDOS</span></div>
-      <div style="${captionSt}">Total: <strong>${ped.length}</strong> orden(es) de compra · Costo pendiente: <strong style="color:#1A5276;">${money(costPed)}</strong></div>
+      <div style="${captionSt}">Total: <strong>${ped.length}</strong> orden(es) de compra${pedCaptionCost}</div>
       <div style="${stTblWrap}">
         <table style="${stTbl}">
-          <thead><tr>${pedHeaders}<th style="${stTh};text-align:center;">ESTATUS</th></tr></thead>
+          <thead><tr>${pedHeaders}</tr></thead>
           <tbody>${pdRows}${pdMas}</tbody>
         </table>
-      </div>`;
+      </div>
+      <div style="font-size:10.5px;color:#555;margin:6px 0 14px;font-style:italic;"><strong>Estatus:</strong> A — En curso / Normal | B — Retraso / Seguimiento | C — Urgente / Crítico | D — Cancelar / Revisar</div>`;
   }
 
   if(seccionesSeleccionadas['vl06p'] && vl6p.length){
@@ -2896,8 +2977,7 @@ async function generarInformeRiesgo(){
       const monto=parseFloat(String(p.COSTO_PEND||0).replace(/[^0-9.-]/g,''))||0;
       const nivel=nivelMonto(monto);
       buckets[nivel.nv].n++;buckets[nivel.nv].monto+=monto;
-      const stLbl=p._status?` · Est: ${p._status}`:'';
-      items.push({cat:'Pedido Prov.',ref:p.ORDEN_COMPRA||'—',desc:`${p.PROVEEDOR||'—'} — ${p.CANTIDAD_PEND||0} pza${stLbl}`,monto,dias:'—',nivel});
+      items.push({cat:'Pedido Prov.',ref:p.ORDEN_COMPRA||'—',desc:`${p.PROVEEDOR||'—'} — ${p.CANTIDAD_PEND||0} pza`,monto,dias:'—',nivel});
     });
   }
 
@@ -3364,3 +3444,11 @@ updateCounters();
 </body>
 </html>
 
+<div class="contenedor-principal">
+  <main class="contenido">
+    FJCR...
+  </main>
+  <footer class="By Cerezo ">
+    By Cerezo
+  </footer>
+</div>
