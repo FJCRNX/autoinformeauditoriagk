@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sistema de Auditoría — KURODA S.A. DE C.V.(07.06.2026)</title>
+<title>Sistema de Auditoría — KURODA S.A. DE C.V.</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap');
@@ -422,8 +422,8 @@ textarea{resize:vertical;min-height:68px;}
       <div class="export-divider"></div>
       <button class="btn bpu" onclick="exportEvalHTML()">📊 Informe de Evaluación</button>
       <button class="btn" style="background:#1A5276;color:#fff;" onclick="exportPlanAccionWord()">📋 Plan de Acción (Word)</button>
-      <div style="margin-left:auto;display:flex;gap:8px;">
-        <button class="btn bgo" onclick="guardarInforme()">💾 Guardar Informe</button>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+        <button class="btn bgo" onclick="guardarInforme()" id="btnGuardarP5">💾 Guardar Informe</button>
         <button class="btn" style="background:#2E7D32;color:#fff;" onclick="descargarPlantilla()">📥 Plantilla Excel</button>
         <button class="btn bgr" onclick="resetAll()">🔄 Nuevo</button>
       </div>
@@ -447,16 +447,18 @@ textarea{resize:vertical;min-height:68px;}
 <div id="editorModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;overflow-y:auto;padding:20px;">
   <div style="background:#fff;max-width:900px;margin:0 auto;border-radius:12px;overflow:hidden;">
     <div class="ch" style="display:flex;align-items:center;">
-      <span>✏️ Editar Informe Guardado</span>
+      <span id="editorModalTitle">✏️ Editar Informe Guardado</span>
       <button class="btn bd" style="margin-left:auto;padding:6px 14px;" onclick="cerrarEditor()">✕ Cerrar</button>
     </div>
     <div class="cb" id="editorBody" style="max-height:80vh;overflow-y:auto;"></div>
-    <div style="padding:16px 20px;background:#F7F9FF;display:flex;gap:10px;flex-wrap:wrap;">
-      <button class="btn bp" onclick="guardarEdicion()">💾 Guardar Cambios</button>
+    <div style="padding:16px 20px;background:#F7F9FF;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+      <button class="btn bp" onclick="guardarEdicion()">💾 Guardar cambios</button>
+      <button id="btnEditarCompleto" class="btn bg" style="display:none;" onclick="editarCompletoDesdeModal()">✏️ Editar completo (todos los pasos)</button>
+      <div style="width:1px;height:28px;background:var(--border);"></div>
       <button class="btn bg" onclick="exportWordGuardado()">📄 Word</button>
-      <button class="btn bd" onclick="exportPDFGuardado()">🖨️ PDF / Imprimir</button>
-      <button class="btn bpu" onclick="exportEvalGuardado()">📊 Eval. Guardada</button>
-      <button class="btn bo" onclick="cerrarEditor()">Cancelar</button>
+      <button class="btn bd" onclick="exportPDFGuardado()">🖨️ PDF</button>
+      <button class="btn bpu" onclick="exportEvalGuardado()">📊 Eval.</button>
+      <button class="btn bo" style="margin-left:auto;" onclick="cerrarEditor()">Cancelar</button>
     </div>
   </div>
 </div>
@@ -488,14 +490,24 @@ function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 const DATE_COLUMNS=['FECHA','FECHA_ENTRADA','FECHA_ENTREGA','FECHA_OC','FECHA_SALIDA'];
 
 // ===================== STORAGE =====================
-const STORAGE_KEY = 'kuroda_audits_v3';
-const CARGAS_KEY = 'kuroda_cargas_v3';
+const STORAGE_KEY = 'kuroda_audits_v4';
+const CARGAS_KEY = 'kuroda_cargas_v4';
 const MAX_CARGAS = 300;
 
 function getCargas(){return parseInt(localStorage.getItem(CARGAS_KEY)||'0');}
 function setCargas(n){localStorage.setItem(CARGAS_KEY,n);}
 function getInformes(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');}catch{return[];}}
 function setInformes(arr){localStorage.setItem(STORAGE_KEY,JSON.stringify(arr));}
+
+// Migración automática desde v3 al abrir
+(function migrateStorage(){
+  try{
+    const cur=getInformes();
+    if(cur.length>0) return;
+    const old=JSON.parse(localStorage.getItem('kuroda_audits_v3')||'[]');
+    if(old.length>0) setInformes(old);
+  }catch{}
+})();
 
 function updateCounters(){
   const c=getCargas();
@@ -508,7 +520,7 @@ function updateCounters(){
 }
 
 // ===================== STATE =====================
-let data={}, evalData=[], htmlReporte=null, htmlEval=null, editingId=null;
+let data={}, evalData=[], htmlReporte=null, htmlEval=null, editingId=null, modoEdicion=false;
 
 // ===================== TABS =====================
 function switchTab(tab){
@@ -1598,16 +1610,40 @@ function guardarInforme(){
   const cfg=getCfg();
   const score=evalData.length?Math.round(calcTotalScore()*100):null;
   const informes=getInformes();
+
+  // Si estamos en modo edición, actualizar el registro existente
+  if(modoEdicion&&editingId){
+    const idx=informes.findIndex(i=>i.id===editingId);
+    if(idx!==-1){
+      Object.assign(informes[idx],{
+        num:cfg.num,suc:cfg.suc,ciu:cfg.ciu,fAud:cfg.fAud,fCon:cfg.fCon,aud:cfg.aud,gerente:cfg.gerente,
+        score,htmlReporte,htmlEval,
+        evalData:JSON.parse(JSON.stringify(evalData)),
+        data:JSON.parse(JSON.stringify(data)),
+        tipoInforme,seccionesSeleccionadas:JSON.parse(JSON.stringify(seccionesSeleccionadas)),
+        fecha_modificado:todayDMY()
+      });
+      setInformes(informes);
+      updateCounters();
+      alert(`✅ Informe "${cfg.num}" actualizado.`);
+      modoEdicion=false;editingId=null;
+      return;
+    }
+  }
+
+  // Nuevo informe
   const id='inf_'+Date.now();
   informes.unshift({
     id,num:cfg.num,suc:cfg.suc,ciu:cfg.ciu,fAud:cfg.fAud,fCon:cfg.fCon,aud:cfg.aud,gerente:cfg.gerente,
-    score,fecha_guardado:todayDMY(),
+    score,fecha_guardado:todayDMY(),fecha_modificado:null,
     htmlReporte,htmlEval,
-    evalData:JSON.parse(JSON.stringify(evalData))
+    evalData:JSON.parse(JSON.stringify(evalData)),
+    data:JSON.parse(JSON.stringify(data)),
+    tipoInforme,seccionesSeleccionadas:JSON.parse(JSON.stringify(seccionesSeleccionadas))
   });
   setInformes(informes);
   updateCounters();
-  alert(`✅ Informe "${cfg.num}" guardado correctamente.\n${informes.length}/300 informes almacenados.`);
+  alert(`✅ Informe "${cfg.num}" guardado.\n${informes.length}/300 informes almacenados.`);
 }
 
 // ===================== SAVED LIST =====================
@@ -1619,18 +1655,25 @@ function renderSavedList(){
     const pct=inf.score;
     const scoreClass=pct===null?'':pct>=80?'score-high':pct>=60?'score-mid':'score-low';
     const scoreLabel=pct===null?'Sin eval.':pct+'%';
+    const tieneData=!!(inf.data&&Object.keys(inf.data).length>0);
+    const fechaMod=inf.fecha_modificado?` · Modificado: ${inf.fecha_modificado}`:'';
     return `<div class="report-card">
       <div class="report-icon">📋</div>
       <div class="report-meta">
         <div class="report-num">${inf.num}</div>
         <div class="report-suc">${inf.suc} — ${inf.ciu}</div>
-        <div class="report-date">Auditoría: ${inf.fAud} | Guardado: ${inf.fecha_guardado}</div>
+        <div class="report-date">Auditoría: ${inf.fAud} · Guardado: ${inf.fecha_guardado}${fechaMod}</div>
+        ${tieneData?'<div style="font-size:10px;color:var(--green);margin-top:2px;">✅ Datos de Excel incluidos — edición completa disponible</div>':'<div style="font-size:10px;color:var(--amber);margin-top:2px;">⚠️ Sin datos de Excel — solo edición de metadatos y evaluación</div>'}
       </div>
       ${pct!==null?`<span class="report-score ${scoreClass}">${scoreLabel}</span>`:''}
       <div class="report-actions">
-        <button class="btn bp" style="padding:7px 12px;font-size:11px;" onclick="abrirEditor('${inf.id}')">✏️ Editar</button>
+        ${tieneData
+          ? `<button class="btn bg" style="padding:7px 12px;font-size:11px;" onclick="reabrirInforme('${inf.id}')">✏️ Editar completo</button>`
+          : `<button class="btn bp" style="padding:7px 12px;font-size:11px;" onclick="abrirEditor('${inf.id}')">✏️ Editar metadatos</button>`
+        }
+        <button class="btn bpu" style="padding:7px 12px;font-size:11px;" onclick="abrirEditor('${inf.id}')">📋 Eval.</button>
         <button class="btn bg" style="padding:7px 12px;font-size:11px;" onclick="verInforme('${inf.id}')">👁 Ver</button>
-        <button class="btn bd" style="padding:7px 12px;font-size:11px;" onclick="eliminarInforme('${inf.id}')">🗑 Eliminar</button>
+        <button class="btn bd" style="padding:7px 12px;font-size:11px;" onclick="eliminarInforme('${inf.id}')">🗑</button>
       </div>
     </div>`;
   }).join('');
@@ -1652,15 +1695,76 @@ function eliminarInforme(id){
   renderSavedList();
 }
 
-// ===================== EDITOR GUARDADOS =====================
+// ===================== REAPERTURA COMPLETA DE INFORME =====================
+function reabrirInforme(id){
+  const informes=getInformes();
+  const inf=informes.find(i=>i.id===id);
+  if(!inf||!inf.data){alert('Este informe no tiene datos de Excel guardados.');return;}
+
+  if(!confirm(`¿Reabrir el informe "${inf.num}" para edición completa?\n\nPodrás modificar todos los estatus, la evaluación, la configuración y regenerar cualquier tipo de informe.\n\nAl guardar, se actualizará el informe guardado.`)) return;
+
+  // Restaurar estado global completo
+  data=JSON.parse(JSON.stringify(inf.data));
+  evalData=JSON.parse(JSON.stringify(inf.evalData||[]));
+  htmlReporte=inf.htmlReporte||null;
+  htmlEval=inf.htmlEval||null;
+  tipoInforme=inf.tipoInforme||'operativo';
+  if(inf.seccionesSeleccionadas) Object.assign(seccionesSeleccionadas,inf.seccionesSeleccionadas);
+
+  // Modo edición
+  editingId=id;
+  modoEdicion=true;
+
+  // Restaurar campos de configuración
+  $('cNum').value=inf.num||'';
+  $('cSuc').value=inf.suc||'';
+  $('cCiu').value=inf.ciu||'';
+  $('cAud').value=inf.aud||'';
+  $('cGerente').value=inf.gerente||'';
+  // Convertir DD/MM/YYYY a YYYY-MM-DD para input[type=date]
+  function dmyToISO(s){if(!s)return '';const p=s.split('/');return p.length===3?`${p[2]}-${p[1]}-${p[0]}`:'';};
+  $('cFAud').value=dmyToISO(inf.fAud);
+  $('cFCon').value=dmyToISO(inf.fCon);
+  $('cObs').value=inf.obs||'';
+
+  // Cambiar a tab Nuevo y paso 2
+  switchTab('nuevo');
+  buildConfig();
+
+  // Banner de modo edición en el paso 2
+  const bannerExistente=$('modoBanner');
+  if(!bannerExistente){
+    const banner=document.createElement('div');
+    banner.id='modoBanner';
+    banner.className='alert alert-warn';
+    banner.style.cssText='margin-bottom:14px;border-color:#C0392B;background:#FEF0F0;color:#7A1010;';
+    banner.innerHTML=`✏️ <strong>MODO EDICIÓN:</strong> Informe "<strong>${inf.num}</strong>" reabierto. Modifica estatus, evaluación o configuración y usa "💾 Guardar Informe" para actualizar. <button class="btn bgr" style="padding:4px 10px;font-size:10px;margin-left:10px;" onclick="cancelarEdicion()">✕ Cancelar edición</button>`;
+    const p2card=$('p2');
+    if(p2card) p2card.insertBefore(banner,p2card.firstChild);
+  } else {
+    bannerExistente.innerHTML=`✏️ <strong>MODO EDICIÓN:</strong> Informe "<strong>${inf.num}</strong>" reabierto. Modifica estatus, evaluación o configuración y usa "💾 Guardar Informe" para actualizar. <button class="btn bgr" style="padding:4px 10px;font-size:10px;margin-left:10px;" onclick="cancelarEdicion()">✕ Cancelar edición</button>`;
+  }
+
+  goStep(2);
+}
+
+function cancelarEdicion(){
+  modoEdicion=false;editingId=null;
+  const b=$('modoBanner');if(b)b.remove();
+  resetAll();
+}
+
+// ===================== EDITOR GUARDADOS (metadatos + evaluación) =====================
 function abrirEditor(id){
   const informes=getInformes();
   const inf=informes.find(i=>i.id===id);
   if(!inf)return;
   editingId=id;
+  const tieneData=!!(inf.data&&Object.keys(inf.data).length>0);
   const body=$('editorBody');
   body.innerHTML=`
     <div style="padding:18px;">
+      ${tieneData?`<div class="alert alert-ok" style="margin-bottom:16px;">✅ Este informe tiene datos de Excel guardados. Puedes usar <strong>"Editar completo"</strong> para reabrir todos los pasos.</div>`:''}
       <div class="fg3" style="margin-bottom:16px;">
         <div class="fl"><label>Número de Informe</label><input type="text" id="ed_num" value="${inf.num}"></div>
         <div class="fl"><label>Sucursal</label><input type="text" id="ed_suc" value="${inf.suc}"></div>
@@ -1673,7 +1777,7 @@ function abrirEditor(id){
         <div class="fl"><label>Gerente</label><input type="text" id="ed_ger" value="${inf.gerente}"></div>
       </div>
       <div class="sd"></div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">✏️ <strong>Edición de evaluación:</strong> Activa o desactiva los ítems para corregir la evaluación. Los cambios se reflejarán al guardar.</p>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">🏅 <strong>Evaluación de cumplimiento:</strong> Activa o desactiva ítems para corregir. Los cambios se aplican al guardar.</p>
       <div id="editorEvalContent"></div>
       <div class="gauge-wrap">
         <div class="gauge-circle" id="edGaugeCircle">
@@ -1682,9 +1786,14 @@ function abrirEditor(id){
         <p style="font-size:12px;color:var(--muted);text-align:center;" id="edGaugeLabel"></p>
       </div>
     </div>`;
-  // Render eval from saved data
   const evalSaved=inf.evalData||[];
   renderEditorEval(evalSaved);
+  // Actualizar título del modal
+  const modalTitle=$('editorModalTitle');
+  if(modalTitle) modalTitle.textContent=`✏️ Edición rápida — ${inf.num}`;
+  // Mostrar/ocultar botón editar completo
+  const btnCompleto=$('btnEditarCompleto');
+  if(btnCompleto){btnCompleto.style.display=tieneData?'inline-flex':'none';}
   $('editorModal').style.display='block';
 }
 
@@ -1740,7 +1849,6 @@ function guardarEdicion(){
   const idx=informes.findIndex(i=>i.id===editingId);
   if(idx===-1)return;
   const inf=informes[idx];
-  // Update metadata
   inf.num=$('ed_num').value.trim()||inf.num;
   inf.suc=$('ed_suc').value.trim()||inf.suc;
   inf.ciu=$('ed_ciu').value.trim()||inf.ciu;
@@ -1748,13 +1856,9 @@ function guardarEdicion(){
   inf.fCon=$('ed_fCon').value.trim()||inf.fCon;
   inf.aud=$('ed_aud').value.trim()||inf.aud;
   inf.gerente=$('ed_ger').value.trim()||inf.gerente;
-  // Update score
+  inf.fecha_modificado=todayDMY();
   if(inf.evalData&&inf.evalData.length){
-    // Read current toggle states
-    inf.evalData.forEach((item,i)=>{
-      const el=$('ede_'+i);
-      if(el)item.value=el.checked?1:0;
-    });
+    inf.evalData.forEach((item,i)=>{const el=$('ede_'+i);if(el)item.value=el.checked?1:0;});
     let total=0,earned=0;
     for(const i of inf.evalData){total+=i.pct;if(i.value===1)earned+=i.pct;}
     inf.score=total>0?Math.round(earned/total*100):0;
@@ -1792,7 +1896,16 @@ function exportEvalGuardado(){
   a.download=`Evaluacion_${inf.num}.html`;a.click();
 }
 
-function cerrarEditor(){$('editorModal').style.display='none';editingId=null;}
+function cerrarEditor(){
+  $('editorModal').style.display='none';
+  if(!modoEdicion) editingId=null;
+}
+
+function editarCompletoDesdeModal(){
+  const id=editingId;
+  cerrarEditor();
+  reabrirInforme(id);
+}
 
 // ===================== DEMO DATA =====================
 function usarDemoData(){
@@ -3402,6 +3515,9 @@ function actualizarTipoLabel(){
   if(el) el.textContent='Tipo actual: '+( labels[tipoInforme]||tipoInforme );
   const qs=$('quickTipoSelect');
   if(qs) qs.value=tipoInforme;
+  // Actualizar texto del botón guardar según modo
+  const btn=$('btnGuardarP5');
+  if(btn) btn.textContent=modoEdicion?'💾 Actualizar informe guardado':'💾 Guardar Informe';
 }
 
 function cambioRapidoTipo(tipo){
@@ -3430,10 +3546,12 @@ SECCIONES_DISPONIBLES.forEach(s=>{seccionesSeleccionadas[s.id]=s.defOn;});
 
 function resetAll(){
   data={};htmlReporte=null;htmlEval=null;
+  modoEdicion=false;editingId=null;
   tipoInforme='operativo';
   SECCIONES_DISPONIBLES.forEach(s=>{seccionesSeleccionadas[s.id]=s.defOn;});
   initEvalData();
   $('fileIn').value='';
+  const b=$('modoBanner');if(b)b.remove();
   hi('p2');hi('p3');hi('p4');hi('p5');
   sh('p1');setStep(1);
 }
@@ -3443,6 +3561,8 @@ updateCounters();
 </script>
 </body>
 </html>
+
+
 
 <div class="contenedor-principal">
   <main class="contenido">
