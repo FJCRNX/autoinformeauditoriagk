@@ -560,7 +560,7 @@ function handleFile(file){
 
 function parseWorkbook(wb){
   data={};
-  const sheets=['ARQUEO_PV','RESGUARDOS','TRASPASOS_SOL','TRASPASOS_DET','TRASPASOS_SUM','PEDIDOS','PICKINGS','VL06P','VL06G','DEVOLUCIONES'];
+  const sheets=['ARQUEO_PV','RESGUARDOS','TRASPASOS_SOL','TRASPASOS_DET','TRASPASOS_SUM','PEDIDOS','PICKINGS','VL06P','VL06G','DEVOLUCIONES','ACTIVOS_VEHICULARES'];
   for(const name of sheets){
     if(wb.SheetNames.includes(name)){
       const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{raw:false,defval:''});
@@ -588,7 +588,7 @@ function parseWorkbook(wb){
 
 // ===================== CONFIG =====================
 function buildConfig(){
-  const sheets=['ARQUEO_PV','RESGUARDOS','TRASPASOS_SOL','TRASPASOS_DET','TRASPASOS_SUM','PEDIDOS','PICKINGS','VL06P','VL06G','DEVOLUCIONES'];
+  const sheets=['ARQUEO_PV','RESGUARDOS','TRASPASOS_SOL','TRASPASOS_DET','TRASPASOS_SUM','PEDIDOS','PICKINGS','VL06P','VL06G','DEVOLUCIONES','ACTIVOS_VEHICULARES'];
   const c=$('sheetsFound');c.innerHTML='';
   for(const s of sheets){
     const found=!!data[s]&&data[s].length>0;
@@ -742,6 +742,13 @@ const STATUS_OPTIONS={
   TRASPASOS_SUM:[{val:'A',label:'A — Pend. cancelar',cls:'est-a'},{val:'B',label:'B — Cancelado parcial',cls:'est-b'},{val:'C',label:'C — Cancelado OK',cls:'est-c'},{val:'D',label:'D — Recibido y firmado',cls:'est-d'}],
   DEVOLUCIONES:[{val:'En trámite',label:'🔄 En trámite',cls:'est-b'},{val:'Aplicado',label:'✅ Aplicado',cls:'est-c'}],
   PEDIDOS:[{val:'A',label:'A — En curso / Normal',cls:'est-c'},{val:'B',label:'B — Retraso / Seguimiento',cls:'est-b'},{val:'C',label:'C — Urgente / Crítico',cls:'est-a'},{val:'D',label:'D — Cancelar / Revisar',cls:'est-d'}],
+  ACTIVOS_VEHICULARES:[
+    {val:'A',label:'A — No localizado en sucursal',cls:'est-a'},
+    {val:'B',label:'B — Unidad en otra tienda',cls:'est-b'},
+    {val:'C',label:'C — Documentos OK',cls:'est-c'},
+    {val:'D',label:'D — Documento(s) vencido(s)',cls:'est-d'},
+    {val:'E',label:'E — Baja / Venta programada',cls:'est-e'},
+  ],
 };
 
 const BLOCK_META=[
@@ -753,6 +760,7 @@ const BLOCK_META=[
   {key:'DEVOLUCIONES',label:'Devoluciones a Proveedor',icon:'📤',cols:['PROVEEDOR','ORDEN_COMPRA','FECHA_OC','SALIDA','FECHA_SALIDA','DIAS_ANTIGUEDAD','IMPORTE'],hasStatus:true},
   {key:'TRASPASOS_SUM',label:'Traspasos Suministrados',icon:'📨',cols:['FECHA','TRASPASO','SOLICITANTE','CODIGO','DESCRIPCION','CANTIDAD','COSTO'],hasStatus:true},
   {key:'PEDIDOS',label:'Pedidos a Proveedor',icon:'📋',cols:null,hasStatus:true,dynamicCols:'_PEDIDOS_COLS',fallbackCols:['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND']},
+  {key:'ACTIVOS_VEHICULARES',label:'Activos Vehiculares',icon:'🚗',cols:['FECHA','EQUIPO_TRANSPORTE','RESPONSABLE','POLIZA_FISICA','TARJETA_CIRCULACION','LICENCIA_VIGENTE'],hasStatus:true},
 ];
 
 function renderStatusEditor(){
@@ -1246,7 +1254,29 @@ ${buildTable(['PROVEEDOR','ORDEN_COMPRA','FECHA_OC','SALIDA','FECHA_SALIDA','DIA
 
 ${seccionesSeleccionadas['vehiculos']!==false?`
 <div class="sec-header">🚗 VEHÍCULOS</div>
-<p>No se cuenta con unidades vehiculares propias. Los envíos son realizados por medio de <strong>CEDIS</strong>.</p>`:''}
+${(()=>{
+  const vehs=data['ACTIVOS_VEHICULARES']||[];
+  if(!vehs.length)return'<p style="color:#555;font-style:italic;margin-top:12px;">Sucursal no cuenta con unidades asignadas.</p>';
+  const vA=vehs.filter(r=>r._status==='A'),vD=vehs.filter(r=>r._status==='D');
+  let tbl='<p>Se generó reporte de <strong>Activos fijos</strong> y se realizó un <strong>inventario de documentos vehiculares</strong> obteniendo los siguientes resultados:</p>';
+  tbl+='<table><thead><tr><th>Fecha</th><th>Equipo de Transporte</th><th>Responsable</th><th>Póliza Física</th><th>Tarjeta Circulación</th><th>Licencia Vigente</th><th>Estatus</th></tr></thead><tbody>';
+  for(const v of vehs){
+    const st=v._status||'';
+    const cls=st?`status-${st.toLowerCase()}`:'';
+    const docStyle=(val)=>(!val||val==='X'||val==='x')?'style="color:#C0392B;font-weight:700;"':'';
+    tbl+=`<tr><td>${v.FECHA||'—'}</td><td>${v.EQUIPO_TRANSPORTE||'—'}</td><td ${!v.RESPONSABLE||v.RESPONSABLE.toUpperCase().includes('NO ENCONTR')?'style="color:#C0392B;font-weight:700;"':''}>${v.RESPONSABLE||'—'}</td><td ${docStyle(v.POLIZA_FISICA)}>${v.POLIZA_FISICA||'—'}</td><td ${docStyle(v.TARJETA_CIRCULACION)}>${v.TARJETA_CIRCULACION||'—'}</td><td ${docStyle(v.LICENCIA_VIGENTE)}>${v.LICENCIA_VIGENTE||'—'}</td><td><span class="stag ${cls}">${st||'—'}</span></td></tr>`;
+  }
+  tbl+='</tbody></table>';
+  tbl+=`<div class="st-legend"><strong>Estatus:</strong> A — No localizado en sucursal | B — Unidad en otra tienda | C — Documentos OK | D — Documento(s) vencido(s) | E — Baja / Venta programada</div>`;
+  let bullets='<ul>';
+  if(vA.length)bullets+=`<li><strong>Estatus A:</strong> ${vA.length} unidad(es) no localizadas físicamente en la sucursal. Verificar ubicación y número de activo correspondiente.</li>`;
+  if(vD.length)bullets+=`<li><strong>Estatus D:</strong> ${vD.length} unidad(es) con documento(s) vencidos. Gestionar renovación de forma inmediata conforme a política.</li>`;
+  bullets+='<li>Verificar que póliza de seguro, tarjeta de circulación y licencia del responsable se encuentren vigentes y en la unidad.</li>';
+  bullets+='</ul>';
+  tbl+=bullets;
+  if(vA.length||vD.length){tbl+=`<div class="rec"><strong>✅ Recomendaciones</strong><ul><li>Localizar físicamente cada unidad en la sucursal y verificar que el número de activo SAP corresponda al registrado en el sistema.</li><li>Renovar oportunamente los documentos vencidos antes de circular la unidad.</li></ul></div>`;}
+  return tbl;
+})()}`:''}
 
 ${seccionesSeleccionadas['evaluacion']!==false?evalSection:''}
 
@@ -1968,6 +1998,10 @@ function usarDemoData(){
       {NOMBRE_CLIENTE:'ALEJANDRA CARDENAS',FECHA_ENTREGA:'15/04/2026',ENTREGA:'900047581',CREADO_POR:'CRGERENTE',_status:'Pendiente'},
     ],
     DEVOLUCIONES:[{PROVEEDOR:'FLUIDMASTER SALES MEXICO',ORDEN_COMPRA:'4000026690',FECHA_OC:'09/04/2026',SALIDA:'5000131544',FECHA_SALIDA:'13/04/2026',DIAS_ANTIGUEDAD:'3',IMPORTE:'-33.47',_status:'En trámite'}],
+    ACTIVOS_VEHICULARES:[
+      {FECHA:'03/08/2016',EQUIPO_TRANSPORTE:'NISSAN NP300 NP300 ESTACAS TM DH AC 6 VEL BCO/GRIS',RESPONSABLE:'NO ENCONTRADA',POLIZA_FISICA:'X',TARJETA_CIRCULACION:'X',LICENCIA_VIGENTE:'X',_status:'A'},
+      {FECHA:'31/08/2021',EQUIPO_TRANSPORTE:'NISSAN VERSA SENSE M/T MODELO 2019 COLOR BLANCO',RESPONSABLE:'RODOLFO CERVANTES',POLIZA_FISICA:'OK',TARJETA_CIRCULACION:'OK',LICENCIA_VIGENTE:'OK',_status:'B'},
+    ],
   };
   data['_PEDIDOS_COLS']=['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND'];
   // La evaluación siempre parte desde cero
@@ -2082,19 +2116,30 @@ function descargarPlantilla(){
   wsDevs['!cols'] = [{wch:35},{wch:16},{wch:14},{wch:16},{wch:14},{wch:18},{wch:14}];
   XLSX.utils.book_append_sheet(wb, wsDevs, 'DEVOLUCIONES');
 
+  // ── HOJA 11: ACTIVOS_VEHICULARES ──────────────────────────────
+  const activosVehData = [
+    ['FECHA','EQUIPO_TRANSPORTE','RESPONSABLE','POLIZA_FISICA','TARJETA_CIRCULACION','LICENCIA_VIGENTE'],
+    ['03/08/2016','NISSAN NP300 NP300 ESTACAS TM DH AC 6 VEL BCO/GRIS','NO ENCONTRADA','X','X','X'],
+    ['31/08/2021','NISSAN VERSA SENSE M/T MODELO 2019 COLOR BLANCO','RODOLFO CERVANTES','OK','OK','OK'],
+  ];
+  const wsActivosVeh = XLSX.utils.aoa_to_sheet(activosVehData);
+  wsActivosVeh['!cols'] = [{wch:14},{wch:55},{wch:25},{wch:16},{wch:20},{wch:18}];
+  XLSX.utils.book_append_sheet(wb, wsActivosVeh, 'ACTIVOS_VEHICULARES');
+
   // ── HOJA 11: INSTRUCCIONES ────────────────────────────────────
   const instrData = [
     ['KURODA S.A. DE C.V. — PLANTILLA DE AUDITORÍA INTERNA v5','','','',''],
     ['','','','',''],
     ['INSTRUCCIONES DE USO','','','',''],
     ['','','','',''],
-    ['1.','Esta plantilla contiene 10 hojas de datos para el informe.','','',''],
+    ['1.','Esta plantilla contiene 11 hojas de datos para el informe.','','',''],
     ['2.','NO cambies los nombres de las hojas ni los encabezados de columna.','','',''],
     ['3.','Borra las filas de ejemplo antes de cargar tus datos reales.','','',''],
     ['4.','Las fechas deben tener formato: DD/MM/YYYY (ej: 16/04/2026).','','',''],
     ['5.','Los costos e importes deben ser valores numéricos sin símbolo de moneda.','','',''],
     ['6.','La Evaluación de Cumplimiento se configura directamente en la aplicación, NO desde Excel.','','',''],
     ['7.','En ARQUEO_PV: CAJERA_INCAPACITADA y FACTURAS_PENDIENTES = S (sí) o N (no).','','',''],
+    ['8.','En ACTIVOS_VEHICULARES: POLIZA_FISICA, TARJETA_CIRCULACION, LICENCIA_VIGENTE = OK (correcto) o X (ausente/vencido).','','',''],
     ['','','','',''],
     ['HOJAS INCLUIDAS','DESCRIPCIÓN','BLOQUE EN INFORME','',''],
     ['ARQUEO_PV','Datos del arqueo de caja: diferencia, fondos, cajera, notas','💵 Efectivo / Arqueos','',''],
@@ -2107,6 +2152,15 @@ function descargarPlantilla(){
     ['VL06P','Entregas pendientes en el monitor de entregas (VL06P)','Monitor de Entregas VL06P','',''],
     ['VL06G','Salidas (devoluciones) pendientes de contabilizar (VL06G)','Salidas Pendientes VL06G','',''],
     ['DEVOLUCIONES','Devoluciones a proveedor sin nota de crédito (MIRO) aplicada','Devoluciones a Proveedor','',''],
+    ['ACTIVOS_VEHICULARES','Inventario de documentos vehiculares: póliza, tarjeta y licencia','🚗 Vehículos','',''],
+    ['','','','',''],
+    ['DETALLE COLUMNAS — ACTIVOS_VEHICULARES','','','',''],
+    ['FECHA','Fecha de alta del activo vehicular en el sistema (DD/MM/YYYY)','','',''],
+    ['EQUIPO_TRANSPORTE','Descripción completa del vehículo (marca, modelo, color, etc.)','','',''],
+    ['RESPONSABLE','Nombre del responsable asignado. Escribir NO ENCONTRADA si no se localiza físicamente.','','',''],
+    ['POLIZA_FISICA','OK = Póliza de seguro presente y vigente | X = Ausente o vencida','','',''],
+    ['TARJETA_CIRCULACION','OK = Tarjeta de circulación vigente | X = Ausente o vencida','','',''],
+    ['LICENCIA_VIGENTE','OK = Licencia del responsable vigente | X = Ausente o vencida','','',''],
     ['','','','',''],
     ['DETALLE COLUMNAS — ARQUEO_PV','','','',''],
     ['DIFERENCIA_SOBRANTE','Importe numérico de la diferencia (ej: 16.70). Dejar en blanco si no hay diferencia.','','',''],
@@ -2122,6 +2176,7 @@ function descargarPlantilla(){
     ['•','Los días de antigüedad en RESGUARDOS deben ser valores numéricos enteros.','','',''],
     ['•','Los registros con DIAS_ANTIGUEDAD > 30 se resaltarán automáticamente en rojo.','','',''],
     ['•','La columna COSTO_PEND en PICKINGS debe ser un número (sin $, sin comas).','','',''],
+    ['•','Si la sucursal no tiene unidades asignadas, dejar la hoja ACTIVOS_VEHICULARES sin datos (solo encabezados).','','',''],
     ['•','Versión del sistema: v5.0 | KURODA S.A. DE C.V. | Auditoría Interna','','',''],
   ];
   const wsInstr = XLSX.utils.aoa_to_sheet(instrData);
@@ -3572,3 +3627,4 @@ updateCounters();
     By Cerezo
   </footer>
 </div>
+
