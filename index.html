@@ -223,8 +223,10 @@ textarea{resize:vertical;min-height:68px;}
             <tbody>
               <tr><td style="color:#C9960C;font-weight:700;">ARQUEO_PV</td><td>DIFERENCIA_SOBRANTE, CAJERA_INCAPACITADA (S/N), FACTURAS_PENDIENTES (S/N), FONDO_CAMBIO_MONTO, FONDO_CAMBIO_RESULTADO, FONDO_CAJA_CHICA_MONTO, FONDO_CAJA_CHICA_RESULTADO, NOTAS_ADICIONALES</td><td>💵 Efectivo / Arqueos</td></tr>
               <tr><td>RESGUARDOS</td><td>FECHA_ENTRADA, DIAS_ANTIGUEDAD, REFERENCIA, FOLIO_RESGUARDO, CANTIDAD</td><td>Mercancía en Resguardo</td></tr>
-              <tr><td>TRASPASOS_SOL</td><td>FECHA, CENTRO_SUM, SOLICITUD, CANT_CODIGOS, CANT_PEND_SURTIR, COSTO_PEND_SURTIR, CANT_PEND_ENTRAR, COSTO_PEND_ENTRAR</td><td>Solicitados pendientes entrada / salida</td></tr>
-              <tr><td>TRASPASOS_SUM</td><td>FECHA, CENTRO_SUM, SOLICITUD, CANT_CODIGOS, CANT_PEND_SURTIR, COSTO_PEND_SURTIR, CANT_PEND_ENTRAR, COSTO_PEND_ENTRAR, <strong style="color:#C9960C;">TIPO_PENDIENTE</strong> <em style="color:#C9960C;">(ENTRADA / SALIDA)</em></td><td>Suministrados pendientes entrada / salida</td></tr>
+              <tr><td>SOL_PEND_ENTRADA</td><td>FECHA, CENTRO_SUM, SOLICITUD, CANT_CODIGOS, CANT_PEND_SURTIR, COSTO_PEND_SURTIR, CANT_PEND_ENTRAR, COSTO_PEND_ENTRAR</td><td>Solicitados — pendientes de entrada</td></tr>
+              <tr><td>SOL_PEND_SALIDA</td><td>FECHA, CENTRO_SUM, SOLICITUD, CANT_CODIGOS, CANT_PEND_SURTIR, COSTO_PEND_SURTIR, CANT_PEND_ENTRAR, COSTO_PEND_ENTRAR</td><td>Solicitados — pendientes de salida</td></tr>
+              <tr><td>SUM_PEND_ENTRADA</td><td>FECHA, CENTRO_SUM, SOLICITUD, CANT_CODIGOS, CANT_PEND_SURTIR, COSTO_PEND_SURTIR, CANT_PEND_ENTRAR, COSTO_PEND_ENTRAR</td><td>Suministrados — pendientes de entrada</td></tr>
+              <tr><td>SUM_PEND_SALIDA</td><td>FECHA, CENTRO_SUM, SOLICITUD, CANT_CODIGOS, CANT_PEND_SURTIR, COSTO_PEND_SURTIR, CANT_PEND_ENTRAR, COSTO_PEND_ENTRAR</td><td>Suministrados — pendientes de salida</td></tr>
               <tr><td>PEDIDOS</td><td>PROVEEDOR, FECHA, ORDEN_COMPRA, CANT_CODIGOS, CANTIDAD_PEND, COSTO_PEND <em style="color:#C9960C;">(columnas flexibles — se adaptan automáticamente)</em></td><td>Pedidos a Proveedor</td></tr>
               <tr><td>PICKINGS</td><td>FECHA, NUMERO_PEDIDO, COD_MATERIAL, CANTIDAD, COSTO_PEND</td><td>Pickings</td></tr>
               <tr><td>VL06P</td><td>NOMBRE_CLIENTE, FECHA_ENTREGA, ENTREGA, CREADO_POR</td><td>Monitor Entregas VL06P</td></tr>
@@ -234,8 +236,8 @@ textarea{resize:vertical;min-height:68px;}
           </table>
           <div style="margin-top:10px;padding:10px 12px;background:rgba(201,150,12,.12);border-radius:6px;font-size:10px;color:#C9960C;">
             ⚠️ La hoja <strong>Ejecutivo</strong> ya NO se carga desde Excel. La <strong>Evaluación de Cumplimiento</strong> se configura en esta página (Paso 3).<br>
-            💡 <strong>PEDIDOS es flexible:</strong> elimina columnas que no uses o renómbralas — el sistema las detecta. Los estatus de <strong>TRASPASOS_SUM</strong> y <strong>TRASPASOS_SOL</strong> se asignan en el Paso 3.<br>
-            📌 <strong>TRASPASOS_SUM → TIPO_PENDIENTE:</strong> <code>ENTRADA</code> = salida realizada en origen, pendiente de recibir. <code>SALIDA</code> = pendiente de salida en la sucursal suministradora. Omitir = asume ENTRADA. Ambas hojas comparten la misma estructura de columnas.
+            💡 <strong>PEDIDOS es flexible:</strong> elimina columnas que no uses o renómbralas — el sistema las detecta.<br>
+            📌 Las <strong>4 hojas de traspasos</strong> comparten exactamente la misma estructura de columnas. Los estatus de cada hoja se asignan en el Paso 3.
           </div>
         </div>
         <div class="brow">
@@ -607,11 +609,10 @@ function handleFile(file){
 
 function parseWorkbook(wb){
   data={};
-  const sheets=['ARQUEO_PV','RESGUARDOS','TRASPASOS_SOL','TRASPASOS_SUM','PEDIDOS','PICKINGS','VL06P','VL06G','DEVOLUCIONES','ACTIVOS_VEHICULARES'];
+  const sheets=['ARQUEO_PV','RESGUARDOS','SOL_PEND_ENTRADA','SOL_PEND_SALIDA','SUM_PEND_ENTRADA','SUM_PEND_SALIDA','PEDIDOS','PICKINGS','VL06P','VL06G','DEVOLUCIONES','ACTIVOS_VEHICULARES'];
   for(const name of sheets){
     if(wb.SheetNames.includes(name)){
       const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{raw:false,defval:''});
-      // Filtrar columnas vacías en todas las filas: si una columna tiene todos los valores vacíos, se elimina
       if(rows.length){
         const allCols=Object.keys(rows[0]);
         const nonEmptyCols=allCols.filter(col=>rows.some(r=>String(r[col]||'').trim()!==''));
@@ -623,7 +624,6 @@ function parseWorkbook(wb){
           }
           return out;
         });
-        // Guardar columnas detectadas para PEDIDOS (para renderizado dinámico)
         if(name==='PEDIDOS') data['_PEDIDOS_COLS']=nonEmptyCols;
       } else {
         data[name]=[];
@@ -635,13 +635,20 @@ function parseWorkbook(wb){
 
 // ===================== CONFIG =====================
 function buildConfig(){
-  const sheets=['ARQUEO_PV','RESGUARDOS','TRASPASOS_SOL','TRASPASOS_SUM','PEDIDOS','PICKINGS','VL06P','VL06G','DEVOLUCIONES','ACTIVOS_VEHICULARES'];
+  const sheets=['ARQUEO_PV','RESGUARDOS','SOL_PEND_ENTRADA','SOL_PEND_SALIDA','SUM_PEND_ENTRADA','SUM_PEND_SALIDA','PEDIDOS','PICKINGS','VL06P','VL06G','DEVOLUCIONES','ACTIVOS_VEHICULARES'];
+  const chipLabels={
+    ARQUEO_PV:'ARQUEO_PV',RESGUARDOS:'RESGUARDOS',
+    SOL_PEND_ENTRADA:'SOL — Pend. Entrada',SOL_PEND_SALIDA:'SOL — Pend. Salida',
+    SUM_PEND_ENTRADA:'SUM — Pend. Entrada',SUM_PEND_SALIDA:'SUM — Pend. Salida',
+    PEDIDOS:'PEDIDOS',PICKINGS:'PICKINGS',VL06P:'VL06P',VL06G:'VL06G',
+    DEVOLUCIONES:'DEVOLUCIONES',ACTIVOS_VEHICULARES:'ACTIVOS_VEHICULARES'
+  };
   const c=$('sheetsFound');c.innerHTML='';
   for(const s of sheets){
     const found=!!data[s]&&data[s].length>0;
     const chip=document.createElement('div');
     chip.className=`chip ${found?'found':'miss'}`;
-    chip.innerHTML=`<div class="chip-label">${found?'✅':'⚠️'} Hoja</div><div class="chip-val">${s}</div>`;
+    chip.innerHTML=`<div class="chip-label">${found?'✅':'⚠️'} Hoja</div><div class="chip-val">${chipLabels[s]||s}</div>`;
     c.appendChild(chip);
   }
   const evalChip=document.createElement('div');
@@ -653,6 +660,15 @@ function buildConfig(){
   const picks=data['PICKINGS']||[];
   const ped=data['PEDIDOS']||[];
   const arqueo=data['ARQUEO_PV']&&data['ARQUEO_PV'].length?data['ARQUEO_PV'][0]:{};
+  const solEnt=data['SOL_PEND_ENTRADA']||[];
+  const solSal=data['SOL_PEND_SALIDA']||[];
+  const sumEnt=data['SUM_PEND_ENTRADA']||[];
+  const sumSal=data['SUM_PEND_SALIDA']||[];
+  const totTrasp=solEnt.length+solSal.length+sumEnt.length+sumSal.length;
+  const costTrasp=[...solEnt,...solSal,...sumEnt,...sumSal].reduce((s,r)=>{
+    return s+(parseFloat(String(r.COSTO_PEND_SURTIR||0).replace(/[^0-9.-]/g,''))||0)
+             +(parseFloat(String(r.COSTO_PEND_ENTRAR||0).replace(/[^0-9.-]/g,''))||0);
+  },0);
   const totResg=resg.reduce((s,r)=>s+(parseFloat(r.CANTIDAD)||0),0);
   const venc=resg.filter(r=>parseInt(r.DIAS_ANTIGUEDAD)>30).length;
   const costPick=picks.reduce((s,r)=>s+(parseFloat(String(r.COSTO_PEND).replace(/[^0-9.-]/g,''))||0),0);
@@ -664,6 +680,7 @@ function buildConfig(){
     <div class="kpi ${difNum>0?'amber':'green'}"><div class="kpi-label">Diferencia Arqueo PV</div><div class="kpi-val">${difNum>0?'$'+difNum.toFixed(2):'Sin dif.'}</div><div class="kpi-sub">${difNum>0?'Sobrante no identif.':'Arqueo cuadrado'}</div></div>
     <div class="kpi"><div class="kpi-label">Resguardos Activos</div><div class="kpi-val">${resg.length}</div><div class="kpi-sub">${totResg} piezas</div></div>
     <div class="kpi ${venc>0?'red':'green'}"><div class="kpi-label">Resguardos +30 días</div><div class="kpi-val">${venc}</div><div class="kpi-sub">${venc>0?'Requieren acción':'Bajo control'}</div></div>
+    <div class="kpi ${totTrasp>0?'amber':'green'}"><div class="kpi-label">Traspasos Pendientes</div><div class="kpi-val">${totTrasp}</div><div class="kpi-sub">${money(costTrasp)}</div></div>
     <div class="kpi amber"><div class="kpi-label">Pickings Pendientes</div><div class="kpi-val">${picks.length}</div><div class="kpi-sub">${money(costPick)}</div></div>
     <div class="kpi"><div class="kpi-label">Pedidos Proveedor</div><div class="kpi-val">${ped.length}</div><div class="kpi-sub">${money(costPed)}</div></div>
   `;
@@ -786,8 +803,10 @@ const STATUS_OPTIONS={
   PICKINGS:[{val:'A',label:'A — Pend. contab.',cls:'est-a'},{val:'B',label:'B — Ajuste pend.',cls:'est-b'},{val:'C',label:'C — En curso',cls:'est-c'},{val:'D',label:'D — Reportado audit.',cls:'est-d'},{val:'E',label:'E — Con traspaso',cls:'est-e'}],
   VL06P:[{val:'Pendiente',label:'⏳ Pendiente entrega',cls:'est-a'},{val:'Entregado',label:'✅ Entregado',cls:'est-c'}],
   VL06G:[{val:'Pendiente',label:'⏳ Pend. contab.',cls:'est-a'},{val:'Contabilizado',label:'✅ Contabilizado',cls:'est-c'}],
-  TRASPASOS_SOL:[{val:'A',label:'A — Sin stock CEDIS',cls:'est-a'},{val:'B',label:'B — Pend. envío',cls:'est-b'},{val:'C',label:'C — En curso',cls:'est-c'},{val:'E',label:'E — Sin existencia',cls:'est-e'}],
-  TRASPASOS_SUM:[{val:'A',label:'A — Pend. cancelar',cls:'est-a'},{val:'B',label:'B — Cancelado parcial',cls:'est-b'},{val:'C',label:'C — Cancelado OK',cls:'est-c'},{val:'D',label:'D — Recibido y firmado',cls:'est-d'}],
+  SOL_PEND_ENTRADA:[{val:'A',label:'A — Sin stock CEDIS',cls:'est-a'},{val:'B',label:'B — Pend. envío',cls:'est-b'},{val:'C',label:'C — En curso',cls:'est-c'},{val:'E',label:'E — Sin existencia',cls:'est-e'}],
+  SOL_PEND_SALIDA:[{val:'A',label:'A — Sin stock CEDIS',cls:'est-a'},{val:'B',label:'B — Pend. envío',cls:'est-b'},{val:'C',label:'C — En curso',cls:'est-c'},{val:'E',label:'E — Sin existencia',cls:'est-e'}],
+  SUM_PEND_ENTRADA:[{val:'A',label:'A — Pend. cancelar',cls:'est-a'},{val:'B',label:'B — Cancelado parcial',cls:'est-b'},{val:'C',label:'C — Cancelado OK',cls:'est-c'},{val:'D',label:'D — Recibido y firmado',cls:'est-d'}],
+  SUM_PEND_SALIDA:[{val:'A',label:'A — Pend. cancelar',cls:'est-a'},{val:'B',label:'B — Cancelado parcial',cls:'est-b'},{val:'C',label:'C — Cancelado OK',cls:'est-c'},{val:'D',label:'D — Recibido y firmado',cls:'est-d'}],
   DEVOLUCIONES:[{val:'En trámite',label:'🔄 En trámite',cls:'est-b'},{val:'Aplicado',label:'✅ Aplicado',cls:'est-c'}],
   PEDIDOS:[{val:'A',label:'A — En curso / Normal',cls:'est-c'},{val:'B',label:'B — Retraso / Seguimiento',cls:'est-b'},{val:'C',label:'C — Urgente / Crítico',cls:'est-a'},{val:'D',label:'D — Cancelar / Revisar',cls:'est-d'}],
   ACTIVOS_VEHICULARES:[
@@ -804,8 +823,10 @@ const BLOCK_META=[
   {key:'PICKINGS',label:'Pickings',icon:'🛒',cols:['FECHA','NUMERO_PEDIDO','COD_MATERIAL','CANTIDAD','COSTO_PEND'],hasStatus:true},
   {key:'VL06P',label:'Monitor de Entregas VL06P',icon:'🚚',cols:['NOMBRE_CLIENTE','FECHA_ENTREGA','ENTREGA','CREADO_POR'],hasStatus:true},
   {key:'VL06G',label:'Salidas Pendientes VL06G',icon:'↩️',cols:['NOMBRE_CLIENTE','FECHA_ENTREGA','ENTREGA','CREADO_POR'],hasStatus:true},
-  {key:'TRASPASOS_SOL',label:'Traspasos Solicitados',icon:'🔄',cols:['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR','CANT_PEND_ENTRAR','COSTO_PEND_ENTRAR'],hasStatus:true},
-  {key:'TRASPASOS_SUM',label:'Traspasos Suministrados',icon:'📨',cols:['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR','CANT_PEND_ENTRAR','COSTO_PEND_ENTRAR','TIPO_PENDIENTE'],hasStatus:true},
+  {key:'SOL_PEND_ENTRADA',label:'Sol. Pend. Entrada',icon:'🔄',cols:['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR','CANT_PEND_ENTRAR','COSTO_PEND_ENTRAR'],hasStatus:true},
+  {key:'SOL_PEND_SALIDA',label:'Sol. Pend. Salida',icon:'🔄',cols:['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR','CANT_PEND_ENTRAR','COSTO_PEND_ENTRAR'],hasStatus:true},
+  {key:'SUM_PEND_ENTRADA',label:'Sum. Pend. Entrada',icon:'📨',cols:['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR','CANT_PEND_ENTRAR','COSTO_PEND_ENTRAR'],hasStatus:true},
+  {key:'SUM_PEND_SALIDA',label:'Sum. Pend. Salida',icon:'📨',cols:['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR','CANT_PEND_ENTRAR','COSTO_PEND_ENTRAR'],hasStatus:true},
   {key:'DEVOLUCIONES',label:'Devoluciones a Proveedor',icon:'📤',cols:['PROVEEDOR','ORDEN_COMPRA','FECHA_OC','SALIDA','FECHA_SALIDA','DIAS_ANTIGUEDAD','IMPORTE'],hasStatus:true},
   {key:'PEDIDOS',label:'Pedidos a Proveedor',icon:'📋',cols:null,hasStatus:true,dynamicCols:'_PEDIDOS_COLS',fallbackCols:['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND']},
   {key:'ACTIVOS_VEHICULARES',label:'Activos Vehiculares',icon:'🚗',cols:['FECHA','EQUIPO_TRANSPORTE','RESPONSABLE','POLIZA_FISICA','TARJETA_CIRCULACION','LICENCIA_VIGENTE'],hasStatus:true},
@@ -875,9 +896,9 @@ function generateInsights(){
   ins.vl06g=[];
   if(vl6g.length)ins.vl06g.push({type:'risk',title:'⚠️ Devoluciones sin contabilizar',msg:`${vl6g.length} devolución(es) pendientes. Afectan confiabilidad del inventario en tiempo real.`});
 
-  const trSol=data['TRASPASOS_SOL']||[];
+  const trSolAll=[...(data['SOL_PEND_ENTRADA']||[]),...(data['SOL_PEND_SALIDA']||[])];
   ins.traspasos=[];
-  if(trSol.length){const ct=trSol.reduce((s,r)=>s+(parseFloat(String(r.COSTO_PEND_SURTIR).replace(/[^0-9.-]/g,''))||0),0);ins.traspasos.push({type:'warn',title:'📦 Quiebre de stock en CEDIS',msg:`${trSol.length} solicitud(es) por ${money(ct)} sin existencia en CEDIS. Riesgo de afectación en ventas.`});}
+  if(trSolAll.length){const ct=trSolAll.reduce((s,r)=>s+(parseFloat(String(r.COSTO_PEND_SURTIR).replace(/[^0-9.-]/g,''))||0)+(parseFloat(String(r.COSTO_PEND_ENTRAR).replace(/[^0-9.-]/g,''))||0),0);ins.traspasos.push({type:'warn',title:'📦 Traspasos pendientes',msg:`${trSolAll.length} solicitud(es) con un costo de ${money(ct)} pendiente. Verificar entregas en tiempo.`});}
 
   return ins;
 }
@@ -1068,8 +1089,12 @@ async function generarInforme(){
 
   prog(20,'Calculando métricas...',);await sleep(80);
   const resg=data['RESGUARDOS']||[];
-  const trSol=data['TRASPASOS_SOL']||[];
-  const trSum=data['TRASPASOS_SUM']||[];
+  const solPendEntrada=data['SOL_PEND_ENTRADA']||[];
+  const solPendSalida=data['SOL_PEND_SALIDA']||[];
+  const sumPendEntrada=data['SUM_PEND_ENTRADA']||[];
+  const sumPendSalida=data['SUM_PEND_SALIDA']||[];
+  const trSol=[...solPendEntrada,...solPendSalida];
+  const trSum=[...sumPendEntrada,...sumPendSalida];
   const ped=data['PEDIDOS']||[];
   const picks=data['PICKINGS']||[];
   const vl6p=data['VL06P']||[];
@@ -1151,14 +1176,6 @@ async function generarInforme(){
   // ── TRASPASOS: 4 tablas con columnas unificadas ──────────────────
   const num=(v)=>parseFloat(String(v==null?0:v).replace(/[^0-9.-]/g,''))||0;
   const TR_COLS=['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR','CANT_PEND_ENTRAR','COSTO_PEND_ENTRAR'];
-
-  // Solicitados: CANT_PEND_ENTRAR>0 → pend. entrada; CANT_PEND_SURTIR>0 → pend. salida
-  const solPendEntrada=trSol.filter(r=>num(r.CANT_PEND_ENTRAR)>0);
-  const solPendSalida=trSol.filter(r=>num(r.CANT_PEND_SURTIR)>0);
-  // Suministrados: clasificados por TIPO_PENDIENTE
-  const tipoPend=(r)=>String(r.TIPO_PENDIENTE||'ENTRADA').trim().toUpperCase();
-  const sumPendEntrada=trSum.filter(r=>tipoPend(r)!=='SALIDA');
-  const sumPendSalida=trSum.filter(r=>tipoPend(r)==='SALIDA');
 
   // Builder genérico: columnas fijas + estatus
   function tablaTraspaso(rowsT,cols,statusKey){
@@ -1321,11 +1338,11 @@ ${insightHTML(ins.traspasos)}
 
 <div class="sub-header">Solicitados — pendientes de entrada</div>
 <p style="font-size:11px;color:#555;">Documentos con salida en la tienda suministradora, pendientes de realizar la entrada.</p>
-${tablaTraspaso(solPendEntrada,TR_COLS,'TRASPASOS_SOL')}
+${tablaTraspaso(solPendEntrada,TR_COLS,'SOL_PEND_ENTRADA')}
 
 <div class="sub-header">Solicitados — pendientes de salida</div>
 <p style="font-size:11px;color:#555;">Material en backorder, sin salida en la tienda suministradora (sin existencia para suministrar).</p>
-${tablaTraspaso(solPendSalida,TR_COLS,'TRASPASOS_SOL')}
+${tablaTraspaso(solPendSalida,TR_COLS,'SOL_PEND_SALIDA')}
 
 <ul><li>Los traspasos solicitados a <strong>CEDIS – KC00</strong> corresponden a semanas sin suficiente existencia para suministrarlos, afectando ventas y entrega de material de alta rotación.</li><li>Se realizan solicitudes de traspaso de material con entregas previas — riesgo de duplicidad y contraviene lineamientos establecidos.</li></ul>
 <div class="rec"><strong>✅ Recomendaciones</strong><ul>
@@ -1339,11 +1356,11 @@ ${seccionesSeleccionadas['trSum']!==false?`
 
 <div class="sub-header">Suministrados — pendientes de entrada</div>
 <p style="font-size:11px;color:#555;">Material suministrado por la otra sucursal, pendiente de entrada/cancelación en el centro receptor.</p>
-${tablaTraspaso(sumPendEntrada,TR_COLS,'TRASPASOS_SUM')}
+${tablaTraspaso(sumPendEntrada,TR_COLS,'SUM_PEND_ENTRADA')}
 
 <div class="sub-header">Suministrados — pendientes de salida</div>
 <p style="font-size:11px;color:#555;">Documentos suministrados pendientes de salida en la sucursal de origen.</p>
-${tablaTraspaso(sumPendSalida,TR_COLS,'TRASPASOS_SUM')}
+${tablaTraspaso(sumPendSalida,TR_COLS,'SUM_PEND_SALIDA')}
 
 <div class="st-legend"><strong>Estatus:</strong> A — Pendiente cancelar | B — Cancelado parcial | C — Cancelado OK | D — Recibido y firmado</div>
 <ul><li>Pendiente cancelar por el centro solicitante; la cancelación fue realizada durante el proceso de auditoría.</li><li>Las salidas son firmadas de recibido.</li></ul>`:''}
@@ -2124,14 +2141,19 @@ function usarDemoData(){
       {FECHA_ENTRADA:'13/04/2026',DIAS_ANTIGUEDAD:'3',REFERENCIA:'501161066 11',FOLIO_RESGUARDO:'4901476631',CANTIDAD:'2',_status:'B'},
       {FECHA_ENTRADA:'14/04/2026',DIAS_ANTIGUEDAD:'2',REFERENCIA:'501164219 10',FOLIO_RESGUARDO:'4901481628',CANTIDAD:'1',_status:'A'},
     ],
-    TRASPASOS_SOL:[
-      {FECHA:'13/04/2026',CENTRO_SUM:'KC00',SOLICITUD:'8000081004',CANT_CODIGOS:'16',CANT_PEND_SURTIR:'284',COSTO_PEND_SURTIR:'10385.93',CANT_PEND_ENTRAR:'1',COSTO_PEND_ENTRAR:'371.54',_status:'A'},
-      {FECHA:'13/04/2026',CENTRO_SUM:'KC00',SOLICITUD:'8000081196',CANT_CODIGOS:'11',CANT_PEND_SURTIR:'157',COSTO_PEND_SURTIR:'17075.33',CANT_PEND_ENTRAR:'1',COSTO_PEND_ENTRAR:'179.60',_status:'A'},
+    SOL_PEND_ENTRADA:[
+      {FECHA:'13/04/2026',CENTRO_SUM:'KC00',SOLICITUD:'8000081004',CANT_CODIGOS:'16',CANT_PEND_SURTIR:'0',COSTO_PEND_SURTIR:'0',CANT_PEND_ENTRAR:'1',COSTO_PEND_ENTRAR:'371.54',_status:'A'},
       {FECHA:'14/04/2026',CENTRO_SUM:'KC17',SOLICITUD:'8000081224',CANT_CODIGOS:'1',CANT_PEND_SURTIR:'0',COSTO_PEND_SURTIR:'0',CANT_PEND_ENTRAR:'5',COSTO_PEND_ENTRAR:'1197.38',_status:'C'},
     ],
-    TRASPASOS_SUM:[
-      {FECHA:'17/03/2026',CENTRO_SUM:'KC00',SOLICITUD:'8000076638',CANT_CODIGOS:'3',CANT_PEND_SURTIR:'0',COSTO_PEND_SURTIR:'0',CANT_PEND_ENTRAR:'2',COSTO_PEND_ENTRAR:'215.82',TIPO_PENDIENTE:'ENTRADA',_status:'A'},
-      {FECHA:'20/03/2026',CENTRO_SUM:'KC17',SOLICITUD:'8000077101',CANT_CODIGOS:'5',CANT_PEND_SURTIR:'10',COSTO_PEND_SURTIR:'980.00',CANT_PEND_ENTRAR:'0',COSTO_PEND_ENTRAR:'0',TIPO_PENDIENTE:'SALIDA',_status:'B'},
+    SOL_PEND_SALIDA:[
+      {FECHA:'13/04/2026',CENTRO_SUM:'KC00',SOLICITUD:'8000081004',CANT_CODIGOS:'16',CANT_PEND_SURTIR:'284',COSTO_PEND_SURTIR:'10385.93',CANT_PEND_ENTRAR:'0',COSTO_PEND_ENTRAR:'0',_status:'A'},
+      {FECHA:'13/04/2026',CENTRO_SUM:'KC00',SOLICITUD:'8000081196',CANT_CODIGOS:'11',CANT_PEND_SURTIR:'157',COSTO_PEND_SURTIR:'17075.33',CANT_PEND_ENTRAR:'0',COSTO_PEND_ENTRAR:'0',_status:'A'},
+    ],
+    SUM_PEND_ENTRADA:[
+      {FECHA:'17/03/2026',CENTRO_SUM:'KC00',SOLICITUD:'8000076638',CANT_CODIGOS:'3',CANT_PEND_SURTIR:'0',COSTO_PEND_SURTIR:'0',CANT_PEND_ENTRAR:'2',COSTO_PEND_ENTRAR:'215.82',_status:'A'},
+    ],
+    SUM_PEND_SALIDA:[
+      {FECHA:'20/03/2026',CENTRO_SUM:'KC17',SOLICITUD:'8000077101',CANT_CODIGOS:'5',CANT_PEND_SURTIR:'10',COSTO_PEND_SURTIR:'980.00',CANT_PEND_ENTRAR:'0',COSTO_PEND_ENTRAR:'0',_status:'B'},
     ],
     PEDIDOS:[
       {PROVEEDOR:'DEBLOC DE SINALOA',FECHA:'07/04/2026',ORDEN_COMPRA:'4000026526',CANT_CODIGOS:'4',CANTIDAD_PEND:'10',COSTO_PEND:'10143.74'},
@@ -2453,8 +2475,8 @@ async function generarInformeEjecutivo(){
   };
 
   const resg   = data['RESGUARDOS']   || [];
-  const trSol  = data['TRASPASOS_SOL']|| [];
-  const trSum  = data['TRASPASOS_SUM']|| [];
+  const trSol  = [...(data['SOL_PEND_ENTRADA']||[]),...(data['SOL_PEND_SALIDA']||[])];
+  const trSum  = [...(data['SUM_PEND_ENTRADA']||[]),...(data['SUM_PEND_SALIDA']||[])];
   const picks  = data['PICKINGS']     || [];
   const ped    = data['PEDIDOS']      || [];
   const vl6p   = data['VL06P']        || [];
@@ -2689,7 +2711,7 @@ async function generarInformeEjecutivo(){
         'D':{txt:'D — Reportado audit.',bg:'#EEF4FF',br:'#1A5276',cl:'#1A5276'},
         'E':{txt:'E — Con traspaso',bg:'#F8F0FF',br:'#7D3C98',cl:'#6C3483'}
       },
-      'TRASPASOS_SOL': {
+      'SOL_PEND_ENTRADA': {
         'A':{txt:'A — Sin stock CEDIS',bg:'#FFF0F0',br:'#C0392B',cl:'#C0392B'},
         'B':{txt:'B — Pend. envío',bg:'#FFF8E7',br:'#C97A0A',cl:'#9A5C00'},
         'C':{txt:'C — En curso',bg:'#EBF7EE',br:'#1A7A3C',cl:'#1A7A3C'},
@@ -2862,33 +2884,102 @@ async function generarInformeEjecutivo(){
   }
 
   if(seccionesSeleccionadas['trSol'] && trSol.length){
-    const trRows = trSol.slice(0,12).map(t=>`<tr>
-      <td style="${stTd}">${formatDateToDMY(t.FECHA)}</td>
-      <td style="${stTd}">${fmt(t.CENTRO_SUM)}</td>
-      <td style="${stTd};font-family:\'IBM Plex Mono\',monospace;">${fmt(t.SOLICITUD)}</td>
-      <td style="${stTdNum};">${fmt(t.CANT_CODIGOS)}</td>
-      <td style="${stTdNum};">${fmt(t.CANT_PEND_SURTIR)}</td>
-      <td style="${stTdNum};color:#C97A0A;font-weight:700;">${money(t.COSTO_PEND_SURTIR)}</td>
-      <td style="${stTd};text-align:center;">${statusBadge('TRASPASOS_SOL', t._status)}</td>
-    </tr>`).join('');
-    const trMas = trSol.length>12?`<tr><td colspan="7" style="${stTd};text-align:center;color:#888;font-style:italic;background:#F7F9FF;">… ${trSol.length-12} traspaso(s) adicional(es).</td></tr>`:'';
-    tablasEvidencia += `
-      <div style="${subTitleSt}">🔄 Traspasos Solicitados <span style="${subTagSt}">ZREPSOLTRAS · Tabla TRASPASOS_SOL</span></div>
-      <div style="${captionSt}">Total: <strong>${trSol.length}</strong> solicitud(es) · Costo pendiente de surtir: <strong style="color:#C97A0A;">${money(costTrSol)}</strong></div>
+    const TR_STATUS_MAP = {
+      'A':{txt:'A — Sin stock',bg:'#FFF0F0',br:'#C0392B',cl:'#C0392B'},
+      'B':{txt:'B — Pend. envío',bg:'#FFF8E7',br:'#C97A0A',cl:'#9A5C00'},
+      'C':{txt:'C — En curso',bg:'#EBF7EE',br:'#1A7A3C',cl:'#1A7A3C'},
+      'E':{txt:'E — Sin existencia',bg:'#F8F0FF',br:'#7D3C98',cl:'#6C3483'}
+    };
+    const trSumStatusMap = {
+      'A':{txt:'A — Pend. cancelar',bg:'#FFF0F0',br:'#C0392B',cl:'#C0392B'},
+      'B':{txt:'B — Cancelado parcial',bg:'#FFF8E7',br:'#C97A0A',cl:'#9A5C00'},
+      'C':{txt:'C — Cancelado OK',bg:'#EBF7EE',br:'#1A7A3C',cl:'#1A7A3C'},
+      'D':{txt:'D — Recibido y firmado',bg:'#EEF4FF',br:'#1A5276',cl:'#1A5276'}
+    };
+    function trBadge(mapObj, val){
+      if(!val) return '<span style="color:#999;font-size:10px;">—</span>';
+      const cfg=(mapObj)[String(val).trim()];
+      if(!cfg) return `<span style="font-size:10px;">${val}</span>`;
+      return `<span style="background:${cfg.bg};color:${cfg.cl};border:1px solid ${cfg.br};padding:2px 7px;border-radius:10px;font-size:9.5px;font-weight:700;white-space:nowrap;">${cfg.txt}</span>`;
+    }
+    function trTablaEjec(rows, titulo, statusMap){
+      if(!rows.length) return `<div style="${captionSt}"><em>Sin documentos en esta categoría.</em></div>`;
+      const costTotal=rows.reduce((s,r)=>s+(parseFloat(String(r.COSTO_PEND_SURTIR||0).replace(/[^0-9.-]/g,''))||0)+(parseFloat(String(r.COSTO_PEND_ENTRAR||0).replace(/[^0-9.-]/g,''))||0),0);
+      const rowsHTML=rows.slice(0,12).map(t=>`<tr>
+        <td style="${stTd}">${fmt(t.FECHA)}</td>
+        <td style="${stTd}">${fmt(t.CENTRO_SUM)}</td>
+        <td style="${stTd};font-family:'IBM Plex Mono',monospace;">${fmt(t.SOLICITUD)}</td>
+        <td style="${stTdNum};">${fmt(t.CANT_CODIGOS)}</td>
+        <td style="${stTdNum};">${fmt(t.CANT_PEND_SURTIR)}</td>
+        <td style="${stTdNum};color:#C97A0A;font-weight:700;">${money(t.COSTO_PEND_SURTIR)}</td>
+        <td style="${stTdNum};">${fmt(t.CANT_PEND_ENTRAR)}</td>
+        <td style="${stTdNum};color:#1A5276;font-weight:700;">${money(t.COSTO_PEND_ENTRAR)}</td>
+        <td style="${stTd};text-align:center;">${trBadge(statusMap, t._status)}</td>
+      </tr>`).join('');
+      const mas=rows.length>12?`<tr><td colspan="9" style="${stTd};text-align:center;color:#888;font-style:italic;background:#F7F9FF;">… ${rows.length-12} registro(s) adicional(es).</td></tr>`:'';
+      return `<div style="${subTitleSt}">${titulo}</div>
+      <div style="${captionSt}">Total: <strong>${rows.length}</strong> doc(s) · Costo total pendiente: <strong style="color:#C97A0A;">${money(costTotal)}</strong></div>
       <div style="${stTblWrap}">
         <table style="${stTbl}">
           <thead><tr>
-            <th style="${stTh}">Fecha</th>
-            <th style="${stTh}">Centro Sum.</th>
-            <th style="${stTh}">Solicitud</th>
+            <th style="${stTh}">Fecha</th><th style="${stTh}">Centro Sum.</th><th style="${stTh}">Solicitud</th>
             <th style="${stTh};text-align:right;">Cód.</th>
-            <th style="${stTh};text-align:right;">Pend. Surt.</th>
-            <th style="${stTh};text-align:right;">Costo Pend.</th>
+            <th style="${stTh};text-align:right;">Pend. Surtir</th><th style="${stTh};text-align:right;">Costo S.</th>
+            <th style="${stTh};text-align:right;">Pend. Entrar</th><th style="${stTh};text-align:right;">Costo E.</th>
             <th style="${stTh};text-align:center;">Estatus</th>
           </tr></thead>
-          <tbody>${trRows}${trMas}</tbody>
+          <tbody>${rowsHTML}${mas}</tbody>
         </table>
       </div>`;
+    }
+    tablasEvidencia += trTablaEjec(data['SOL_PEND_ENTRADA']||[],'🔄 Solicitados — Pendientes de entrada',TR_STATUS_MAP);
+    tablasEvidencia += trTablaEjec(data['SOL_PEND_SALIDA']||[],'🔄 Solicitados — Pendientes de salida',TR_STATUS_MAP);
+  }
+  if(seccionesSeleccionadas['trSum'] && trSum.length){
+    const TR_SUM_MAP = {
+      'A':{txt:'A — Pend. cancelar',bg:'#FFF0F0',br:'#C0392B',cl:'#C0392B'},
+      'B':{txt:'B — Cancelado parcial',bg:'#FFF8E7',br:'#C97A0A',cl:'#9A5C00'},
+      'C':{txt:'C — Cancelado OK',bg:'#EBF7EE',br:'#1A7A3C',cl:'#1A7A3C'},
+      'D':{txt:'D — Recibido y firmado',bg:'#EEF4FF',br:'#1A5276',cl:'#1A5276'}
+    };
+    function trBadgeSumEjec(val){
+      if(!val) return '<span style="color:#999;font-size:10px;">—</span>';
+      const cfg=TR_SUM_MAP[String(val).trim()];
+      if(!cfg) return `<span style="font-size:10px;">${val}</span>`;
+      return `<span style="background:${cfg.bg};color:${cfg.cl};border:1px solid ${cfg.br};padding:2px 7px;border-radius:10px;font-size:9.5px;font-weight:700;white-space:nowrap;">${cfg.txt}</span>`;
+    }
+    function trSumTablaEjec(rows, titulo){
+      if(!rows.length) return `<div style="${captionSt}"><em>Sin documentos en esta categoría.</em></div>`;
+      const costTotal=rows.reduce((s,r)=>s+(parseFloat(String(r.COSTO_PEND_SURTIR||0).replace(/[^0-9.-]/g,''))||0)+(parseFloat(String(r.COSTO_PEND_ENTRAR||0).replace(/[^0-9.-]/g,''))||0),0);
+      const rowsHTML=rows.slice(0,12).map(t=>`<tr>
+        <td style="${stTd}">${fmt(t.FECHA)}</td>
+        <td style="${stTd}">${fmt(t.CENTRO_SUM)}</td>
+        <td style="${stTd};font-family:'IBM Plex Mono',monospace;">${fmt(t.SOLICITUD)}</td>
+        <td style="${stTdNum};">${fmt(t.CANT_CODIGOS)}</td>
+        <td style="${stTdNum};">${fmt(t.CANT_PEND_SURTIR)}</td>
+        <td style="${stTdNum};color:#C97A0A;font-weight:700;">${money(t.COSTO_PEND_SURTIR)}</td>
+        <td style="${stTdNum};">${fmt(t.CANT_PEND_ENTRAR)}</td>
+        <td style="${stTdNum};color:#1A5276;font-weight:700;">${money(t.COSTO_PEND_ENTRAR)}</td>
+        <td style="${stTd};text-align:center;">${trBadgeSumEjec(t._status)}</td>
+      </tr>`).join('');
+      const mas=rows.length>12?`<tr><td colspan="9" style="${stTd};text-align:center;color:#888;font-style:italic;background:#F7F9FF;">… ${rows.length-12} registro(s) adicional(es).</td></tr>`:'';
+      return `<div style="${subTitleSt}">${titulo}</div>
+      <div style="${captionSt}">Total: <strong>${rows.length}</strong> doc(s) · Costo total pendiente: <strong style="color:#C97A0A;">${money(costTotal)}</strong></div>
+      <div style="${stTblWrap}">
+        <table style="${stTbl}">
+          <thead><tr>
+            <th style="${stTh}">Fecha</th><th style="${stTh}">Centro Sum.</th><th style="${stTh}">Solicitud</th>
+            <th style="${stTh};text-align:right;">Cód.</th>
+            <th style="${stTh};text-align:right;">Pend. Surtir</th><th style="${stTh};text-align:right;">Costo S.</th>
+            <th style="${stTh};text-align:right;">Pend. Entrar</th><th style="${stTh};text-align:right;">Costo E.</th>
+            <th style="${stTh};text-align:center;">Estatus</th>
+          </tr></thead>
+          <tbody>${rowsHTML}${mas}</tbody>
+        </table>
+      </div>`;
+    }
+    tablasEvidencia += trSumTablaEjec(data['SUM_PEND_ENTRADA']||[],'📨 Suministrados — Pendientes de entrada');
+    tablasEvidencia += trSumTablaEjec(data['SUM_PEND_SALIDA']||[],'📨 Suministrados — Pendientes de salida');
   }
 
   if(seccionesSeleccionadas['pedidos'] && ped.length){
@@ -3203,8 +3294,8 @@ async function generarInformeRiesgo(){
 
   prog(20,'Cargando tablas del Excel...');await sleep(80);
   const resg  = data['RESGUARDOS']   || [];
-  const trSol = data['TRASPASOS_SOL']|| [];
-  const trSum = data['TRASPASOS_SUM']|| [];
+  const trSol = [...(data['SOL_PEND_ENTRADA']||[]),(data['SOL_PEND_SALIDA']||[])].flat();
+  const trSum = [...(data['SUM_PEND_ENTRADA']||[]),(data['SUM_PEND_SALIDA']||[])].flat();
   const picks = data['PICKINGS']     || [];
   const ped   = data['PEDIDOS']      || [];
   const vl6p  = data['VL06P']        || [];
@@ -3481,7 +3572,7 @@ async function generarInformeAntiguedad(){
 
   const resg = data['RESGUARDOS']  || [];
   const devs = data['DEVOLUCIONES']|| [];
-  const trSol= data['TRASPASOS_SOL']||[];
+  const trSol= [...(data['SOL_PEND_ENTRADA']||[]),...(data['SOL_PEND_SALIDA']||[]),...(data['SUM_PEND_ENTRADA']||[]),...(data['SUM_PEND_SALIDA']||[])];
   const picks= data['PICKINGS']    || [];
   const ped  = data['PEDIDOS']     || [];
 
@@ -3902,5 +3993,6 @@ updateCounters();
     By Cerezo
   </footer>
 </div>
+
 
 
