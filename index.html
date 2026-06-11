@@ -87,8 +87,8 @@ textarea{resize:vertical;min-height:68px;}
 /* STATUS EDITOR */
 .sed-wrap{overflow-x:auto;margin-top:12px;}
 .sed-table{width:100%;border-collapse:collapse;font-size:12px;}
-.sed-table th{background:var(--navy);color:#fff;padding:9px 10px;text-align:left;font-size:11px;white-space:nowrap;}
-.sed-table td{padding:7px 10px;border-bottom:1px solid #F0F2F8;vertical-align:middle;}
+.sed-table th{background:var(--navy);color:#fff;padding:7px 10px;text-align:left;font-size:11px;white-space:nowrap;}
+.sed-table td{padding:4px 8px;border-bottom:1px solid #F0F2F8;vertical-align:middle;}
 .sed-table tr:hover td{background:#F7F9FF;}
 .sel-status{border:1.5px solid var(--border);border-radius:5px;padding:5px 8px;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer;min-width:128px;}
 .sel-status.est-a{background:#FFF0F0;border-color:var(--red);color:var(--red);}
@@ -223,9 +223,8 @@ textarea{resize:vertical;min-height:68px;}
             <tbody>
               <tr><td style="color:#C9960C;font-weight:700;">ARQUEO_PV</td><td>DIFERENCIA_SOBRANTE, CAJERA_INCAPACITADA (S/N), FACTURAS_PENDIENTES (S/N), FONDO_CAMBIO_MONTO, FONDO_CAMBIO_RESULTADO, FONDO_CAJA_CHICA_MONTO, FONDO_CAJA_CHICA_RESULTADO, NOTAS_ADICIONALES</td><td>💵 Efectivo / Arqueos</td></tr>
               <tr><td>RESGUARDOS</td><td>FECHA_ENTRADA, DIAS_ANTIGUEDAD, REFERENCIA, FOLIO_RESGUARDO, CANTIDAD</td><td>Mercancía en Resguardo</td></tr>
-              <tr><td>TRASPASOS_SOL</td><td>FECHA, CENTRO_SUM, SOLICITUD, CANT_CODIGOS, CANT_PEND_SURTIR, COSTO_PEND_SURTIR, CANT_PEND_ENTRAR, COSTO_PEND_ENTRAR</td><td>Traspasos Solicitados + Detalle</td></tr>
-              <tr><td>TRASPASOS_DET</td><td>DESCRIPCION, CANT_SIN_SURTIR, COSTO_SIN_SURTIR, EXISTENCIA_CEDIS, INDICADOR</td><td>↳ Embebido en Solicitados</td></tr>
-              <tr><td>TRASPASOS_SUM</td><td>FECHA, TRASPASO, SOLICITANTE, CODIGO, DESCRIPCION, CANTIDAD, COSTO</td><td>Traspasos Suministrados (con Estatus)</td></tr>
+              <tr><td>TRASPASOS_SOL</td><td>FECHA, CENTRO_SUM, SOLICITUD, CANT_CODIGOS, CANT_PEND_SURTIR, COSTO_PEND_SURTIR, CANT_PEND_ENTRAR, COSTO_PEND_ENTRAR</td><td>Solicitados pendientes entrada / salida</td></tr>
+              <tr><td>TRASPASOS_SUM</td><td>FECHA, CENTRO_SUM, SOLICITUD, CANT_CODIGOS, CANT_PEND_SURTIR, COSTO_PEND_SURTIR, CANT_PEND_ENTRAR, COSTO_PEND_ENTRAR, <strong style="color:#C9960C;">TIPO_PENDIENTE</strong> <em style="color:#C9960C;">(ENTRADA / SALIDA)</em></td><td>Suministrados pendientes entrada / salida</td></tr>
               <tr><td>PEDIDOS</td><td>PROVEEDOR, FECHA, ORDEN_COMPRA, CANT_CODIGOS, CANTIDAD_PEND, COSTO_PEND <em style="color:#C9960C;">(columnas flexibles — se adaptan automáticamente)</em></td><td>Pedidos a Proveedor</td></tr>
               <tr><td>PICKINGS</td><td>FECHA, NUMERO_PEDIDO, COD_MATERIAL, CANTIDAD, COSTO_PEND</td><td>Pickings</td></tr>
               <tr><td>VL06P</td><td>NOMBRE_CLIENTE, FECHA_ENTREGA, ENTREGA, CREADO_POR</td><td>Monitor Entregas VL06P</td></tr>
@@ -235,7 +234,8 @@ textarea{resize:vertical;min-height:68px;}
           </table>
           <div style="margin-top:10px;padding:10px 12px;background:rgba(201,150,12,.12);border-radius:6px;font-size:10px;color:#C9960C;">
             ⚠️ La hoja <strong>Ejecutivo</strong> ya NO se carga desde Excel. La <strong>Evaluación de Cumplimiento</strong> se configura en esta página (Paso 3).<br>
-            💡 <strong>PEDIDOS es flexible:</strong> elimina columnas que no uses o renómbralas — el sistema las detecta. Los estatus de <strong>TRASPASOS_SUM</strong> se asignan en el Paso 3 igual que TRASPASOS_SOL.
+            💡 <strong>PEDIDOS es flexible:</strong> elimina columnas que no uses o renómbralas — el sistema las detecta. Los estatus de <strong>TRASPASOS_SUM</strong> y <strong>TRASPASOS_SOL</strong> se asignan en el Paso 3.<br>
+            📌 <strong>TRASPASOS_SUM → TIPO_PENDIENTE:</strong> <code>ENTRADA</code> = salida realizada en origen, pendiente de recibir. <code>SALIDA</code> = pendiente de salida en la sucursal suministradora. Omitir = asume ENTRADA. Ambas hojas comparten la misma estructura de columnas.
           </div>
         </div>
         <div class="brow">
@@ -276,6 +276,12 @@ textarea{resize:vertical;min-height:68px;}
         <div style="margin-top:14px;" class="fl">
           <label>Observaciones generales (opcional)</label>
           <textarea id="cObs" placeholder="Observaciones generales del proceso de auditoría..."></textarea>
+        </div>
+        <div style="margin-top:14px;display:flex;align-items:flex-start;gap:10px;background:#F7F9FF;border:1px solid var(--border);border-radius:8px;padding:12px 14px;">
+          <input type="checkbox" id="cNotaFirma" checked style="margin-top:2px;width:16px;height:16px;cursor:pointer;">
+          <label for="cNotaFirma" style="text-transform:none;letter-spacing:0;font-size:12px;color:var(--text);font-weight:500;cursor:pointer;">
+            Incluir nota de firma en Tablet (VL06P): <em style="color:var(--muted);font-weight:400;">"Los Pickings son firmados de recibido en la Tablet: material en punto de venta validado por Cajera; material en almacén contabilizado por personal del área."</em>
+          </label>
         </div>
         <div class="brow">
           <button class="btn bo" onclick="goStep(1)">← Atrás</button>
@@ -422,6 +428,7 @@ textarea{resize:vertical;min-height:68px;}
       <div class="export-divider"></div>
       <button class="btn bpu" onclick="exportEvalHTML()">📊 Informe de Evaluación</button>
       <button class="btn" style="background:#1A5276;color:#fff;" onclick="exportPlanAccionWord()">📋 Plan de Acción (Word)</button>
+      <button class="btn" style="background:#8E44AD;color:#fff;" onclick="abrirEditorInline()">✏️ Editar Informe</button>
       <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
         <button class="btn bgo" onclick="guardarInforme()" id="btnGuardarP5">💾 Guardar Informe</button>
         <button class="btn" style="background:#2E7D32;color:#fff;" onclick="descargarPlantilla()">📥 Plantilla Excel</button>
@@ -430,6 +437,44 @@ textarea{resize:vertical;min-height:68px;}
     </div>
     <iframe id="previewFrame" title="Vista previa del informe"></iframe>
   </div>
+
+<!-- MODAL EDITOR INLINE INFORME -->
+<div id="editorInlineModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:700;overflow-y:auto;padding:20px;">
+  <div style="background:#fff;max-width:980px;margin:0 auto;border-radius:12px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.35);">
+    <div class="ch" style="padding:14px 20px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:16px;">✏️</span>
+      <span style="font-weight:700;font-size:13px;">Edición en Línea — Texto Adicional del Informe</span>
+      <span style="font-size:10px;color:#8FA0CC;margin-left:4px;">Los cambios reemplazan el contenido del informe actual en memoria</span>
+      <button class="btn bd" style="margin-left:auto;padding:6px 14px;font-size:11px;" onclick="cerrarEditorInline()">✕ Cerrar</button>
+    </div>
+    <div style="padding:20px;">
+      <div class="alert alert-warn" style="margin-bottom:16px;font-size:11px;">
+        ⚠️ <strong>Edición libre del HTML del informe.</strong> Puedes modificar cualquier texto del documento. Los cambios se aplican directamente al informe en memoria. Usa <strong>"Aplicar cambios"</strong> para actualizar la vista previa y los botones de exportación.
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">
+        <label style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Sección a editar:</label>
+        <select id="inlineSeccionSelect" onchange="cargarSeccionEdicion(this.value)"
+          style="border:1.5px solid var(--border);border-radius:6px;padding:7px 12px;font-family:inherit;font-size:12px;font-weight:600;color:var(--navy);background:#FAFBFD;min-width:260px;">
+          <option value="obs">📋 Observaciones / Introducción</option>
+          <option value="conclusion">📋 Conclusión y firma</option>
+          <option value="full">📄 HTML completo (modo avanzado)</option>
+        </select>
+        <button class="btn bp" style="padding:6px 14px;font-size:11px;" onclick="buscarTextoInline()">🔍 Buscar en informe</button>
+        <input type="text" id="inlineBuscarInput" placeholder="Texto a buscar..." style="border:1.5px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;width:200px;">
+      </div>
+      <textarea id="inlineEditorArea"
+        style="width:100%;min-height:440px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;border:1.5px solid var(--border);border-radius:8px;padding:14px;resize:vertical;line-height:1.6;background:#FAFBFD;"
+        placeholder="Carga una sección para editar..."></textarea>
+      <div id="inlineSearchResult" style="display:none;margin-top:6px;font-size:11px;color:var(--navy);background:#EEF4FF;border-radius:6px;padding:8px 12px;"></div>
+    </div>
+    <div style="padding:14px 20px;background:#F7F9FF;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <button class="btn bp" onclick="aplicarEdicionInline()">✅ Aplicar cambios y actualizar vista</button>
+      <button class="btn bo" onclick="restaurarSeccionOriginal()">↩️ Deshacer cambios</button>
+      <span style="font-size:10px;color:var(--muted);margin-left:8px;" id="inlineStatusMsg"></span>
+      <button class="btn bgr" style="margin-left:auto;" onclick="cerrarEditorInline()">Cerrar</button>
+    </div>
+  </div>
+</div>
 
 </div><!-- /tabNuevo -->
 
@@ -484,6 +529,8 @@ function formatDateToDMY(val){
 }
 function todayDMY(){const d=new Date();return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;}
 function todayISO(){return new Date().toISOString().split('T')[0];}
+const MESES_ES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function fechaLarga(dmy){if(!dmy)return '';const p=String(dmy).split('/');if(p.length!==3)return dmy;const d=parseInt(p[0])||'',m=parseInt(p[1])||1,y=p[2];return `${d} de ${MESES_ES[(m-1)%12]||''} de ${y}`;}
 function fmtInputDate(v){if(!v)return '';const[y,m,d]=v.split('-');return `${d}/${m}/${y}`;}
 function money(v){const n=parseFloat(String(v).replace(/[^0-9.-]/g,''))||0;return '$'+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');}
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
@@ -560,7 +607,7 @@ function handleFile(file){
 
 function parseWorkbook(wb){
   data={};
-  const sheets=['ARQUEO_PV','RESGUARDOS','TRASPASOS_SOL','TRASPASOS_DET','TRASPASOS_SUM','PEDIDOS','PICKINGS','VL06P','VL06G','DEVOLUCIONES','ACTIVOS_VEHICULARES'];
+  const sheets=['ARQUEO_PV','RESGUARDOS','TRASPASOS_SOL','TRASPASOS_SUM','PEDIDOS','PICKINGS','VL06P','VL06G','DEVOLUCIONES','ACTIVOS_VEHICULARES'];
   for(const name of sheets){
     if(wb.SheetNames.includes(name)){
       const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{raw:false,defval:''});
@@ -588,7 +635,7 @@ function parseWorkbook(wb){
 
 // ===================== CONFIG =====================
 function buildConfig(){
-  const sheets=['ARQUEO_PV','RESGUARDOS','TRASPASOS_SOL','TRASPASOS_DET','TRASPASOS_SUM','PEDIDOS','PICKINGS','VL06P','VL06G','DEVOLUCIONES','ACTIVOS_VEHICULARES'];
+  const sheets=['ARQUEO_PV','RESGUARDOS','TRASPASOS_SOL','TRASPASOS_SUM','PEDIDOS','PICKINGS','VL06P','VL06G','DEVOLUCIONES','ACTIVOS_VEHICULARES'];
   const c=$('sheetsFound');c.innerHTML='';
   for(const s of sheets){
     const found=!!data[s]&&data[s].length>0;
@@ -657,7 +704,7 @@ function initEvalData(){
     {section:'ENTRADAS Y SALIDAS',label:'Material pendiente de salida.',pct:0.0625,value:0,original:0},
     {section:'ENTRADAS Y SALIDAS',label:'Material con salida apartado e identificado.',pct:0.0625,value:0,original:0},
     {section:'ENTRADAS Y SALIDAS',label:'Entradas pendientes de realizar.',pct:0.0625,value:0,original:0},
-    {section:'ENTRADAS Y SALIDAS',label:'Órdenes de compra con antigüedad mayor a un mes.',pct:0.0625,value:0,original:0},
+    {section:'ENTRADAS Y SALIDAS',label:'Órdenes de compra con antigüedad mayor a un mes.',pct:0,value:0,original:0,noWeight:true},
     {section:'ENTRADAS Y SALIDAS',label:'Picking JUSTIFICADOS (ZVA05VTAS).',pct:0.0625,value:0,original:0},
     {section:'ENTRADAS Y SALIDAS',label:'Picking pendientes de contabilizar (VL06P).',pct:0.0625,value:0,original:0},
     {section:'ENTRADAS Y SALIDAS',label:'Picking pendientes de contabilizar (VL06G).',pct:0.0625,value:0,original:0},
@@ -690,9 +737,10 @@ function renderEval(){
       <div class="eval-section-body">`;
     for(const item of items){
       const idx=evalData.indexOf(item);
-      html+=`<div class="eval-item">
+      const pesoTxt=item.noWeight?'<span style="color:#1A5276;font-weight:700;">Solo evaluación · sin peso</span>':`Peso: ${Math.round(item.pct*100)}%`;
+      html+=`<div class="eval-item"${item.noWeight?' style="background:#F4F8FE;"':''}>
         <div class="eval-item-label">${item.label}</div>
-        <div class="eval-item-pct">Peso: ${Math.round(item.pct*100)}%</div>
+        <div class="eval-item-pct">${pesoTxt}</div>
         <div class="eval-item-toggle">
           <input type="checkbox" class="eval-toggle" id="ev_${idx}" ${item.value===1?'checked':''} onchange="toggleEval(${idx},this.checked)">
         </div>
@@ -734,7 +782,7 @@ function updateGauge(){
 
 // ===================== STATUS EDITOR =====================
 const STATUS_OPTIONS={
-  RESGUARDOS:[{val:'A',label:'A — Sin documentos',cls:'est-a'},{val:'B',label:'B — Pend. entrega',cls:'est-b'},{val:'C',label:'C — Entregado OK',cls:'est-c'}],
+  RESGUARDOS:[{val:'A',label:'A — Sin documentos',cls:'est-a'},{val:'B',label:'B — Pend. entrega',cls:'est-b'},{val:'C',label:'C — Conforme · sin salidas pend.',cls:'est-c'}],
   PICKINGS:[{val:'A',label:'A — Pend. contab.',cls:'est-a'},{val:'B',label:'B — Ajuste pend.',cls:'est-b'},{val:'C',label:'C — En curso',cls:'est-c'},{val:'D',label:'D — Reportado audit.',cls:'est-d'},{val:'E',label:'E — Con traspaso',cls:'est-e'}],
   VL06P:[{val:'Pendiente',label:'⏳ Pendiente entrega',cls:'est-a'},{val:'Entregado',label:'✅ Entregado',cls:'est-c'}],
   VL06G:[{val:'Pendiente',label:'⏳ Pend. contab.',cls:'est-a'},{val:'Contabilizado',label:'✅ Contabilizado',cls:'est-c'}],
@@ -756,9 +804,9 @@ const BLOCK_META=[
   {key:'PICKINGS',label:'Pickings',icon:'🛒',cols:['FECHA','NUMERO_PEDIDO','COD_MATERIAL','CANTIDAD','COSTO_PEND'],hasStatus:true},
   {key:'VL06P',label:'Monitor de Entregas VL06P',icon:'🚚',cols:['NOMBRE_CLIENTE','FECHA_ENTREGA','ENTREGA','CREADO_POR'],hasStatus:true},
   {key:'VL06G',label:'Salidas Pendientes VL06G',icon:'↩️',cols:['NOMBRE_CLIENTE','FECHA_ENTREGA','ENTREGA','CREADO_POR'],hasStatus:true},
-  {key:'TRASPASOS_SOL',label:'Traspasos Solicitados',icon:'🔄',cols:['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR'],hasStatus:true},
+  {key:'TRASPASOS_SOL',label:'Traspasos Solicitados',icon:'🔄',cols:['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR','CANT_PEND_ENTRAR','COSTO_PEND_ENTRAR'],hasStatus:true},
+  {key:'TRASPASOS_SUM',label:'Traspasos Suministrados',icon:'📨',cols:['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR','CANT_PEND_ENTRAR','COSTO_PEND_ENTRAR','TIPO_PENDIENTE'],hasStatus:true},
   {key:'DEVOLUCIONES',label:'Devoluciones a Proveedor',icon:'📤',cols:['PROVEEDOR','ORDEN_COMPRA','FECHA_OC','SALIDA','FECHA_SALIDA','DIAS_ANTIGUEDAD','IMPORTE'],hasStatus:true},
-  {key:'TRASPASOS_SUM',label:'Traspasos Suministrados',icon:'📨',cols:['FECHA','TRASPASO','SOLICITANTE','CODIGO','DESCRIPCION','CANTIDAD','COSTO'],hasStatus:true},
   {key:'PEDIDOS',label:'Pedidos a Proveedor',icon:'📋',cols:null,hasStatus:true,dynamicCols:'_PEDIDOS_COLS',fallbackCols:['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND']},
   {key:'ACTIVOS_VEHICULARES',label:'Activos Vehiculares',icon:'🚗',cols:['FECHA','EQUIPO_TRANSPORTE','RESPONSABLE','POLIZA_FISICA','TARJETA_CIRCULACION','LICENCIA_VIGENTE'],hasStatus:true},
 ];
@@ -854,17 +902,18 @@ function buildEvalHTMLSection(forExport=false){
     const sScore=calcSectionScore(items);
     const sPct=Math.round(sScore*100);
     const sColor=sPct>=80?'#1A7A3C':sPct>=60?'#C97A0A':'#C0392B';
-    const fallos=items.filter(i=>i.value===0);
+    const fallos=items.filter(i=>i.value===0&&!i.noWeight);
     sectionsHTML+=`<tr style="background:#F0F2F8;font-weight:700;">
       <td colspan="2">${sec||'General'}</td>
       <td style="text-align:center;color:${sColor};font-weight:700;">${sPct}%</td>
     </tr>`;
     for(const item of items){
       const ok=item.value===1;
+      const pesoCell=item.noWeight?'<span style="color:#1A5276;">Sin peso</span>':Math.round(item.pct*100)+'%';
       sectionsHTML+=`<tr>
-        <td style="padding-left:20px;font-size:11px;">${item.label}</td>
+        <td style="padding-left:20px;font-size:11px;">${item.label}${item.noWeight?' <span style="font-size:9px;color:#1A5276;">(solo evaluación)</span>':''}</td>
         <td style="text-align:center;">${ok?'<span style="color:#1A7A3C;font-weight:700;">✅ Cumple</span>':'<span style="color:#C0392B;font-weight:700;">❌ No cumple</span>'}</td>
-        <td style="text-align:center;font-size:11px;">${Math.round(item.pct*100)}%</td>
+        <td style="text-align:center;font-size:11px;">${pesoCell}</td>
       </tr>`;
     }
     if(fallos.length){
@@ -917,7 +966,7 @@ function buildEvalReport(cfg){
     const sScore=calcSectionScore(items);
     const sPct=Math.round(sScore*100);
     const sColor=sPct>=80?'#1A7A3C':sPct>=60?'#C97A0A':'#C0392B';
-    const fallos=items.filter(i=>i.value===0);
+    const fallos=items.filter(i=>i.value===0&&!i.noWeight);
     sectionsHTML+=`<div style="margin-bottom:20px;">
       <div style="background:#0F1E3C;color:#fff;padding:10px 16px;display:flex;align-items:center;border-left:5px solid #C0392B;margin-bottom:0;">
         <span style="font-weight:700;font-size:13px;">${sec||'General'}</span>
@@ -928,6 +977,15 @@ function buildEvalReport(cfg){
         <tbody>`;
     for(const item of items){
       const ok=item.value===1;
+      if(item.noWeight){
+        sectionsHTML+=`<tr style="background:#F4F8FE;">
+        <td style="font-size:11px;">${item.label} <span style="font-size:9px;color:#1A5276;">(solo evaluación)</span></td>
+        <td style="text-align:center;font-size:11px;color:#1A5276;">Sin peso</td>
+        <td style="text-align:center;">${ok?'<span style="color:#1A7A3C;font-weight:700;font-size:11px;">✅ Cumple</span>':'<span style="color:#C0392B;font-weight:700;font-size:11px;">❌ No cumple</span>'}</td>
+        <td style="text-align:center;font-size:11px;color:#888;">N/A</td>
+      </tr>`;
+        continue;
+      }
       sectionsHTML+=`<tr ${!ok?'style="background:#FFF8F8;"':''}>
         <td style="font-size:11px;">${item.label}</td>
         <td style="text-align:center;font-size:11px;">${Math.round(item.pct*100)}%</td>
@@ -1004,13 +1062,13 @@ async function generarInforme(){
     fCon:fmtInputDate($('cFCon').value)||todayDMY(),
     aud:$('cAud').value.trim()||'___________________________',
     gerente:$('cGerente').value.trim()||'___________________________',
-    obs:$('cObs').value.trim()
+    obs:$('cObs').value.trim(),
+    notaFirmaTablet:$('cNotaFirma')?$('cNotaFirma').checked:true
   };
 
   prog(20,'Calculando métricas...',);await sleep(80);
   const resg=data['RESGUARDOS']||[];
   const trSol=data['TRASPASOS_SOL']||[];
-  const trDet=data['TRASPASOS_DET']||[];
   const trSum=data['TRASPASOS_SUM']||[];
   const ped=data['PEDIDOS']||[];
   const picks=data['PICKINGS']||[];
@@ -1023,7 +1081,7 @@ async function generarInforme(){
   const costTrSol=trSol.reduce((s,r)=>s+(parseFloat(String(r.COSTO_PEND_SURTIR||0).replace(/[^0-9.-]/g,''))||0),0);
   const costPick=picks.reduce((s,r)=>s+(parseFloat(String(r.COSTO_PEND||0).replace(/[^0-9.-]/g,''))||0),0);
   const costPed=ped.reduce((s,r)=>s+(parseFloat(String(r.COSTO_PEND||0).replace(/[^0-9.-]/g,''))||0),0);
-  const costTrSum=trSum.reduce((s,r)=>s+(parseFloat(String(r.COSTO||0).replace(/[^0-9.-]/g,''))||0),0);
+  const costTrSum=trSum.reduce((s,r)=>s+(parseFloat(String(r.COSTO_PEND_SURTIR||0).replace(/[^0-9.-]/g,''))||0)+(parseFloat(String(r.COSTO_PEND_ENTRAR||0).replace(/[^0-9.-]/g,''))||0),0);
   const costDevs=devs.reduce((s,r)=>s+(parseFloat(String(r.IMPORTE||0).replace(/[^0-9.-]/g,''))||0),0);
 
   prog(40,'Generando insights...');await sleep(80);
@@ -1047,18 +1105,78 @@ async function generarInforme(){
     h+='</tbody></table>';return h;
   }
 
-  function tableResguardos(){
-    if(!resg.length)return'<p style="color:#888;font-style:italic;">Sin registros.</p>';
-    let h='<table><thead><tr><th>Fecha Entrada</th><th>Días Antigüedad</th><th>Referencia</th><th>Folio Resguardo</th><th>Cantidad</th><th>Estatus</th></tr></thead><tbody>';
-    for(const r of resg){
+  // ── RESGUARDOS: de-duplicar por folio (el Excel viene por renglón/SKU) ──
+  // Agrega cantidades del mismo folio y conserva la mayor antigüedad.
+  // Solo se reportan los folios PENDIENTES (no entregados). Estatus C = conforme/entregado → se excluye.
+  function dedupResguardos(rows){
+    const map={};
+    for(const r of rows){
+      const folio=String(r.FOLIO_RESGUARDO||'').trim()||('__'+Math.random());
       const dias=parseInt(r.DIAS_ANTIGUEDAD)||0;
-      h+=`<tr ${dias>30?'style="background:#FFF0F0"':''}><td>${r.FECHA_ENTRADA}</td><td ${dias>30?'style="color:#C0392B;font-weight:700"':''}>${r.DIAS_ANTIGUEDAD}</td><td>${r.REFERENCIA}</td><td>${r.FOLIO_RESGUARDO}</td><td>${r.CANTIDAD}</td><td><span class="stag ${r._status?'status-'+r._status.toLowerCase():''}}">${r._status||'—'}</span></td></tr>`;
+      const cant=parseFloat(r.CANTIDAD)||0;
+      if(!map[folio]){
+        map[folio]={...r,DIAS_ANTIGUEDAD:dias,CANTIDAD:cant};
+      }else{
+        map[folio].CANTIDAD+=cant;
+        if(dias>map[folio].DIAS_ANTIGUEDAD){map[folio].DIAS_ANTIGUEDAD=dias;map[folio].FECHA_ENTRADA=r.FECHA_ENTRADA;}
+        // conservar el estatus "más pendiente" (A < B < C)
+        const rank={A:0,B:1,C:2};
+        if((rank[r._status]??-1)<(rank[map[folio]._status]??-1))map[folio]._status=r._status;
+      }
     }
-    h+=`<tr class="tot-row"><td colspan="4" style="text-align:right">TOTAL:</td><td>${totResg}</td><td></td></tr>`;
+    return Object.values(map);
+  }
+  const resgDedup=dedupResguardos(resg);
+  // Pendientes = no entregados (estatus distinto de C)
+  const resgPend=resgDedup.filter(r=>r._status!=='C');
+  const resgMayores=resgPend.filter(r=>(parseInt(r.DIAS_ANTIGUEDAD)||0)>30).sort((a,b)=>b.DIAS_ANTIGUEDAD-a.DIAS_ANTIGUEDAD);
+  const resgMenores=resgPend.filter(r=>(parseInt(r.DIAS_ANTIGUEDAD)||0)<=30).sort((a,b)=>b.DIAS_ANTIGUEDAD-a.DIAS_ANTIGUEDAD);
+
+  function tablaResg(rowsR){
+    if(!rowsR.length)return'<p style="color:#888;font-style:italic;font-size:12px;">Sin documentos pendientes en este rango.</p>';
+    let h='<table><thead><tr><th>Fecha Entrada</th><th>Días Antigüedad</th><th>Referencia</th><th>Folio Resguardo</th><th>Cantidad</th><th>Estatus</th></tr></thead><tbody>';
+    let tot=0;
+    for(const r of rowsR){
+      const dias=parseInt(r.DIAS_ANTIGUEDAD)||0;
+      tot+=parseFloat(r.CANTIDAD)||0;
+      const stCls=r._status?'status-'+r._status.toLowerCase():'';
+      h+=`<tr ${dias>30?'style="background:#FFF0F0"':''}><td>${fmt(r.FECHA_ENTRADA)}</td><td ${dias>30?'style="color:#C0392B;font-weight:700"':''}>${dias}</td><td>${fmt(r.REFERENCIA)}</td><td>${fmt(r.FOLIO_RESGUARDO)}</td><td>${r.CANTIDAD}</td><td><span class="stag ${stCls}">${r._status||'—'}</span></td></tr>`;
+    }
+    h+=`<tr class="tot-row"><td colspan="4" style="text-align:right">TOTAL:</td><td>${tot}</td><td></td></tr>`;
     h+='</tbody></table>';return h;
   }
 
   const pA=picks.filter(r=>r._status==='A'),pB=picks.filter(r=>r._status==='B'),pC=picks.filter(r=>r._status==='C'),pD=picks.filter(r=>r._status==='D'),pE=picks.filter(r=>r._status==='E');
+
+  // ── TRASPASOS: 4 tablas con columnas unificadas ──────────────────
+  const num=(v)=>parseFloat(String(v==null?0:v).replace(/[^0-9.-]/g,''))||0;
+  const TR_COLS=['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR','CANT_PEND_ENTRAR','COSTO_PEND_ENTRAR'];
+
+  // Solicitados: CANT_PEND_ENTRAR>0 → pend. entrada; CANT_PEND_SURTIR>0 → pend. salida
+  const solPendEntrada=trSol.filter(r=>num(r.CANT_PEND_ENTRAR)>0);
+  const solPendSalida=trSol.filter(r=>num(r.CANT_PEND_SURTIR)>0);
+  // Suministrados: clasificados por TIPO_PENDIENTE
+  const tipoPend=(r)=>String(r.TIPO_PENDIENTE||'ENTRADA').trim().toUpperCase();
+  const sumPendEntrada=trSum.filter(r=>tipoPend(r)!=='SALIDA');
+  const sumPendSalida=trSum.filter(r=>tipoPend(r)==='SALIDA');
+
+  // Builder genérico: columnas fijas + estatus
+  function tablaTraspaso(rowsT,cols,statusKey){
+    if(!rowsT.length)return'<p style="color:#888;font-style:italic;font-size:11px;margin:4px 0 10px;">Sin traspasos en esta categoría.</p>';
+    let h='<table><thead><tr>';
+    cols.forEach(c=>h+=`<th>${c.replace(/_/g,' ')}</th>`);
+    h+='<th>ESTATUS</th></tr></thead><tbody>';
+    for(const r of rowsT){
+      const st=r._status||'';
+      const cls=st?`status-${st.toLowerCase().replace(/[^a-z]/g,'')}`:'';
+      h+='<tr>';
+      for(const c of cols)h+=`<td>${fmt(r[c])}</td>`;
+      h+=`<td><span class="stag ${cls}">${st||'—'}</span></td></tr>`;
+    }
+    h+='</tbody></table>';return h;
+  }
+
+
 
   prog(80,'Ensambando documento...');await sleep(80);
 
@@ -1115,9 +1233,9 @@ h1{color:#C0392B;text-align:center;font-size:22px;}
 .sec-header{background:#0F1E3C;color:#fff;padding:9px 16px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin:28px 0 0;border-left:5px solid #C0392B;}
 .sub-header{color:#C0392B;font-weight:700;font-size:13px;border-bottom:1.5px solid #e8e8e8;padding-bottom:5px;margin:20px 0 10px;}
 table{width:100%;border-collapse:collapse;margin:14px 0;font-size:11.5px;}
-th{background:#0F1E3C;color:#fff;padding:8px 10px;text-align:left;font-size:11px;}
-td{border:1px solid #D0D6E8;padding:6px 10px;vertical-align:top;}
-tr:nth-child(even) td{background:#F7F9FF;}
+th{background:#0F1E3C;color:#fff;padding:6px 9px;text-align:left;font-size:11px;}
+td{border:1px solid #D0D6E8;padding:4px 9px;vertical-align:middle;}
+tr:nth-child(even) td{background:#F9FAFC;}
 .tot-row{background:#E8EDF5!important;font-weight:700;}
 ul{margin:10px 0 12px 22px;}li{margin-bottom:5px;}
 .rec{background:#F0F7FF;border-left:4px solid #0F1E3C;padding:12px 16px;margin:14px 0;border-radius:0 6px 6px 0;}
@@ -1161,8 +1279,8 @@ ul{margin:10px 0 12px 22px;}li{margin-bottom:5px;}
 <p class="intro">El presente informe contiene las observaciones del resultado de la auditoría practicada en la Sucursal <strong>${cfg.suc}</strong> en la ciudad <strong>${cfg.ciu}</strong>, realizada el día <strong>${cfg.fAud}</strong>.</p>
 ${cfg.obs?`<p style="font-style:italic;color:#555;margin-bottom:16px;">📋 ${cfg.obs}</p>`:''}
 <table class="kpi-row"><tr>
-  <td class="kpi"><span class="kpi-label">Resguardos Activos</span><span class="kpi-val">${resg.length}</span><span class="kpi-sub">${totResg} piezas totales</span></td>
-  <td class="kpi ${venc>0?'red':'green'}"><span class="kpi-label">Resguardos +30 días</span><span class="kpi-val">${venc}</span><span class="kpi-sub">${venc>0?'Requieren acción':'Bajo control'}</span></td>
+  <td class="kpi"><span class="kpi-label">Folios en Resguardo</span><span class="kpi-val">${resgDedup.length}</span><span class="kpi-sub">${resgPend.length} pendientes de entrega</span></td>
+  <td class="kpi ${resgMayores.length>0?'red':'green'}"><span class="kpi-label">Resguardos +30 días</span><span class="kpi-val">${resgMayores.length}</span><span class="kpi-sub">${resgMayores.length>0?'Requieren acción':'Bajo control'}</span></td>
   <td class="kpi amber"><span class="kpi-label">Pickings Pendientes</span><span class="kpi-val">${picks.length}</span><span class="kpi-sub">${money(costPick)}</span></td>
   <td class="kpi"><span class="kpi-label">Pedidos Proveedor</span><span class="kpi-val">${ped.length}</span><span class="kpi-sub">${money(costPed)}</span></td>
 </tr></table>
@@ -1172,22 +1290,44 @@ ${seccionesSeleccionadas['efectivo']!==false?efectivoSection:''}
 ${seccionesSeleccionadas['resguardos']!==false?`
 <div class="sec-header">📦 MERCANCÍA EN RESGUARDO</div>
 ${insightHTML(ins.resguardos)}
-<p>Se generó reporte de existencia del centro de resguardo (CR24) en la transacción <strong>MB52</strong> al día <strong>${cfg.fAud}</strong>, encontrando <strong>${resg.length} resguardos</strong> con una existencia total de <strong>${totResg} piezas</strong>. Se identificaron <strong ${venc>0?'style="color:#C0392B"':''}>${venc} resguardo(s) con más de 30 días de antigüedad</strong>.</p>
-${tableResguardos()}
-<div class="st-legend"><strong>Estatus:</strong> A — Sin documentos | B — Pendiente entrega | C — Entregado conforme</div>
-<ul><li><strong>Estatus A:</strong> No se cuenta con documentos. Gerente reportó que los documentos se mojaron debido a una inundación ocurrida durante Semana Santa. El Encargado de almacén afirma que no se ha entregado el material.</li><li><strong>Estatus B:</strong> Documentos con cumplimiento — Material pendiente de entrega.</li><li>Cliente firma de conformidad en el formato. No se identificaron salidas pendientes.</li></ul>
-<div class="rec"><strong>✅ Recomendaciones</strong><ul>
+<p>Se generó reporte de existencia del centro de resguardo (CR24) en la transacción <strong>MB52</strong> al día <strong>${cfg.fAud}</strong>, encontrando <strong>${resgDedup.length} folio(s) de resguardo</strong> (de los cuales <strong>${resgPend.length}</strong> permanecen pendientes de entrega). Se identificaron <strong ${resgMayores.length>0?'style="color:#C0392B"':''}>${resgMayores.length} resguardo(s) con más de 30 días de antigüedad</strong>.</p>
+
+<div class="sub-header">Resguardos con antigüedad mayor a 30 días</div>
+${resgMayores.length
+  ? tablaResg(resgMayores)
+  : `<p>Se generó reporte de mercancía en resguardo abiertos en la transacción <strong>MB52</strong> al <strong>${fechaLarga(cfg.fAud)}</strong>, no encontrando documentos en resguardo mayores a 30 días.</p>`}
+
+<div class="sub-header">Resguardos con antigüedad menor o igual a 30 días</div>
+${resgMenores.length
+  ? tablaResg(resgMenores)
+  : `<p style="color:#555;font-style:italic;">No se encontraron documentos en resguardo pendientes con antigüedad menor o igual a 30 días.</p>`}
+
+<div class="st-legend"><strong>Estatus:</strong> A — Sin documentos | B — Pendiente entrega | C — Conforme (sin salidas pendientes)</div>
+<ul>
+<li><strong>Estatus A:</strong> No se cuenta con documentos. Gerente reportó que los documentos se mojaron debido a una inundación ocurrida durante Semana Santa. El Encargado de almacén afirma que no se ha entregado el material.</li>
+<li><strong>Estatus B:</strong> Documentos con cumplimiento — Material pendiente de entrega.</li>
+<li><strong>Estatus C:</strong> Cliente firma de conformidad en el formato. No se identificaron salidas pendientes.</li>
+</ul>
+<p style="font-size:11px;color:#666;font-style:italic;">Nota: las tablas muestran únicamente los folios pendientes de entrega (no entregados). Los folios con Estatus C (conformes) y los renglones duplicados por SKU se consolidan por folio y se excluyen del detalle pendiente.</p>
+${resgMayores.length?`<div class="rec"><strong>✅ Recomendaciones</strong><ul>
   <li>Dar seguimiento con los Clientes para las entregas de resguardos con más de 30 días. Si no se logra contacto, solicitar el ajuste de entrada según política.</li>
   <li>Gestionar respaldo digital de la documentación dañada por el incidente de inundación.</li>
-</ul></div>`:''}
+</ul></div>`:''}`:''}
 
 ${seccionesSeleccionadas['trSol']!==false?`
 <div class="sec-header">🔄 TRASPASOS SOLICITADOS</div>
 ${insightHTML(ins.traspasos)}
-<p>Se generó reporte de traspasos solicitados desde la transacción <strong>ZREPSOLTRAS</strong> al <strong>${cfg.fAud}</strong>, encontrando <strong>${trSol.length} traspaso(s)</strong> con un costo pendiente de <strong>${money(costTrSol)}</strong>.</p>
-${buildTable(['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR','CANT_PEND_ENTRAR','COSTO_PEND_ENTRAR'],trSol,true,'TRASPASOS_SOL')}
-<ul><li>Los traspasos solicitados a <strong>CEDIS – KC00</strong> corresponden a semanas, sin suficiente existencia para suministrarlos, afectando ventas y entrega de material de alta rotación.</li><li>Se realizan solicitudes de traspaso de material con entregas previas — riesgo de duplicidad y contraviene lineamientos establecidos.</li></ul>
-${trDet.length?`<p><strong>Detalle de artículos no suministrados:</strong></p>${buildTable(['DESCRIPCION','CANT_SIN_SURTIR','COSTO_SIN_SURTIR','EXISTENCIA_CEDIS','INDICADOR'],trDet)}`:''}
+<p>Se generó reporte de traspasos solicitados desde la transacción <strong>ZREPSOLTRAS</strong> al <strong>${cfg.fAud}</strong>, encontrando <strong>${trSol.length} traspaso(s)</strong> con un costo pendiente de <strong>${money(costTrSol)}</strong>. El detalle se desglosa según el pendiente de cada documento.</p>
+
+<div class="sub-header">Solicitados — pendientes de entrada</div>
+<p style="font-size:11px;color:#555;">Documentos con salida en la tienda suministradora, pendientes de realizar la entrada.</p>
+${tablaTraspaso(solPendEntrada,TR_COLS,'TRASPASOS_SOL')}
+
+<div class="sub-header">Solicitados — pendientes de salida</div>
+<p style="font-size:11px;color:#555;">Material en backorder, sin salida en la tienda suministradora (sin existencia para suministrar).</p>
+${tablaTraspaso(solPendSalida,TR_COLS,'TRASPASOS_SOL')}
+
+<ul><li>Los traspasos solicitados a <strong>CEDIS – KC00</strong> corresponden a semanas sin suficiente existencia para suministrarlos, afectando ventas y entrega de material de alta rotación.</li><li>Se realizan solicitudes de traspaso de material con entregas previas — riesgo de duplicidad y contraviene lineamientos establecidos.</li></ul>
 <div class="rec"><strong>✅ Recomendaciones</strong><ul>
   <li>Informar al área de Compras los artículos no suministrados antes de cancelar solicitudes.</li>
   <li>Apegarse al proceso <strong>PRO-CED-011 Traspasos solicitados entre Sucursales o a CEDIS</strong>.</li>
@@ -1195,8 +1335,16 @@ ${trDet.length?`<p><strong>Detalle de artículos no suministrados:</strong></p>$
 
 ${seccionesSeleccionadas['trSum']!==false?`
 <div class="sec-header">📨 TRASPASOS SUMINISTRADOS</div>
-<p>Se generó reporte de traspasos suministrados al <strong>${cfg.fAud}</strong>, encontrando <strong>${trSum.length} traspaso(s)</strong> con un costo de <strong>${money(costTrSum)}</strong>.</p>
-${buildTable(['FECHA','TRASPASO','SOLICITANTE','CODIGO','DESCRIPCION','CANTIDAD','COSTO'],trSum,true,'TRASPASOS_SUM')}
+<p>Se generó reporte de traspasos suministrados al <strong>${cfg.fAud}</strong>, encontrando <strong>${trSum.length} traspaso(s)</strong> con un costo de <strong>${money(costTrSum)}</strong>. El suministro es responsabilidad de la sucursal de origen; aquí se separan según el pendiente del documento.</p>
+
+<div class="sub-header">Suministrados — pendientes de entrada</div>
+<p style="font-size:11px;color:#555;">Material suministrado por la otra sucursal, pendiente de entrada/cancelación en el centro receptor.</p>
+${tablaTraspaso(sumPendEntrada,TR_COLS,'TRASPASOS_SUM')}
+
+<div class="sub-header">Suministrados — pendientes de salida</div>
+<p style="font-size:11px;color:#555;">Documentos suministrados pendientes de salida en la sucursal de origen.</p>
+${tablaTraspaso(sumPendSalida,TR_COLS,'TRASPASOS_SUM')}
+
 <div class="st-legend"><strong>Estatus:</strong> A — Pendiente cancelar | B — Cancelado parcial | C — Cancelado OK | D — Recibido y firmado</div>
 <ul><li>Pendiente cancelar por el centro solicitante; la cancelación fue realizada durante el proceso de auditoría.</li><li>Las salidas son firmadas de recibido.</li></ul>`:''}
 
@@ -1215,8 +1363,13 @@ ${buildTable(pedCols,ped,true,'PEDIDOS')}
 ${seccionesSeleccionadas['pickings']!==false?`
 <div class="sec-header">🛒 PICKINGS</div>
 ${insightHTML(ins.pickings)}
-<p>Se generó reporte de pedidos de venta pendientes de contabilizar al <strong>${cfg.fAud}</strong> desde la transacción <strong>ZVA05VTAS</strong>, encontrando <strong>${picks.length} documentos</strong> con un costo total de <strong>${money(costPick)}</strong>.</p>
-${buildTable(['FECHA','NUMERO_PEDIDO','COD_MATERIAL','CANTIDAD','COSTO_PEND'],picks,true,'PICKINGS')}
+<p>Se generó reporte de pedidos de venta pendientes de contabilizar al <strong>${cfg.fAud}</strong> desde la transacción <strong>ZVA05VTAS</strong>, encontrando <strong>${picks.length} documento(s)</strong> con una cantidad total de <strong>${picks.reduce((s,r)=>s+(parseFloat(r.CANTIDAD)||0),0)} pieza(s)</strong> y un costo total de <strong>${money(costPick)}</strong>.</p>
+<table class="kpi-row"><tr>
+  <td class="kpi"><span class="kpi-label">Documentos</span><span class="kpi-val">${picks.length}</span><span class="kpi-sub">pickings pendientes</span></td>
+  <td class="kpi amber"><span class="kpi-label">Cantidad total</span><span class="kpi-val">${picks.reduce((s,r)=>s+(parseFloat(r.CANTIDAD)||0),0)}</span><span class="kpi-sub">piezas</span></td>
+  <td class="kpi ${(pA.length+pB.length)>0?'red':'green'}"><span class="kpi-label">No justificados (A+B)</span><span class="kpi-val">${pA.length+pB.length}</span><span class="kpi-sub">${money(picks.filter(r=>r._status==='A'||r._status==='B').reduce((s,r)=>s+(parseFloat(String(r.COSTO_PEND||0).replace(/[^0-9.-]/g,''))||0),0))}</span></td>
+  <td class="kpi"><span class="kpi-label">Costo total</span><span class="kpi-val" style="font-size:15px;">${money(costPick)}</span><span class="kpi-sub">pendiente contab.</span></td>
+</tr></table>
 <div class="st-legend"><strong>Estatus:</strong> A — Pend. contabilizar (No justificado) | B — Ajuste pendiente (No justificado) | C — Material en curso (Justificado) | D — Reportado en auditoría (Justificado) | E — Con traspaso (Justificado)</div>
 <ul>
 ${pA.length?`<li><strong>A (No justificado):</strong> ${pA.length} picking(s) con existencia sin contabilizar. Contabilizados durante la auditoría.</li>`:''}
@@ -1225,6 +1378,7 @@ ${pC.length?`<li><strong>C (Justificado):</strong> ${pC.length} picking(s) — M
 ${pD.length?`<li><strong>D (Justificado):</strong> ${pD.length} picking(s) reportados durante la auditoría.</li>`:''}
 ${pE.length?`<li><strong>E (Justificado):</strong> ${pE.length} picking(s) con traspaso en curso.</li>`:''}
 </ul>
+<p style="font-size:11px;color:#666;font-style:italic;">El detalle renglón por renglón de los pickings se presenta en el <strong>Anexo 1</strong> al final del informe.</p>
 <div class="rec"><strong>✅ Recomendaciones</strong><ul>
   <li>Monitorear diariamente la transacción <strong>ZVA05VTAS</strong> para identificar y contabilizar los Pickings entregados y solicitar ajustes del material sin existencias.</li>
   <li>Asegurarse de contabilizar las entradas de las devoluciones en el momento para ingresar el material al inventario.</li>
@@ -1234,7 +1388,7 @@ ${seccionesSeleccionadas['vl06p']!==false?`
 <div class="sec-header">🚚 VL06P — MONITOR DE ENTREGAS</div>
 <p>Se generó reporte de monitor de entregas en la transacción <strong>VL06P</strong> al <strong>${cfg.fAud}</strong>, encontrando <strong>${vl6p.length} entrega(s) pendiente(s)</strong>.</p>
 ${buildTable(['NOMBRE_CLIENTE','FECHA_ENTREGA','ENTREGA','CREADO_POR'],vl6p,true,'VL06P')}
-<ul><li>Material pendiente de entrega.</li><li>Los Pickings son firmados de recibido en la Tablet: material en punto de venta validado por Cajera; material en almacén contabilizado por personal del área.</li></ul>`:''}
+<ul><li>Material pendiente de entrega.</li>${cfg.notaFirmaTablet?`<li>Los Pickings son firmados de recibido en la Tablet: material en punto de venta validado por Cajera; material en almacén contabilizado por personal del área.</li>`:''}</ul>`:''}
 
 ${seccionesSeleccionadas['vl06g']!==false?`
 <div class="sec-header">↩️ VL06G — SALIDAS PENDIENTES DE CONTABILIZAR</div>
@@ -1286,6 +1440,13 @@ ${seccionesSeleccionadas['evaluacion']!==false?evalSection:''}
   <div class="firma"><div class="firma-line"></div><div style="font-weight:700;">${cfg.aud}</div><div style="font-size:11px;color:#666;">Auditor Interno</div></div>
   <div class="firma"><div class="firma-line"></div><div style="font-weight:700;">${cfg.gerente}</div><div style="font-size:11px;color:#666;">Gerente de Sucursal</div></div>
 </div>
+
+${(seccionesSeleccionadas['pickings']!==false&&picks.length)?`
+<div style="page-break-before:always;"></div>
+<div class="sec-header" style="margin-top:34px;">📎 ANEXO 1 — DETALLE DE PICKINGS</div>
+<p style="font-size:11.5px;color:#555;">Detalle completo de los <strong>${picks.length}</strong> pickings pendientes de contabilizar (ZVA05VTAS) al <strong>${cfg.fAud}</strong>.</p>
+${buildTable(['FECHA','NUMERO_PEDIDO','COD_MATERIAL','CANTIDAD','COSTO_PEND'],picks,true,'PICKINGS')}
+`:''}
 <div class="footer">Informe ${cfg.num} | ${cfg.suc} | ${cfg.ciu} | Generado el ${todayDMY()}</div>
 </div></body></html>`;
 
@@ -1330,8 +1491,8 @@ body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1C2130;line-heig
 h1{color:#C0392B;font-size:18pt;font-weight:bold;border-bottom:3px solid #C0392B;padding-bottom:6pt;margin:0 0 8pt;}
 h2,h3{color:#0F1E3C;font-weight:bold;}
 table{border-collapse:collapse;width:100%;margin:8pt 0;}
-th{background:#0F1E3C;color:#fff !important;padding:7pt 8pt;font-size:10pt;font-weight:bold;text-align:left;border:1px solid #999;}
-td{padding:6pt 8pt;border:1px solid #D0D6E8;font-size:10pt;vertical-align:top;color:#1C2130;}
+th{background:#0F1E3C;color:#fff !important;padding:5pt 7pt;font-size:10pt;font-weight:bold;text-align:left;border:1px solid #999;}
+td{padding:4pt 7pt;border:1px solid #D0D6E8;font-size:10pt;vertical-align:middle;color:#1C2130;}
 /* KPI row como tabla */
 .kpi-row{width:100%;border-collapse:collapse;margin:10pt 0;}
 .kpi{border:1.5px solid #BCC6DC;background:#EEF4FF;text-align:center;padding:8pt 10pt;vertical-align:middle;}
@@ -1968,7 +2129,10 @@ function usarDemoData(){
       {FECHA:'13/04/2026',CENTRO_SUM:'KC00',SOLICITUD:'8000081196',CANT_CODIGOS:'11',CANT_PEND_SURTIR:'157',COSTO_PEND_SURTIR:'17075.33',CANT_PEND_ENTRAR:'1',COSTO_PEND_ENTRAR:'179.60',_status:'A'},
       {FECHA:'14/04/2026',CENTRO_SUM:'KC17',SOLICITUD:'8000081224',CANT_CODIGOS:'1',CANT_PEND_SURTIR:'0',COSTO_PEND_SURTIR:'0',CANT_PEND_ENTRAR:'5',COSTO_PEND_ENTRAR:'1197.38',_status:'C'},
     ],
-    TRASPASOS_SUM:[{FECHA:'17/03/2026',TRASPASO:'8000076638',SOLICITANTE:'KC00',CODIGO:'ITS130',DESCRIPCION:'INT TERMOMAGNETICO 1X30 SIEMENS',CANTIDAD:'2.000',COSTO:'215.82',_status:'A'}],
+    TRASPASOS_SUM:[
+      {FECHA:'17/03/2026',CENTRO_SUM:'KC00',SOLICITUD:'8000076638',CANT_CODIGOS:'3',CANT_PEND_SURTIR:'0',COSTO_PEND_SURTIR:'0',CANT_PEND_ENTRAR:'2',COSTO_PEND_ENTRAR:'215.82',TIPO_PENDIENTE:'ENTRADA',_status:'A'},
+      {FECHA:'20/03/2026',CENTRO_SUM:'KC17',SOLICITUD:'8000077101',CANT_CODIGOS:'5',CANT_PEND_SURTIR:'10',COSTO_PEND_SURTIR:'980.00',CANT_PEND_ENTRAR:'0',COSTO_PEND_ENTRAR:'0',TIPO_PENDIENTE:'SALIDA',_status:'B'},
+    ],
     PEDIDOS:[
       {PROVEEDOR:'DEBLOC DE SINALOA',FECHA:'07/04/2026',ORDEN_COMPRA:'4000026526',CANT_CODIGOS:'4',CANTIDAD_PEND:'10',COSTO_PEND:'10143.74'},
       {PROVEEDOR:'URREA HERRAMIENTAS PROFESIONALES',FECHA:'06/04/2026',ORDEN_COMPRA:'4000026385',CANT_CODIGOS:'84',CANTIDAD_PEND:'868',COSTO_PEND:'35796.46'},
@@ -2013,6 +2177,8 @@ function usarDemoData(){
 // ===================== DESCARGA DE PLANTILLA =====================
 function descargarPlantilla(){
   const wb = XLSX.utils.book_new();
+  const TR_HDR=['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR','CANT_PEND_ENTRAR','COSTO_PEND_ENTRAR'];
+  const TR_COLS=[{wch:14},{wch:13},{wch:16},{wch:15},{wch:18},{wch:20},{wch:18},{wch:20}];
 
   // ── HOJA 1: ARQUEO_PV ─────────────────────────────────────────
   const arqueoPVData = [
@@ -2026,7 +2192,6 @@ function descargarPlantilla(){
   // ── HOJA 2: RESGUARDOS ─────────────────────────────────────────
   const resguardosData = [
     ['FECHA_ENTRADA','DIAS_ANTIGUEDAD','REFERENCIA','FOLIO_RESGUARDO','CANTIDAD'],
-    // Ejemplo (borrar antes de usar):
     ['01/04/2026','15','500997005 10','4901274894','6'],
     ['15/03/2026','32','500979399 40','4901310055','3.5'],
   ];
@@ -2034,37 +2199,46 @@ function descargarPlantilla(){
   wsResguardos['!cols'] = [{wch:16},{wch:18},{wch:22},{wch:18},{wch:12}];
   XLSX.utils.book_append_sheet(wb, wsResguardos, 'RESGUARDOS');
 
-  // ── HOJA 3: TRASPASOS_SOL ──────────────────────────────────────
-  const trSolData = [
-    ['FECHA','CENTRO_SUM','SOLICITUD','CANT_CODIGOS','CANT_PEND_SURTIR','COSTO_PEND_SURTIR','CANT_PEND_ENTRAR','COSTO_PEND_ENTRAR'],
-    ['13/04/2026','KC00','8000081004','16','284','10385.93','1','371.54'],
-    ['14/04/2026','KC17','8000081224','1','0','0','5','1197.38'],
+  // ── HOJA 3: SOL_PEND_ENTRADA ──────────────────────────────────
+  const solEntData = [
+    TR_HDR,
+    ['13/04/2026','KC00','8000081004','16','0','0','5','1197.38'],
+    ['14/04/2026','KC17','8000081224','1','0','0','3','562.10'],
   ];
-  const wsTrSol = XLSX.utils.aoa_to_sheet(trSolData);
-  wsTrSol['!cols'] = [{wch:14},{wch:13},{wch:16},{wch:15},{wch:18},{wch:20},{wch:18},{wch:20}];
-  XLSX.utils.book_append_sheet(wb, wsTrSol, 'TRASPASOS_SOL');
+  const wsSolEnt = XLSX.utils.aoa_to_sheet(solEntData);
+  wsSolEnt['!cols'] = TR_COLS;
+  XLSX.utils.book_append_sheet(wb, wsSolEnt, 'SOL_PEND_ENTRADA');
 
-  // ── HOJA 4: TRASPASOS_DET ─────────────────────────────────────
-  const trDetData = [
-    ['DESCRIPCION','CANT_SIN_SURTIR','COSTO_SIN_SURTIR','EXISTENCIA_CEDIS','INDICADOR'],
-    ['ADHESIVO C-PEGA BLANCO 20K NIASA','10','831.90','0','A'],
-    ['PANEL LED RED 12W SOBREPONER LUZ DE DIA','60','3192.00','3','A'],
-    ['COLADERA ALUMINIO REJ CUADR 8"','2','221.28','2','B'],
+  // ── HOJA 4: SOL_PEND_SALIDA ───────────────────────────────────
+  const solSalData = [
+    TR_HDR,
+    ['13/04/2026','KC00','8000081004','16','284','10385.93','0','0'],
+    ['13/04/2026','KC00','8000081196','11','157','17075.33','0','0'],
   ];
-  const wsTrDet = XLSX.utils.aoa_to_sheet(trDetData);
-  wsTrDet['!cols'] = [{wch:45},{wch:18},{wch:18},{wch:18},{wch:12}];
-  XLSX.utils.book_append_sheet(wb, wsTrDet, 'TRASPASOS_DET');
+  const wsSolSal = XLSX.utils.aoa_to_sheet(solSalData);
+  wsSolSal['!cols'] = TR_COLS;
+  XLSX.utils.book_append_sheet(wb, wsSolSal, 'SOL_PEND_SALIDA');
 
-  // ── HOJA 5: TRASPASOS_SUM ─────────────────────────────────────
-  const trSumData = [
-    ['FECHA','TRASPASO','SOLICITANTE','CODIGO','DESCRIPCION','CANTIDAD','COSTO'],
-    ['17/03/2026','8000076638','KC00','ITS130','INT TERMOMAGNETICO 1X30 SIEMENS','2','215.82'],
+  // ── HOJA 5: SUM_PEND_ENTRADA ──────────────────────────────────
+  const sumEntData = [
+    TR_HDR,
+    ['17/03/2026','KC00','8000076638','3','0','0','2','215.82'],
+    ['18/03/2026','KC17','8000076901','5','0','0','8','1480.00'],
   ];
-  const wsTrSum = XLSX.utils.aoa_to_sheet(trSumData);
-  wsTrSum['!cols'] = [{wch:14},{wch:16},{wch:14},{wch:14},{wch:45},{wch:12},{wch:12}];
-  XLSX.utils.book_append_sheet(wb, wsTrSum, 'TRASPASOS_SUM');
+  const wsSumEnt = XLSX.utils.aoa_to_sheet(sumEntData);
+  wsSumEnt['!cols'] = TR_COLS;
+  XLSX.utils.book_append_sheet(wb, wsSumEnt, 'SUM_PEND_ENTRADA');
 
-  // ── HOJA 6: PEDIDOS ────────────────────────────────────────────
+  // ── HOJA 6: SUM_PEND_SALIDA ───────────────────────────────────
+  const sumSalData = [
+    TR_HDR,
+    ['20/03/2026','KC17','8000077101','5','10','980.00','0','0'],
+  ];
+  const wsSumSal = XLSX.utils.aoa_to_sheet(sumSalData);
+  wsSumSal['!cols'] = TR_COLS;
+  XLSX.utils.book_append_sheet(wb, wsSumSal, 'SUM_PEND_SALIDA');
+
+  // ── HOJA 7: PEDIDOS ────────────────────────────────────────────
   const pedidosData = [
     ['PROVEEDOR','FECHA','ORDEN_COMPRA','CANT_CODIGOS','CANTIDAD_PEND','COSTO_PEND'],
     ['DEBLOC DE SINALOA','07/04/2026','4000026526','4','10','10143.74'],
@@ -2074,7 +2248,7 @@ function descargarPlantilla(){
   wsPedidos['!cols'] = [{wch:38},{wch:14},{wch:16},{wch:14},{wch:16},{wch:14}];
   XLSX.utils.book_append_sheet(wb, wsPedidos, 'PEDIDOS');
 
-  // ── HOJA 7: PICKINGS ───────────────────────────────────────────
+  // ── HOJA 8: PICKINGS ───────────────────────────────────────────
   const pickingsData = [
     ['FECHA','NUMERO_PEDIDO','COD_MATERIAL','CANTIDAD','COSTO_PEND'],
     ['15/04/2026','501166644','CCQOD2','1','47'],
@@ -2085,7 +2259,7 @@ function descargarPlantilla(){
   wsPickings['!cols'] = [{wch:14},{wch:16},{wch:16},{wch:12},{wch:14}];
   XLSX.utils.book_append_sheet(wb, wsPickings, 'PICKINGS');
 
-  // ── HOJA 8: VL06P ─────────────────────────────────────────────
+  // ── HOJA 9: VL06P ─────────────────────────────────────────────
   const vl06pData = [
     ['NOMBRE_CLIENTE','FECHA_ENTREGA','ENTREGA','CREADO_POR'],
     ['MARIA GUADALUPE MERCADO','07/04/2026','801250068','CRMOST1'],
@@ -2096,7 +2270,7 @@ function descargarPlantilla(){
   wsVL06P['!cols'] = [{wch:38},{wch:16},{wch:14},{wch:16}];
   XLSX.utils.book_append_sheet(wb, wsVL06P, 'VL06P');
 
-  // ── HOJA 9: VL06G ─────────────────────────────────────────────
+  // ── HOJA 10: VL06G ─────────────────────────────────────────────
   const vl06gData = [
     ['NOMBRE_CLIENTE','FECHA_ENTREGA','ENTREGA','CREADO_POR'],
     ['JOVANNI','15/04/2026','900047452','CRGERENTE'],
@@ -2107,7 +2281,7 @@ function descargarPlantilla(){
   wsVL06G['!cols'] = [{wch:38},{wch:16},{wch:14},{wch:16}];
   XLSX.utils.book_append_sheet(wb, wsVL06G, 'VL06G');
 
-  // ── HOJA 10: DEVOLUCIONES ─────────────────────────────────────
+  // ── HOJA 11: DEVOLUCIONES ─────────────────────────────────────
   const devolucionesData = [
     ['PROVEEDOR','ORDEN_COMPRA','FECHA_OC','SALIDA','FECHA_SALIDA','DIAS_ANTIGUEDAD','IMPORTE'],
     ['FLUIDMASTER SALES MEXICO','4000026690','09/04/2026','5000131544','13/04/2026','3','-33.47'],
@@ -2116,7 +2290,7 @@ function descargarPlantilla(){
   wsDevs['!cols'] = [{wch:35},{wch:16},{wch:14},{wch:16},{wch:14},{wch:18},{wch:14}];
   XLSX.utils.book_append_sheet(wb, wsDevs, 'DEVOLUCIONES');
 
-  // ── HOJA 11: ACTIVOS_VEHICULARES ──────────────────────────────
+  // ── HOJA 12: ACTIVOS_VEHICULARES ──────────────────────────────
   const activosVehData = [
     ['FECHA','EQUIPO_TRANSPORTE','RESPONSABLE','POLIZA_FISICA','TARJETA_CIRCULACION','LICENCIA_VIGENTE'],
     ['03/08/2016','NISSAN NP300 NP300 ESTACAS TM DH AC 6 VEL BCO/GRIS','NO ENCONTRADA','X','X','X'],
@@ -2126,13 +2300,13 @@ function descargarPlantilla(){
   wsActivosVeh['!cols'] = [{wch:14},{wch:55},{wch:25},{wch:16},{wch:20},{wch:18}];
   XLSX.utils.book_append_sheet(wb, wsActivosVeh, 'ACTIVOS_VEHICULARES');
 
-  // ── HOJA 11: INSTRUCCIONES ────────────────────────────────────
+  // ── HOJA 13: INSTRUCCIONES ────────────────────────────────────
   const instrData = [
-    ['KURODA S.A. DE C.V. — PLANTILLA DE AUDITORÍA INTERNA v5','','','',''],
+    ['KURODA S.A. DE C.V. — PLANTILLA DE AUDITORÍA INTERNA v8','','','',''],
     ['','','','',''],
     ['INSTRUCCIONES DE USO','','','',''],
     ['','','','',''],
-    ['1.','Esta plantilla contiene 11 hojas de datos para el informe.','','',''],
+    ['1.','Esta plantilla contiene 12 hojas de datos para el informe.','','',''],
     ['2.','NO cambies los nombres de las hojas ni los encabezados de columna.','','',''],
     ['3.','Borra las filas de ejemplo antes de cargar tus datos reales.','','',''],
     ['4.','Las fechas deben tener formato: DD/MM/YYYY (ej: 16/04/2026).','','',''],
@@ -2143,44 +2317,38 @@ function descargarPlantilla(){
     ['','','','',''],
     ['HOJAS INCLUIDAS','DESCRIPCIÓN','BLOQUE EN INFORME','',''],
     ['ARQUEO_PV','Datos del arqueo de caja: diferencia, fondos, cajera, notas','💵 Efectivo / Arqueos','',''],
-    ['RESGUARDOS','Mercancía entregada a clientes pendiente de recibo oficial','Mercancía en Resguardo','',''],
-    ['TRASPASOS_SOL','Solicitudes de traspaso enviadas a CEDIS u otras sucursales','Traspasos Solicitados','',''],
-    ['TRASPASOS_DET','Detalle de artículos sin surtir en traspasos solicitados','Detalle de Traspasos','',''],
-    ['TRASPASOS_SUM','Traspasos recibidos de otras sucursales pendientes de cancelar','Traspasos Suministrados','',''],
-    ['PEDIDOS','Órdenes de compra abiertas con proveedores (backorder)','Pedidos a Proveedor','',''],
-    ['PICKINGS','Pedidos de venta pendientes de contabilizar en ZVA05VTAS','Pickings','',''],
-    ['VL06P','Entregas pendientes en el monitor de entregas (VL06P)','Monitor de Entregas VL06P','',''],
-    ['VL06G','Salidas (devoluciones) pendientes de contabilizar (VL06G)','Salidas Pendientes VL06G','',''],
-    ['DEVOLUCIONES','Devoluciones a proveedor sin nota de crédito (MIRO) aplicada','Devoluciones a Proveedor','',''],
+    ['RESGUARDOS','Mercancía entregada a clientes pendiente de recibo oficial','📦 Resguardos','',''],
+    ['SOL_PEND_ENTRADA','Traspasos SOLICITADOS con salida en origen, pendientes de ENTRAR','🔄 Solicitados — pend. entrada','',''],
+    ['SOL_PEND_SALIDA','Traspasos SOLICITADOS sin salida en origen (backorder)','🔄 Solicitados — pend. salida','',''],
+    ['SUM_PEND_ENTRADA','Traspasos SUMINISTRADOS por otra sucursal, pend. de ENTRAR aquí','📨 Suministrados — pend. entrada','',''],
+    ['SUM_PEND_SALIDA','Traspasos SUMINISTRADOS, pend. de SALIDA en la sucursal de origen','📨 Suministrados — pend. salida','',''],
+    ['PEDIDOS','Órdenes de compra abiertas con proveedores (backorder)','📋 Pedidos a Proveedor','',''],
+    ['PICKINGS','Pedidos de venta pendientes de contabilizar en ZVA05VTAS','🛒 Pickings','',''],
+    ['VL06P','Entregas pendientes en el monitor de entregas (VL06P)','🚚 Monitor Entregas VL06P','',''],
+    ['VL06G','Salidas (devoluciones) pendientes de contabilizar (VL06G)','↩️ Salidas Pendientes VL06G','',''],
+    ['DEVOLUCIONES','Devoluciones a proveedor sin nota de crédito (MIRO) aplicada','📤 Devoluciones a Proveedor','',''],
     ['ACTIVOS_VEHICULARES','Inventario de documentos vehiculares: póliza, tarjeta y licencia','🚗 Vehículos','',''],
     ['','','','',''],
-    ['DETALLE COLUMNAS — ACTIVOS_VEHICULARES','','','',''],
-    ['FECHA','Fecha de alta del activo vehicular en el sistema (DD/MM/YYYY)','','',''],
-    ['EQUIPO_TRANSPORTE','Descripción completa del vehículo (marca, modelo, color, etc.)','','',''],
-    ['RESPONSABLE','Nombre del responsable asignado. Escribir NO ENCONTRADA si no se localiza físicamente.','','',''],
-    ['POLIZA_FISICA','OK = Póliza de seguro presente y vigente | X = Ausente o vencida','','',''],
-    ['TARJETA_CIRCULACION','OK = Tarjeta de circulación vigente | X = Ausente o vencida','','',''],
-    ['LICENCIA_VIGENTE','OK = Licencia del responsable vigente | X = Ausente o vencida','','',''],
-    ['','','','',''],
-    ['DETALLE COLUMNAS — ARQUEO_PV','','','',''],
-    ['DIFERENCIA_SOBRANTE','Importe numérico de la diferencia (ej: 16.70). Dejar en blanco si no hay diferencia.','','',''],
-    ['CAJERA_INCAPACITADA','S = Sí estuvo incapacitada | N = No estuvo incapacitada','','',''],
-    ['FACTURAS_PENDIENTES','S = Hay facturas pendientes de compensar | N = No hay','','',''],
-    ['FONDO_CAMBIO_MONTO','Monto del fondo para cambio (ej: 5,000)','','',''],
-    ['FONDO_CAMBIO_RESULTADO','Resultado del arqueo: satisfactorios / diferencia sobrante / diferencia faltante','','',''],
-    ['FONDO_CAJA_CHICA_MONTO','Monto del fondo de caja chica (ej: 1,500)','','',''],
-    ['FONDO_CAJA_CHICA_RESULTADO','Resultado del arqueo: satisfactorios / diferencia sobrante / diferencia faltante','','',''],
-    ['NOTAS_ADICIONALES','Observaciones adicionales que se agregarán como bullet al bloque Efectivo','','',''],
+    ['ESTRUCTURA DE COLUMNAS — HOJAS DE TRASPASOS (las 4 hojas usan los mismos encabezados)','','','',''],
+    ['FECHA','Fecha del traspaso (DD/MM/YYYY)','','',''],
+    ['CENTRO_SUM','Centro suministrador (ej: KC00, KC17)','','',''],
+    ['SOLICITUD','Número de solicitud de traspaso SAP','','',''],
+    ['CANT_CODIGOS','Cantidad de códigos de material en el documento','','',''],
+    ['CANT_PEND_SURTIR','Cantidad de piezas pendientes de surtir','','',''],
+    ['COSTO_PEND_SURTIR','Costo total de las piezas pendientes de surtir','','',''],
+    ['CANT_PEND_ENTRAR','Cantidad de piezas pendientes de entrar','','',''],
+    ['COSTO_PEND_ENTRAR','Costo total de las piezas pendientes de entrar','','',''],
     ['','','','',''],
     ['NOTAS IMPORTANTES','','','',''],
     ['•','Los días de antigüedad en RESGUARDOS deben ser valores numéricos enteros.','','',''],
-    ['•','Los registros con DIAS_ANTIGUEDAD > 30 se resaltarán automáticamente en rojo.','','',''],
-    ['•','La columna COSTO_PEND en PICKINGS debe ser un número (sin $, sin comas).','','',''],
-    ['•','Si la sucursal no tiene unidades asignadas, dejar la hoja ACTIVOS_VEHICULARES sin datos (solo encabezados).','','',''],
-    ['•','Versión del sistema: v5.0 | KURODA S.A. DE C.V. | Auditoría Interna','','',''],
+    ['•','RESGUARDOS: el sistema consolida por FOLIO_RESGUARDO. Solo se reportan folios pendientes (no estatus C).','','',''],
+    ['•','Las 4 hojas de traspasos tienen exactamente la misma estructura de columnas.','','',''],
+    ['•','Puedes dejar filas de ceros donde no haya pendiente; el sistema filtra solo renglones con valor > 0.','','',''],
+    ['•','PICKINGS: en el cuerpo del informe se muestran cantidades; el detalle completo va en el Anexo 1.','','',''],
+    ['•','Versión del sistema: v8.0 | KURODA S.A. DE C.V. | Auditoría Interna | FJ Cerezo','','',''],
   ];
   const wsInstr = XLSX.utils.aoa_to_sheet(instrData);
-  wsInstr['!cols'] = [{wch:30},{wch:70},{wch:40},{wch:10},{wch:10}];
+  wsInstr['!cols'] = [{wch:32},{wch:70},{wch:40},{wch:10},{wch:10}];
   wsInstr['!merges'] = [
     {s:{r:0,c:0},e:{r:0,c:4}},
     {s:{r:2,c:0},e:{r:2,c:4}},
@@ -3036,7 +3204,7 @@ async function generarInformeRiesgo(){
   prog(20,'Cargando tablas del Excel...');await sleep(80);
   const resg  = data['RESGUARDOS']   || [];
   const trSol = data['TRASPASOS_SOL']|| [];
-  const trDet = data['TRASPASOS_DET']|| [];
+  const trSum = data['TRASPASOS_SUM']|| [];
   const picks = data['PICKINGS']     || [];
   const ped   = data['PEDIDOS']      || [];
   const vl6p  = data['VL06P']        || [];
@@ -3090,19 +3258,6 @@ async function generarInformeRiesgo(){
       const nivel=nivelMonto(monto);
       buckets[nivel.nv].n++;buckets[nivel.nv].monto+=monto;
       items.push({cat:'Traspaso Sol.',ref:t.SOLICITUD||'—',desc:`Centro ${t.CENTRO_SUM||'—'} — ${t.CANT_PEND_SURTIR||0} pza pend.`,monto,dias:'—',nivel});
-    });
-  }
-  // Detalle Traspasos (TRASPASOS_DET)
-  if(seccionesSeleccionadas['trDet']){
-    trDet.forEach(d=>{
-      const monto=parseFloat(String(d.COSTO_SIN_SURTIR||0).replace(/[^0-9.-]/g,''))||0;
-      const ex=parseInt(d.EXISTENCIA_CEDIS)||0;
-      // Sin existencia en CEDIS eleva el riesgo
-      let nivel=nivelMonto(monto);
-      if(ex===0&&nivel.nv==='BAJO') nivel={nv:'MODERADO',cl:'#C97A0A',bg:'#FFF8E7'};
-      if(ex===0&&nivel.nv==='MODERADO') nivel={nv:'ALTO',cl:'#E67E22',bg:'#FFF4E5'};
-      buckets[nivel.nv].n++;buckets[nivel.nv].monto+=monto;
-      items.push({cat:'Detalle Trasp.',ref:(d.INDICADOR||'—'),desc:`${d.DESCRIPCION||'—'} — CEDIS: ${ex}`,monto,dias:'—',nivel});
     });
   }
   // Resguardos
@@ -3596,6 +3751,126 @@ function regenerarConTipo(){
   else generarInforme();
 }
 
+// ===================== EDITOR INLINE DEL INFORME =====================
+let _inlineOriginalFull = null;
+let _inlineSeccion = 'obs';
+
+function abrirEditorInline(){
+  if(!htmlReporte){alert('Genera primero el informe.');return;}
+  _inlineOriginalFull = htmlReporte;
+  _inlineSeccion = 'obs';
+  $('inlineSeccionSelect').value = 'obs';
+  $('inlineSearchResult').style.display='none';
+  $('inlineStatusMsg').textContent='';
+  cargarSeccionEdicion('obs');
+  $('editorInlineModal').style.display='block';
+}
+
+function cerrarEditorInline(){
+  $('editorInlineModal').style.display='none';
+}
+
+function cargarSeccionEdicion(sec){
+  _inlineSeccion = sec;
+  const area = $('inlineEditorArea');
+  $('inlineStatusMsg').textContent='';
+  if(sec === 'full'){
+    area.value = htmlReporte;
+    return;
+  }
+  // Extraer body del informe para búsquedas parciales
+  const bodyMatch = htmlReporte.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  const body = bodyMatch ? bodyMatch[1] : htmlReporte;
+  if(sec === 'obs'){
+    // Párrafo intro + obs
+    const introMatch = body.match(/(<p[^>]*class="intro"[\s\S]*?<\/p>[\s\S]*?)(?=<table|<div class="sec-header"|<div class="kpi-row")/i)
+                    || body.match(/(El presente informe[\s\S]{0,800}?)(?=<table|<div class="kpi-row")/i);
+    area.value = introMatch ? introMatch[1].trim() : '(No se pudo extraer la sección. Usa "HTML completo" para editar manualmente.)';
+  } else if(sec === 'conclusion'){
+    const concMatch = body.match(/(CONCLUSIÓN[\s\S]*?<div class="firma-wrap">[\s\S]*?<\/div>\s*<\/div>)/i)
+                   || body.match(/(sec-header.*CONCLUSI[\s\S]{0,600})/i);
+    area.value = concMatch ? concMatch[1].trim() : '(No se encontró la sección de Conclusión. Usa "HTML completo".)';
+  }
+}
+
+function buscarTextoInline(){
+  const q = $('inlineBuscarInput').value.trim();
+  const res = $('inlineSearchResult');
+  if(!q){res.style.display='none';return;}
+  const idx = htmlReporte.indexOf(q);
+  if(idx === -1){
+    res.style.display='block';
+    res.style.background='#FEF0F0';
+    res.innerHTML=`❌ Texto "<strong>${q}</strong>" no encontrado en el informe.`;
+    return;
+  }
+  // Mostrar contexto
+  const ctx = htmlReporte.substring(Math.max(0,idx-60), idx+q.length+60);
+  res.style.display='block';
+  res.style.background='#EEF4FF';
+  res.innerHTML=`✅ Encontrado en posición ${idx}. Contexto: <code style="font-size:10px;background:#fff;padding:2px 4px;border-radius:3px;">...${ctx.replace(/</g,'&lt;').replace(/>/g,'&gt;')}...</code>`;
+  // Cargar full mode con el cursor cerca
+  _inlineSeccion = 'full';
+  $('inlineSeccionSelect').value = 'full';
+  $('inlineEditorArea').value = htmlReporte;
+  // Intentar seleccionar el texto en el textarea
+  const ta = $('inlineEditorArea');
+  ta.setSelectionRange(idx, idx + q.length);
+  ta.focus();
+}
+
+function aplicarEdicionInline(){
+  const area = $('inlineEditorArea');
+  const nuevoTexto = area.value;
+  if(_inlineSeccion === 'full'){
+    htmlReporte = nuevoTexto;
+  } else {
+    // Reemplazar sección parcial dentro del HTML completo
+    const secActual = cargarSeccionTexto(_inlineSeccion);
+    if(secActual && htmlReporte.includes(secActual)){
+      htmlReporte = htmlReporte.replace(secActual, nuevoTexto);
+    } else {
+      // Fallback: no se encontró — advertir y no aplicar
+      $('inlineStatusMsg').textContent='⚠️ No se pudo localizar la sección en el HTML. Cambia a "HTML completo" y edita manualmente.';
+      $('inlineStatusMsg').style.color='#C0392B';
+      return;
+    }
+  }
+  // Actualizar preview
+  const blob=new Blob([htmlReporte],{type:'text/html;charset=utf-8'});
+  $('previewFrame').src=URL.createObjectURL(blob);
+  $('inlineStatusMsg').textContent='✅ Cambios aplicados. Vista previa actualizada.';
+  $('inlineStatusMsg').style.color='#1A7A3C';
+  // Sincronizar _inlineOriginalFull para poder deshacer solo dentro de la sesión
+}
+
+function cargarSeccionTexto(sec){
+  const bodyMatch = htmlReporte.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  const body = bodyMatch ? bodyMatch[1] : htmlReporte;
+  if(sec === 'obs'){
+    const m = body.match(/(<p[^>]*class="intro"[\s\S]*?<\/p>[\s\S]*?)(?=<table|<div class="sec-header"|<div class="kpi-row")/i)
+           || body.match(/(El presente informe[\s\S]{0,800}?)(?=<table|<div class="kpi-row")/i);
+    return m ? m[1].trim() : null;
+  }
+  if(sec === 'conclusion'){
+    const m = body.match(/(CONCLUSIÓN[\s\S]*?<div class="firma-wrap">[\s\S]*?<\/div>\s*<\/div>)/i)
+           || body.match(/(sec-header.*CONCLUSI[\s\S]{0,600})/i);
+    return m ? m[1].trim() : null;
+  }
+  return null;
+}
+
+function restaurarSeccionOriginal(){
+  if(!_inlineOriginalFull){return;}
+  if(!confirm('¿Deshacer todos los cambios y restaurar el informe original?'))return;
+  htmlReporte = _inlineOriginalFull;
+  const blob=new Blob([htmlReporte],{type:'text/html;charset=utf-8'});
+  $('previewFrame').src=URL.createObjectURL(blob);
+  cargarSeccionEdicion(_inlineSeccion);
+  $('inlineStatusMsg').textContent='↩️ Informe restaurado al estado original.';
+  $('inlineStatusMsg').style.color='#1A5276';
+}
+
 // ===================== SELECTOR DE TIPO (INIT DEFAULT) =====================
 SECCIONES_DISPONIBLES.forEach(s=>{seccionesSeleccionadas[s.id]=s.defOn;});
 
@@ -3627,4 +3902,5 @@ updateCounters();
     By Cerezo
   </footer>
 </div>
+
 
