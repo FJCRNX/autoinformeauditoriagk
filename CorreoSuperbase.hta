@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Sincronizador Frogmi Local</title>
+    
+    <hta:application 
+        id="frogmiApp"
+        applicationname="Sincronizador Frogmi"
+        border="thin"
+        caption="yes"
+        showintaskbar="yes"
+        singleinstance="yes"
+        sysmenu="yes"
+        windowstate="normal"
+        navigable="yes"
+    />
+
+    <style>
+        /* Reset y centrado absoluto continuo */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Evita barras de scroll en la ventana de la app */
+        }
+        body {
+            background: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        /* Contenedor fluido y elástico */
+        .container {
+            text-align: center;
+            padding: 2.5rem 2rem;
+            background: #1e293b;
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.5);
+            width: 100%;
+            max-width: 420px; /* Límite para pantallas grandes */
+            min-width: 280px; /* Límite para pantallas ultra chicas */
+            border: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Tipografías responsivas según el ancho */
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.6rem;
+            color: #38bdf8;
+            width: 100%;
+        }
+        p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            line-height: 1.4;
+            width: 100%;
+        }
+        
+        /* Botón adaptables al centro */
+        .btn-principal {
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.05rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.4);
+            transition: all 0.3s ease;
+            width: 100%; /* El botón se adapta al ancho del contenedor */
+            max-width: 320px;
+            outline: none;
+        }
+        .btn-principal:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 20px -5px rgba(14, 165, 233, 0.6);
+        }
+        .btn-principal:active {
+            transform: scale(0.99);
+        }
+        .btn-principal:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        
+        #status {
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: #38bdf8;
+            font-weight: 500;
+            min-height: 20px;
+            width: 100%;
+        }
+
+        /* Ajustes dinámicos para pantallas o ventanas muy recortadas */
+        @media (max-width: 380px) {
+            .container {
+                padding: 1.8rem 1.2rem;
+                border-radius: 16px;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            p {
+                font-size: 0.85rem;
+                margin-bottom: 1.5rem;
+            }
+            .btn-principal {
+                padding: 0.9rem 1.5rem;
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Sincronizador Frogmi</h1>
+        <p>Presiona el botón para consultar Supabase y abrir las ventanas de correo directamente en tu Outlook de escritorio.</p>
+        
+        <button id="btnEjecutar" class="btn-principal" onclick="procesarTodoLocal()">
+            🚀 Generar Correos de Tiendas
+        </button>
+
+        <div id="status">Listo para iniciar</div>
+    </div>
+
+<script>
+    // Tamaño por defecto al abrirse como aplicación de Windows
+    window.resizeTo(480, 420);
+
+    const SUPABASE_URL = "https://xlygkolfmetytowixtnb.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_qMc5NuOO1HUzYvQzFEr2fA_vVqBzXND";
+    const CORREOS_DESTINO = "Fcerezo@kuroda.com, CErezo191@gmail.com";
+
+    function procesarTodoLocal() {
+        const btn = document.getElementById("btnEjecutar");
+        const statusDiv = document.getElementById("status");
+
+        btn.disabled = true;
+        statusDiv.innerText = "Conectando con Supabase...";
+
+        setTimeout(function() {
+            try {
+                var xhr = new ActiveXObject("MSXML2.ServerXMLHTTP.6.0");
+                xhr.open("GET", SUPABASE_URL + "/rest/v1/tareas?select=*", false);
+                xhr.setRequestHeader("apikey", SUPABASE_KEY);
+                xhr.setRequestHeader("Authorization", "Bearer " + SUPABASE_KEY);
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.send();
+
+                if (xhr.status !== 200) {
+                    throw new Error("Error de Supabase: Status " + xhr.status);
+                }
+
+                var tareas = JSON.parse(xhr.responseText);
+
+                var tareasPendientes = [];
+                for (var i = 0; i < tareas.length; i++) {
+                    var t = tareas[i];
+                    var estado = (t.estado || "").toLowerCase().trim();
+                    if (estado.indexOf("abierta") !== -1 && t.tienda) {
+                        tareasPendientes.push(t);
+                    }
+                }
+
+                if (tareasPendientes.length === 0) {
+                    alert("Se descargó la base, pero ninguna tarea pendiente tiene estatus 'Abierta' o 'Abierta atrasada'.");
+                    restablecerBoton();
+                    return;
+                }
+
+                var mapeoTiendas = {};
+                for (var i = 0; i < tareasPendientes.length; i++) {
+                    var t = tareasPendientes[i];
+                    var tienda = t.tienda.trim();
+                    var centro = (t.centro || "Sin Centro Asignado").trim();
+                    
+                    if (!mapeoTiendas[tienda]) mapeoTiendas[tienda] = {};
+                    if (!mapeoTiendas[tienda][centro]) mapeoTiendas[tienda][centro] = [];
+                    
+                    mapeoTiendas[tienda][centro].push(t);
+                }
+
+                var OutApp = new ActiveXObject("Outlook.Application");
+                var correosAbiertos = 0;
+
+                for (var tienda in mapeoTiendas) {
+                    statusDiv.innerText = "Abriendo Outlook para: " + tienda + "...";
+                    
+                    var minFecha = "9999-12-31", maxFecha = "0000-00-00";
+                    var primerCentro = "";
+
+                    for (var centro in mapeoTiendas[tienda]) {
+                        if (!primerCentro) primerCentro = centro;
+                        var listaTareas = mapeoTiendas[tienda][centro];
+                        
+                        for (var k = 0; k < listaTareas.length; k++) {
+                            var t = listaTareas[k];
+                            var fechas = [t.fecha_creacion, t.fecha_term, t.fecha_cumpl];
+                            for (var f = 0; f < fechas.length; f++) {
+                                var fStr = fechas[f];
+                                if (fStr && fStr.indexOf("-") !== -1 && fStr.length >= 10) {
+                                    var soloFecha = fStr.split(" ")[0];
+                                    if (soloFecha < minFecha) minFecha = soloFecha;
+                                    if (soloFecha > maxFecha) maxFecha = soloFecha;
+                                }
+                            }
+                        }
+                    }
+
+                    var intervaloFechas = "reciente";
+                    if (minFecha !== "9999-12-31") {
+                        var formatFecha = function(f) { return f.split("-").reverse().join("/"); };
+                        intervaloFechas = (minFecha === maxFecha) ? formatFecha(minFecha) : formatFecha(minFecha) + " al " + formatFecha(maxFecha);
+                    }
+
+                    var hoy = new Date();
+                    var dia = hoy.getDate();
+                    var mes = hoy.getMonth() + 1;
+                    var yyyy = hoy.getFullYear();
+                    var dd = (dia < 10) ? '0' + dia : dia;
+                    var mm = (mes < 10) ? '0' + mes : mes;
+                    var fechaHoyStr = dd + "." + mm + "." + yyyy;
+
+                    var asunto = (primerCentro + "-" + tienda + " " + fechaHoyStr + " TAREAS FROGMI PENDIENTES").toUpperCase();
+                    var cuerpoHtml = construirHtmlJS(intervaloFechas, mapeoTiendas[tienda]);
+
+                    var OutMail = OutApp.CreateItem(0); 
+                    OutMail.To = CORREOS_DESTINO;
+                    OutMail.Subject = asunto;
+                    OutMail.HTMLBody = cuerpoHtml;
+                    OutMail.Display(); 
+                    correosAbiertos++;
+                }
+
+                statusDiv.innerText = "¡Proceso Completado con Éxito!";
+                alert("Se han abierto " + correosAbiertos + " ventanas de Outlook de forma exitosa.");
+
+            } catch (error) {
+                alert("Ocurrió un error en el proceso local:\n" + error.message);
+                statusDiv.innerText = "Error en la ejecución.";
+            } finally {
+                restablecerBoton();
+            }
+        }, 100);
+    }
+
+    function restablecerBoton() {
+        document.getElementById("btnEjecutar").disabled = false;
+        document.getElementById("btnEjecutar").innerText = "🚀 Generar Correos de Tiendas";
+    }
+
+    function construirHtmlJS(intervaloFechas, centrosData) {
+        var html = '<div style="font-family: Arial, sans-serif; color: #222; max-width: 1000px; margin: auto; line-height: 1.6;">' +
+            '<p style="font-size: 15px; margin-bottom: 20px;">Buenas tardes Gerente/Administrativo,</p>' +
+            '<p style="font-size: 15px; margin-bottom: 25px;">Les comparto la tarea con relación a la auditoria de colaboración realizada del <b>' + intervaloFechas + '</b> que aún sigue pendiente de atenderse.</p>';
+
+        for (var centro in centrosData) {
+            var tareas = centrosData[centro];
+            
+            html += '<div style="margin-top: 25px; margin-bottom: 5px; background-color: #3c4043; color: #ffffff; padding: 8px 12px; font-weight: bold; font-size: 14px; display: inline-block; border-left: 4px solid #d93025;">' +
+                '📌 Agrupación: ' + centro + ' <span style="font-size: 12px; font-weight: normal; color: #ddd; margin-left: 5px;">(' + tareas.length + ' pendientes)</span>' +
+                '</div>' +
+                '<table style="border-collapse: collapse; width: 100%; font-size: 11px; border: 1px solid #dcdcdc; margin-bottom: 25px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">' +
+                '<thead>' +
+                    '<tr style="background-color: #f1f3f4; color: #333; font-weight: bold; border-bottom: 2px solid #ccc;">' +
+                        '<th style="padding: 10px 6px; border: 1px solid #dcdcdc; text-align: left;">ID Tarea</th>' +
+                        '<th style="padding: 10px 6px; border: 1px solid #dcdcdc; text-align: left;">Razón</th>' +
+                        '<th style="padding: 10px 6px; border: 1px solid #dcdcdc; text-align: left;">Área Responsable</th>' +
+                        '<th style="padding: 10px 6px; border: 1px solid #dcdcdc; text-align: left;">Área Revisora</th>' +
+                        '<th style="padding: 10px 6px; border: 1px solid #dcdcdc; text-align: left;">Actividad</th>' +
+                        '<th style="padding: 10px 6px; border: 1px solid #dcdcdc; text-align: left;">Nombre</th>' +
+                        '<th style="padding: 10px 6px; border: 1px solid #dcdcdc; text-align: left;">Tipo Tarea</th>' +
+                        '<th style="padding: 10px 6px; border: 1px solid #dcdcdc; text-align: left;">Estado</th>' +
+                        '<th style="padding: 10px 6px; border: 1px solid #dcdcdc; text-align: left;">Fecha Creación</th>' +
+                        '<th style="padding: 10px 6px; border: 1px solid #dcdcdc; text-align: left;">Fecha Término</th>' +
+                    '</tr>' +
+                '</thead>' +
+                '<tbody>';
+
+            for (var index = 0; index < tareas.length; index++) {
+                var t = tareas[index];
+                var fondo = (index % 2 === 0) ? "#ffffff" : "#f8f9fa";
+                html += '<tr style="background-color: ' + fondo + ';">' +
+                    '<td style="padding: 8px 6px; border: 1px solid #dcdcdc; color: #444;">' + (t.tarea_id || '-') + '</td>' +
+                    '<td style="padding: 8px 6px; border: 1px solid #dcdcdc; color: #444;">' + (t.razon || '-') + '</td>' +
+                    '<td style="padding: 8px 6px; border: 1px solid #dcdcdc; color: #444;">' + (t.area_resp || '-') + '</td>' +
+                    '<td style="padding: 8px 6px; border: 1px solid #dcdcdc; color: #444;">' + (t.area_rev || '-') + '</td>' +
+                    '<td style="padding: 8px 6px; border: 1px solid #dcdcdc; color: #444;">' + (t.actividad || '-') + '</td>' +
+                    '<td style="padding: 8px 6px; border: 1px solid #dcdcdc; color: #444;">' + (t.nombre || '-') + '</td>' +
+                    '<td style="padding: 8px 6px; border: 1px solid #dcdcdc; color: #444;">' + (t.tipo_tarea || '-') + '</td>' +
+                    '<td style="padding: 8px 6px; border: 1px solid #dcdcdc; color: #444;"><span style="color: #b06000; font-weight: bold;">' + (t.estado || '-') + '</span></td>' +
+                    '<td style="padding: 8px 6px; border: 1px solid #dcdcdc; color: #444;">' + (t.fecha_creacion || '-') + '</td>' +
+                    '<td style="padding: 8px 6px; border: 1px solid #dcdcdc; color: #444;">' + (t.fecha_term || '-') + '</td>' +
+                '</tr>';
+            }
+
+            html += '</tbody></table>';
+        }
+
+        html += '<br><p style="font-size: 15px; margin-bottom: 20px;">Quedo a la orden de cualquier duda o comentario.</p>' +
+            '<p style="font-size: 15px; font-weight: bold; margin-bottom: 30px;">Saludos!!</p>' +
+            '<p style="margin-top: 50px; font-size: 10px; color: #aaa; text-align: center; border-top: 1px dashed #e0e0e0; padding-top: 15px;">' +
+            'Reporte automático generado por el sistema de Sincronización Local HTA.</p></div>';
+        return html;
+    }
+</script>
+</body>
+</html>
